@@ -34,21 +34,19 @@ and the **viewer** (a small web app you leave running).
 The `harness-studio` skill and its MCP tools are now available in any project, and
 the MCP reads/writes that project's `.harness/` folder.
 
-**2. Run the viewer in your project:**
+**2. Run the viewer** — one line, no clone, no install:
 
 ```bash
-# one-time: clone + install, then link the `harness` launcher globally
-git clone https://github.com/AssetsArt/harness-studio && cd harness-studio
-bun install && bun link
-
-# then, from ANY project you're designing:
 cd ~/my-app
-harness                 # serves the viewer on :4317, watching ./.harness
+bunx github:AssetsArt/harness-studio     # viewer on :4317, watching ./.harness
 ```
 
-`harness` seeds a starter `.harness/` if there isn't one and points the viewer at
-*your* project. (No clone? `bunx github:AssetsArt/harness-studio` runs the same
-launcher.)
+It seeds a starter `.harness/` if there isn't one and points the viewer at *your*
+project. Leave it open; it repaints as the AI edits the canvas.
+
+> Prefer a short global command? `git clone https://github.com/AssetsArt/harness-studio`,
+> then `cd harness-studio && bun install && bun link` — now `harness` runs it from
+> anywhere. Flags: `--project <dir>`, `--port <n>`.
 
 **3. Design:** run **`/hns <what to build>`** (e.g. `/hns a checkout flow`) — the
 skill drives the phases, the MCP writes to `./.harness/`, and your viewer repaints
