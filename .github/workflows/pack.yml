@@ -23,8 +23,10 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: "1.4.0" # must understand bun.lock's lockfileVersion
+          bun-version: latest
 
+      # Plain install (no --frozen): if the runner's bun is older than the one
+      # that wrote bun.lock, it harmlessly ignores the lockfile and resolves fresh.
       - name: Install
         run: bun install
 
