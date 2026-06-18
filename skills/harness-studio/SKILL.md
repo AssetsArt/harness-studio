@@ -64,6 +64,11 @@ Never describe a screen in prose when you could render it. Show, ask, adjust.
 - `harness_get_view` also returns `errors`: console/runtime errors from the
   prototype. If something you wrote is broken, you'll see it here — fix it without
   waiting for the dev.
+- `harness_design_review` — run impeccable's deterministic anti-slop detectors over
+  a screen's HTML and get craft findings (low contrast, side-stripe borders, gradient
+  text, identical card grids, over-rounded cards, eyebrow overuse…). A design-quality
+  eye to pair with the screenshot; fix what it flags. Opt-in — returns a note if
+  impeccable isn't available.
 
 Granular prototype edits — **touch one piece, not the whole design** (this is how
 you keep big prototypes cheap to edit):
@@ -176,6 +181,9 @@ the dev react at each step.
    approved before building. Skip this only when the dev is clearly mid-loop already.
 2. `harness_get_state` and `harness_get_view` to ground yourself.
 3. Make the smallest change that answers the current question. Patch one section.
+   Then check your work before showing the dev — `harness_get_screenshot` (pixels)
+   and, for prototype screens, `harness_design_review` (craft / anti-slop) — and fix
+   what they surface.
 4. Tell the dev in one line what changed and what you want them to react to
    ("Click *Add walk-in* — does that field set feel right?").
 5. `harness_get_feedback`; fold their notes in; repeat.
@@ -329,6 +337,21 @@ Use them; do not hand-roll what they give you, and **never use emoji as icons.**
   icons appear automatically. **Emoji are not icons — use lucide.**
 - Both load from a CDN, so the prototype needs network; offline, classes go
   unstyled and icons stay blank.
+
+**Avoid AI-slop — these read as "an AI made this".** Don't ship them; rework the
+element instead. (Run `harness_design_review` to catch them automatically.)
+
+- **Side-stripe borders** (a thick coloured `border-left`/`right` as a card/alert
+  accent) — use a full border, a background tint, or nothing.
+- **Gradient text** (`background-clip:text` + gradient) — use one solid colour;
+  emphasise with weight/size.
+- **Glassmorphism by default** (decorative blur/glass) — rare and purposeful, or none.
+- **Identical card grids** (same icon + heading + text card repeated) and the
+  **hero-metric template** (big number, small label, gradient accent).
+- **A tiny uppercase tracked eyebrow above every section**, or **01/02/03 numbered
+  section markers** as default scaffolding.
+- **Low-contrast text** — body must hit ≥4.5:1; never grey text on a coloured fill.
+- **Over-rounded cards** (radius ≥ 24px) — cards top out ~12–16px (pills are fine).
 
 **Pick the device frame** with `prototype.frame` (or per-screen `frame`):
 `web` (browser, default), `desktop` (native app window), `ios` or `android`

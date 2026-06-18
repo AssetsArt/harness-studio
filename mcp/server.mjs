@@ -554,6 +554,50 @@ server.registerTool(
 );
 
 server.registerTool(
+  "harness_design_review",
+  {
+    description:
+      "Run impeccable's deterministic design-quality detectors over the prototype's screen HTML and return the findings — an anti-slop craft eye for the loop (gradient text, side-stripe borders, glassmorphism-by-default, identical card grids, low-contrast text, tiny uppercase eyebrows, over-rounded cards, etc.). Like harness_get_screenshot sees the pixels and the error feed sees runtime, this catches design issues before the dev does. Needs impeccable available — the first run fetches it via `npx` (a few seconds); offline / unavailable returns a note, NOT an error. Pass a screen id to scan one screen, or omit to scan all.",
+    inputSchema: {
+      screen: zod.string().optional().describe("Screen id to scan; omit to scan every prototype screen."),
+    },
+  },
+  async ({ screen }) => {
+    const target = screen ? screenFile(screen) : SCREEN_DIR;
+    if (!fs.existsSync(target)) return err(screen ? `No screen "${screen}".` : "No prototype screens yet.");
+    let res;
+    try {
+      res = spawnSync("npx", ["--yes", "impeccable", "detect", "--json", target], {
+        cwd: PROJECT_DIR,
+        encoding: "utf8",
+        timeout: 180000,
+        maxBuffer: 16 * 1024 * 1024,
+      });
+    } catch (e) {
+      res = { error: e };
+    }
+    const out = (res.stdout || "").trim();
+    const errOut = (res.stderr || "").trim();
+    // A linter exits non-zero when it FINDS issues — that's a successful run, not a
+    // failure. Only treat "errored, or produced nothing on a non-zero exit" as unavailable.
+    if (res.error || (!out && res.status !== 0)) {
+      return text({
+        ok: false,
+        available: false,
+        note: "Couldn't run impeccable detect (not installed / offline / npx unavailable). Install it with `npx impeccable install`, or run `/impeccable audit` in Claude Code. Detail: " + ((res.error && res.error.message) || errOut || `exit ${res.status}`),
+      });
+    }
+    let findings = out || errOut || "(no findings)";
+    try {
+      findings = JSON.parse(out);
+    } catch {
+      /* not JSON — return as text */
+    }
+    return text({ ok: true, target, findings });
+  }
+);
+
+server.registerTool(
   "harness_set_frame",
   {
     description: "Set the default device frame for the prototype (or omit a screen to set the global default).",

@@ -185,6 +185,7 @@ on the current project's `.harness/`:
 - `harness_start_viewer` — launch the viewer from the installed plugin (idempotent; no stale cache)
 - `harness_restart_viewer` — re-run the viewer from the installed plugin so it serves the latest build (what `/hns update` / `/hns restart` use; no manual cache-clearing)
 - `harness_get_screenshot` — a PNG of how a screen actually renders (the pixels you see)
+- `harness_design_review` — run [impeccable](https://github.com/pbakaus/impeccable)'s deterministic anti-slop detectors over a screen's HTML and return craft findings (low contrast, side-stripe borders, gradient text, identical card grids, …). Opt-in — returns a note if impeccable isn't available
 - `harness_get_view` — your active tab, prototype screen, store, and any prototype errors
 - `harness_get_feedback` — notes you left, including the element you clicked to comment on
 
