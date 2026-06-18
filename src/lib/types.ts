@@ -183,6 +183,11 @@ export interface Screen {
   title: string;
   /** Device frame to render this screen in (overrides prototype.frame). */
   frame?: FrameKind;
+  /** Background painted into the device safe areas (status bar + home indicator)
+   *  for ios/android frames, so the screen reads edge-to-edge instead of leaving
+   *  white bands. Any CSS color; status-bar text + the home pill auto-contrast.
+   *  Overrides prototype.safeArea. */
+  safeArea?: string;
   /** Browser-bar URL shown in the freeform device frame, e.g. "shop.demo/cart". */
   url?: string;
   /** Freeform mode: HTML for this screen. With a layout, this is just the body slot. */
@@ -237,6 +242,10 @@ export interface Prototype {
   start?: string;
   /** Default device frame for all screens (web | desktop | ios | android). */
   frame?: FrameKind;
+  /** Default safe-area background for ios/android frames (a screen's own
+   *  `safeArea` overrides it). Set it to the screens' edge colour for a
+   *  full-bleed look instead of white status-bar / home-indicator bands. */
+  safeArea?: string;
   /** Global CSS (tokens + component classes) injected into every freeform screen. */
   designSystem?: string;
   /** Structured design tokens — rendered as a style guide and compiled to CSS

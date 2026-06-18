@@ -191,7 +191,12 @@ export function PrototypeTab({
         )}
 
         {freeform ? (
-          <DeviceFrame frame={frame} url={cur.url || `shop.demo/${cur.id || ""}`} title={cur.title}>
+          <DeviceFrame
+            frame={frame}
+            url={cur.url || `shop.demo/${cur.id || ""}`}
+            title={cur.title}
+            safeArea={cur.safeArea ?? prototype.safeArea}
+          >
             <FreeformDevice
               screenId={cur.id}
               title={cur.title}

@@ -518,7 +518,7 @@ server.registerTool(
   "harness_set_screen",
   {
     description:
-      "Create or replace one screen: writes only .harness/prototype/screens/<id>.html and upserts the screen's entry in the manifest (title/url/frame). Other screens and the rest of the design are untouched. This is how you edit a screen cheaply. STYLE WITH TAILWIND UTILITY CLASSES (injected live) — not inline style=; use lucide icons (<i data-lucide=\"…\">), never emoji.",
+      "Create or replace one screen: writes only .harness/prototype/screens/<id>.html and upserts the screen's entry in the manifest (title/url/frame/safeArea). Other screens and the rest of the design are untouched. This is how you edit a screen cheaply. For a full-bleed ios/android screen, pass `safeArea` so the status-bar + home-indicator bands take the screen's edge colour instead of staying white. STYLE WITH TAILWIND UTILITY CLASSES (injected live) — not inline style=; use lucide icons (<i data-lucide=\"…\">), never emoji.",
     inputSchema: {
       id: zod.string(),
       html: zod
@@ -529,9 +529,15 @@ server.registerTool(
       title: zod.string().optional(),
       url: zod.string().optional(),
       frame: zod.enum(["web", "desktop", "ios", "android"]).optional(),
+      safeArea: zod
+        .string()
+        .optional()
+        .describe(
+          "For ios/android frames: the colour painted into the device safe areas (status bar + home indicator) so the screen reads edge-to-edge instead of leaving white bands. Use any CSS colour — set it to this screen's top/bottom edge colour. Status-bar text auto-contrasts. Empty string clears it."
+        ),
     },
   },
-  async ({ id, html, title, url, frame }) => {
+  async ({ id, html, title, url, frame, safeArea }) => {
     fs.mkdirSync(SCREEN_DIR, { recursive: true });
     fs.writeFileSync(screenFile(id), html);
     const state = readJson(STATE_FILE) || { meta: { name: "Untitled", phase: "prototype" } };
@@ -546,6 +552,10 @@ server.registerTool(
     if (title !== undefined) sc.title = title;
     if (url !== undefined) sc.url = url;
     if (frame !== undefined) sc.frame = frame;
+    if (safeArea !== undefined) {
+      if (safeArea === "") delete sc.safeArea;
+      else sc.safeArea = safeArea;
+    }
     delete sc.html; // body lives in the file now
     writeState(state);
     return text({ ok: true, id, wrote: screenFile(id) });
@@ -705,25 +715,38 @@ server.registerTool(
 server.registerTool(
   "harness_set_frame",
   {
-    description: "Set the default device frame for the prototype (or omit a screen to set the global default).",
+    description:
+      "Set the device frame and/or the safe-area background — for one screen (pass `screen`) or the prototype default. `safeArea` is the colour painted into a phone's status-bar + home-indicator bands for ios/android frames; set it to the screen's edge colour so it reads edge-to-edge instead of leaving white bands (status-bar text auto-contrasts). Pass `safeArea: \"\"` to clear it. Provide `frame`, `safeArea`, or both.",
     inputSchema: {
-      frame: zod.enum(["web", "desktop", "ios", "android"]),
-      screen: zod.string().optional().describe("Screen id to scope the frame to; omit for the prototype default."),
+      frame: zod.enum(["web", "desktop", "ios", "android"]).optional(),
+      safeArea: zod
+        .string()
+        .optional()
+        .describe("Safe-area background for ios/android frames (any CSS colour). Empty string clears it."),
+      screen: zod.string().optional().describe("Screen id to scope to; omit for the prototype default."),
     },
   },
-  async ({ frame, screen }) => {
+  async ({ frame, safeArea, screen }) => {
+    if (frame === undefined && safeArea === undefined)
+      return err("Provide `frame`, `safeArea`, or both.");
     const state = readJson(STATE_FILE);
     if (state == null) return err("No state.json yet.");
     state.prototype = state.prototype || {};
+    let dest;
     if (screen) {
       const sc = (state.prototype.screens || []).find((s) => s.id === screen);
       if (!sc) return err(`No screen "${screen}" in the manifest.`);
-      sc.frame = frame;
+      dest = sc;
     } else {
-      state.prototype.frame = frame;
+      dest = state.prototype;
+    }
+    if (frame !== undefined) dest.frame = frame;
+    if (safeArea !== undefined) {
+      if (safeArea === "") delete dest.safeArea;
+      else dest.safeArea = safeArea;
     }
     writeState(state);
-    return text({ ok: true, frame, screen: screen || "(default)" });
+    return text({ ok: true, frame: dest.frame, safeArea: dest.safeArea ?? null, screen: screen || "(default)" });
   }
 );
 

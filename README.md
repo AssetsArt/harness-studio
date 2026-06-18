@@ -149,7 +149,10 @@ Preview the same HTML in different shells via `prototype.frame` (or a per-screen
 and **`android`** (phone frames with status bar, notch / punch-hole, home
 indicator). Phone frames render at ~390px so your responsive CSS kicks in. A frame
 switcher in the sidebar previews any screen in any frame; the AI's declared frame is
-the default and wins whenever it changes.
+the default and wins whenever it changes. For a full-bleed phone screen, set
+`safeArea` (per screen or `prototype.safeArea`) to the edge colour so the status-bar
+and home-indicator bands take that colour instead of staying white — status-bar
+contents auto-contrast.
 
 ### Split into files (so it scales)
 
@@ -180,7 +183,7 @@ on the current project's `.harness/`:
 - `harness_get_component` / `harness_set_component` — read/write one shared fragment
 - `harness_get_design_system` / `harness_set_design_system` — the shared CSS
 - `harness_get_design_tokens` / `harness_set_design_tokens` — the structured design system (colors, typography, spacing, radii, shadows, fonts); shown as a style guide in the Prototype → **Design system** sub-view, and compiled to CSS custom properties (`--color-*`, `--space-*`, …) injected into every screen
-- `harness_set_phase` / `harness_set_frame` — record the current phase (shown in the status bar; tabs are free routes) / set the device frame
+- `harness_set_phase` / `harness_set_frame` — record the current phase (shown in the status bar; tabs are free routes) / set the device frame and/or the `safeArea` colour (paints a phone's status-bar + home-indicator bands for full-bleed ios/android screens)
 - `harness_get_api` / `harness_set_api` — the `api` section (the Flow tab): an OpenAPI 3 document — routes, middleware, params, body, responses, and `x-screens` (which screens call each route → screen→API edges)
 - `harness_get_architecture` / `harness_set_architecture` — the `architecture` section (the Architecture tab): C4-style system diagram (nodes/edges), ADRs (`decisions`), `nfrs`, `security` notes, `stack`
 - `harness_get_plan` / `harness_set_plan` / `harness_set_task` — the `plan` Kanban board (custom statuses = columns, milestones = swimlanes, tasks = cards w/ priority); `set_task` moves a card between columns
