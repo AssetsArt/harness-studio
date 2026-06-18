@@ -223,4 +223,5 @@ src/                          # the viewer (React + Tailwind + shadcn-style + lu
 ## Stack
 
 Bun · React 19 · Vite 6 · Tailwind CSS v4 · shadcn-style components · lucide-react ·
-TypeScript · `@modelcontextprotocol/sdk`. Fonts: Geist / Geist Mono.
+React Flow (`@xyflow/react`) + dagre for the data-model diagram · TypeScript ·
+`@modelcontextprotocol/sdk`. Fonts: Geist / Geist Mono.

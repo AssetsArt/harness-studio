@@ -114,9 +114,11 @@ export default function App() {
             onError={onError}
           />
         )}
-        {tab !== "prototype" && (
+        {/* Data model is a full-bleed React Flow canvas (pan/zoom), so it fills the
+            area directly instead of living in the scroll+padding wrapper. */}
+        {tab === "data" && <DataTab dataModel={data.dataModel ?? {}} />}
+        {(tab === "flow" || tab === "plan") && (
           <div className="w-full overflow-auto px-[30px] py-7">
-            {tab === "data" && <DataTab dataModel={data.dataModel ?? {}} />}
             {tab === "flow" && <FlowTab flow={data.flow ?? {}} />}
             {tab === "plan" && <PlanTab plan={data.plan ?? {}} />}
           </div>
