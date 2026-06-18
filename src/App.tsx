@@ -114,13 +114,13 @@ export default function App() {
             onError={onError}
           />
         )}
-        {/* Data model is a full-bleed React Flow canvas (pan/zoom), so it fills the
-            area directly instead of living in the scroll+padding wrapper. */}
+        {/* Data model and Flow are full-bleed React Flow canvases (pan/zoom), so
+            they fill the area directly instead of living in the scroll wrapper. */}
         {tab === "data" && <DataTab dataModel={data.dataModel ?? {}} />}
-        {(tab === "flow" || tab === "plan") && (
+        {tab === "flow" && <FlowTab api={data.api ?? {}} />}
+        {tab === "plan" && (
           <div className="w-full overflow-auto px-[30px] py-7">
-            {tab === "flow" && <FlowTab flow={data.flow ?? {}} />}
-            {tab === "plan" && <PlanTab plan={data.plan ?? {}} />}
+            <PlanTab plan={data.plan ?? {}} />
           </div>
         )}
       </div>

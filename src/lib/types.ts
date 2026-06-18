@@ -53,6 +53,69 @@ export interface DataModel {
   relationships?: Relationship[];
 }
 
+// ── API layer (the Flow tab) — an OpenAPI-3-shaped document the AI authors and
+// the viewer renders as a React Flow graph + a Postman-style inspector. Vendor
+// extensions (x-*) are valid OpenAPI, so this exports cleanly.
+export type HttpMethod = "get" | "post" | "put" | "patch" | "delete" | "options" | "head";
+export const HTTP_METHODS: HttpMethod[] = ["get", "post", "put", "patch", "delete", "options", "head"];
+
+export interface ApiSchema {
+  type?: string;
+  format?: string;
+  items?: ApiSchema;
+  properties?: Record<string, ApiSchema>;
+  required?: string[];
+  enum?: unknown[];
+  example?: unknown;
+  description?: string;
+  $ref?: string;
+  [k: string]: unknown;
+}
+export interface ApiParameter {
+  name: string;
+  in: "path" | "query" | "header" | "cookie";
+  required?: boolean;
+  description?: string;
+  schema?: ApiSchema;
+  example?: unknown;
+}
+export interface ApiMediaType {
+  schema?: ApiSchema;
+  example?: unknown;
+}
+export interface ApiRequestBody {
+  description?: string;
+  required?: boolean;
+  content?: Record<string, ApiMediaType>;
+}
+export interface ApiResponse {
+  description?: string;
+  content?: Record<string, ApiMediaType>;
+}
+export interface ApiOperation {
+  summary?: string;
+  description?: string;
+  operationId?: string;
+  tags?: string[];
+  /** Middleware names applied to this operation (vendor extension). */
+  "x-middleware"?: string[];
+  parameters?: ApiParameter[];
+  requestBody?: ApiRequestBody;
+  responses?: Record<string, ApiResponse>;
+}
+export type ApiPathItem = Partial<Record<HttpMethod, ApiOperation>>;
+export interface ApiMiddleware {
+  name: string;
+  description?: string;
+}
+export interface ApiDoc {
+  info?: { title?: string; version?: string; description?: string };
+  servers?: { url: string; description?: string }[];
+  /** Registry of middleware (vendor extension), referenced by operations' x-middleware. */
+  "x-middleware"?: ApiMiddleware[];
+  paths?: Record<string, ApiPathItem>;
+}
+
 export type FlowKind = "screen" | "api" | "entity";
 export interface FlowNode {
   id: string;
@@ -147,6 +210,7 @@ export interface HarnessState {
   plan?: Plan;
   dataModel?: DataModel;
   flow?: Flow;
+  api?: ApiDoc;
   prototype?: Prototype;
 }
 

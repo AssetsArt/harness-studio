@@ -189,6 +189,40 @@ server.registerTool(
   }
 );
 
+server.registerTool(
+  "harness_get_api",
+  {
+    description:
+      "Read the `api` section — the OpenAPI-3-shaped HTTP API (info, servers, the x-middleware registry, and paths with operations). This is what the Flow tab renders.",
+    inputSchema: {},
+  },
+  async () => {
+    const state = readJson(STATE_FILE) || {};
+    if (!state.api) return text({ exists: false, note: "No api yet — write one with harness_set_api (OpenAPI 3 shape)." });
+    return text(state.api);
+  }
+);
+
+server.registerTool(
+  "harness_set_api",
+  {
+    description:
+      'Write the `api` section (the Flow tab) as an OpenAPI 3 document. Shape: { info?, servers?, "x-middleware"?: [{ name, description }], paths: { "/route/{id}": { get|post|put|patch|delete: { summary?, tags?, "x-middleware"?: ["auth"], parameters?: [{ name, in: "path"|"query"|"header", required?, schema, description?, example? }], requestBody?: { required?, content: { "application/json": { schema, example? } } }, responses?: { "200": { description, content? } } } } } }. Replaces the whole api section and the viewer repaints. Vendor extensions (x-*) are valid OpenAPI and export cleanly.',
+    inputSchema: {
+      api: zod.record(zod.any()).describe("OpenAPI-3-shaped document. Must include a `paths` object."),
+    },
+  },
+  async ({ api }) => {
+    if (!api || typeof api !== "object") return err("api must be an object.");
+    if (!api.paths || typeof api.paths !== "object")
+      return err("api.paths is required — an object of route path → { <method>: operation }.");
+    const state = readJson(STATE_FILE) || { meta: { name: "Untitled", phase: "flow" } };
+    state.api = api;
+    writeState(state);
+    return text({ ok: true, paths: Object.keys(api.paths).length });
+  }
+);
+
 // ── Granular prototype edits — touch one file, not the whole design ─────────
 
 server.registerTool(

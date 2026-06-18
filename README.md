@@ -174,6 +174,7 @@ on the current project's `.harness/`:
 - `harness_get_component` / `harness_set_component` — read/write one shared fragment
 - `harness_get_design_system` / `harness_set_design_system` — the shared CSS
 - `harness_set_phase` / `harness_set_frame` — advance the stepper / set the device frame
+- `harness_get_api` / `harness_set_api` — the `api` section (the Flow tab): an OpenAPI 3 document — routes, middleware, params, body, responses
 - `harness_start_viewer` — launch the viewer from the installed plugin (idempotent; no stale cache)
 - `harness_get_screenshot` — a PNG of how a screen actually renders (the pixels you see)
 - `harness_get_view` — your active tab, prototype screen, store, and any prototype errors
@@ -223,5 +224,6 @@ src/                          # the viewer (React + Tailwind + shadcn-style + lu
 ## Stack
 
 Bun · React 19 · Vite 6 · Tailwind CSS v4 · shadcn-style components · lucide-react ·
-React Flow (`@xyflow/react`) + dagre for the data-model diagram · TypeScript ·
-`@modelcontextprotocol/sdk`. Fonts: Geist / Geist Mono.
+React Flow (`@xyflow/react`) + dagre for the data-model & API-flow diagrams ·
+`yaml` for OpenAPI 3 export · TypeScript · `@modelcontextprotocol/sdk`. Fonts:
+Geist / Geist Mono.

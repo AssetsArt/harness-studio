@@ -36,6 +36,9 @@ Never describe a screen in prose when you could render it. Show, ask, adjust.
 - `harness_patch_state` — merge one top-level section (`spec`, `dataModel`,
   `flow`, `plan`, or the prototype manifest). Your workhorse for the structured tabs.
 - `harness_set_phase` — advance the stepper: `prototype → data → flow → plan`.
+- `harness_get_api` / `harness_set_api` — read/write the `api` section (the Flow
+  tab) as an OpenAPI 3 document: routes, middleware (`x-middleware`), and
+  per-operation params (path/query/header), request body, and responses.
 - `harness_get_feedback` — drain notes the dev left in the viewer. Check it after
   every meaningful change and act on what you find. Notes may include an `element`
   (tag/text/selector) when the dev clicked a specific element to comment on it —
@@ -61,7 +64,7 @@ you keep big prototypes cheap to edit):
 The canvas is split so each piece stays small:
 
 ```
-.harness/state.json                     meta/spec/plan/dataModel/flow + prototype MANIFEST (no HTML)
+.harness/state.json                     meta/spec/plan/dataModel/api + prototype MANIFEST (no HTML)
 .harness/prototype/design-system.css    shared CSS
 .harness/prototype/components/<name>.html   shared fragments ({{>name}})
 .harness/prototype/screens/<id>.html        each screen body
@@ -129,7 +132,12 @@ a document.
    through, with the spec (goal, users, stories, scope, constraints) in the rail
    beside it. Get the shape of the product right here first.
 2. **Data model** — entities, fields (mark `pk`/`fk`/`required`), relationships.
-3. **Flow** — screens → APIs → entities, with read/write edges.
+   Rendered as a React Flow ER diagram.
+3. **Flow (API)** — design the HTTP API as an **OpenAPI 3** document in `api`:
+   routes (method + path), middleware, and per-operation params
+   (path/query/header), request body, and responses. The viewer shows it as a
+   React Flow graph (routes + middleware chain) with a Postman-style inspector
+   (Params · Headers · Body · Responses) and an Export OpenAPI 3 button.
 4. **Plan** — stack + milestones with task status. This falls out of the above.
 
 Move the phase with `harness_set_phase` as each is settled. Don't race ahead — let
@@ -185,9 +193,29 @@ the dev react at each step.
     ],
     "relationships": [ { "from": "A", "to": "B", "type": "N:1", "label": "for" } ]
   },
-  "flow": {
-    "nodes": [ { "id": "s_x", "kind": "screen", "label": "X" } ],   // kind ∈ screen|api|entity
-    "edges": [ { "from": "s_x", "to": "a_y", "label": "do", "op": "write" } ]  // op ∈ read|write
+  "api": {                                    // the Flow tab — OpenAPI 3 shaped
+    "info": { "title": "App API", "version": "1.0.0" },
+    "servers": [ { "url": "https://api.app.com/v1" } ],
+    "x-middleware": [ { "name": "auth", "description": "Require a Bearer token" } ],  // middleware registry
+    "paths": {
+      "/items/{id}": {
+        "get": {
+          "summary": "Get an item",
+          "x-middleware": ["cors", "auth"],   // middleware applied to this operation
+          "parameters": [
+            { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } },
+            { "name": "expand", "in": "query", "schema": { "type": "string" }, "description": "..." },
+            { "name": "Authorization", "in": "header", "required": true, "schema": { "type": "string" } }
+          ],
+          "responses": { "200": { "description": "OK", "content": { "application/json": { "schema": { "type": "object", "properties": { "id": { "type": "string" } } }, "example": { "id": "x" } } } }, "404": { "description": "Not found" } }
+        },
+        "post": {
+          "summary": "Create",
+          "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string" } } }, "example": { "name": "x" } } } },
+          "responses": { "201": { "description": "Created" } }
+        }
+      }
+    }
   },
   "plan": {
     "stack": ["React", "Node"],
