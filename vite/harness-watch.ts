@@ -71,10 +71,22 @@ function assembleState(dir: string): Record<string, unknown> | null {
       const c = readRaw(path.join(cdir, f));
       if (c != null) fileComps[f.replace(/\.html$/, "")] = c;
     }
-    proto.components = { ...fileComps, ...(proto.components || {}) };
+    // Inline values win over files — but a BLANK inline value must not blank out a
+    // real file. A slim patch_state can leave `components: { card: "" }` behind; the
+    // file on disk is the source of truth, so an empty/whitespace inline entry falls
+    // back to the file instead of overriding it.
+    const merged: Record<string, string> = { ...fileComps };
+    for (const [k, v] of Object.entries(proto.components || {})) {
+      if (typeof v === "string" && v.trim() === "" && fileComps[k] != null) continue;
+      merged[k] = v as string;
+    }
+    proto.components = merged;
     const sdir = path.join(pdir, SCREEN_DIR);
     for (const sc of proto.screens || []) {
-      if (sc && sc.html == null && sc.components == null && sc.id) {
+      // Read the file when the screen has no inline body — or only a blank one (same
+      // footgun as components: an empty inline html shouldn't hide the real file).
+      const blankHtml = sc && (sc.html == null || (typeof sc.html === "string" && sc.html.trim() === ""));
+      if (sc && blankHtml && sc.components == null && sc.id) {
         const h = readRaw(path.join(sdir, sanitize(sc.id) + ".html"));
         if (h != null) sc.html = h;
       }

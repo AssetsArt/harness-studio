@@ -43,6 +43,11 @@ Never describe a screen in prose when you could render it. Show, ask, adjust.
 - `harness_set_state` — write the whole canvas. Use for the first build or a full rewrite.
 - `harness_patch_state` — merge one top-level section (`spec`, `dataModel`,
   `flow`, `plan`, or the prototype manifest). Your workhorse for the structured tabs.
+  Top-level keys replace; **`meta` and `prototype` deep-merge**, so a slim
+  `{ prototype: { … } }` patch keeps the keys it omits (tokens, components, screens)
+  instead of wiping them. Even so, edit prototype pieces with the granular setters
+  (`harness_set_screen` / `harness_set_component` / `harness_set_design_tokens`) —
+  they touch one file and keep the manifest clean.
 - `harness_set_phase` — record the current phase (`prototype → data → flow → architecture → plan`), shown in the status bar. Tabs are free routes the dev can revisit in any order, so this just marks where you're working.
 - `harness_get_spec` — read just the `spec` (goal, users, userStories, scope,
   constraints) without pulling the whole state. Write it via `harness_patch_state`.

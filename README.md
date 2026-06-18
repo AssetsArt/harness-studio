@@ -177,7 +177,7 @@ lo-fi screens.
 The plugin registers a self-contained MCP server (no extra install) that operates
 on the current project's `.harness/`:
 
-- `harness_get_state` / `harness_set_state` / `harness_patch_state` — read & write the structured canvas + prototype manifest. `get_state` takes `{ outline: true }` (a cheap index of sections + counts + sizes) or `{ sections: [...] }` (only the keys you want) so large projects don't pay for the whole blob each time
+- `harness_get_state` / `harness_set_state` / `harness_patch_state` — read & write the structured canvas + prototype manifest. `get_state` takes `{ outline: true }` (a cheap index of sections + counts + sizes) or `{ sections: [...] }` (only the keys you want) so large projects don't pay for the whole blob each time. In `patch_state`, top-level keys replace, but `meta` and `prototype` **deep-merge** — a partial `{ prototype: … }` patch keeps the tokens / components / screens it omits instead of wiping them
 - `harness_get_spec` / `harness_get_data_model` — read just the `spec` or `dataModel` section on its own (token-cheap grounding); write them via `harness_patch_state`
 - `harness_get_screen` / `harness_set_screen` — read/write one screen body (one file)
 - `harness_get_component` / `harness_set_component` — read/write one shared fragment

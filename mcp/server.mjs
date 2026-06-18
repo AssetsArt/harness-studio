@@ -94,6 +94,21 @@ function writeState(state) {
   ensureDir();
   fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2) + "\n");
 }
+function isPlainObject(v) {
+  return v != null && typeof v === "object" && !Array.isArray(v);
+}
+// Recursively merge `patch` into `base`: nested objects merge key-by-key, while
+// arrays and scalars replace. This is what keeps a partial `prototype` patch from
+// nuking the keys it didn't mention (tokens / components / screens). Arrays
+// replace wholesale because a patched array means "this is the new list".
+function deepMerge(base, patch) {
+  if (!isPlainObject(base) || !isPlainObject(patch)) return patch;
+  const out = { ...base };
+  for (const k of Object.keys(patch)) {
+    out[k] = isPlainObject(out[k]) && isPlainObject(patch[k]) ? deepMerge(out[k], patch[k]) : patch[k];
+  }
+  return out;
+}
 function screenFile(id) {
   return path.join(SCREEN_DIR, sanitize(id) + ".html");
 }
@@ -293,11 +308,13 @@ server.registerTool(
   "harness_patch_state",
   {
     description:
-      "Shallow-merge a section into state.json without resending the whole object. Top-level keys you provide replace that key (e.g. send the full `spec` object, or a new `prototype`). Everything else is preserved. This is the workhorse for iterating during a design phase.",
+      "Merge a section into state.json without resending the whole object. Top-level keys you provide REPLACE that key (send the full `spec`, `api`, `dataModel`, … to swap it) — EXCEPT `meta` and `prototype`, which DEEP-MERGE so a partial patch can't wipe what it omits. That guard matters because `prototype` holds your tokens, components, screens and layout: patching `{ prototype: { components: { card: \"…\" } } }` keeps tokens + the other components intact (it used to blank them). To replace a screen/component/token set outright, prefer the granular setters (harness_set_screen / harness_set_component / harness_set_design_tokens) — they touch one file and keep the manifest clean. This is the workhorse for iterating during a design phase.",
     inputSchema: {
       patch: zod
         .record(zod.any())
-        .describe("Partial state, e.g. { spec: {...} } or { prototype: {...} }. Top-level keys replace."),
+        .describe(
+          "Partial state, e.g. { spec: {...} } or { prototype: { tokens: {...} } }. Top-level keys replace; `meta` and `prototype` deep-merge (sibling keys preserved)."
+        ),
     },
   },
   async ({ patch }) => {
@@ -305,10 +322,13 @@ server.registerTool(
       return err("patch must be an object.");
     const current = readJson(STATE_FILE) || {};
     const next = { ...current, ...patch };
-    if (patch.meta) next.meta = { ...(current.meta || {}), ...patch.meta };
+    // meta + prototype deep-merge so a partial patch never drops the keys it omits
+    // (the classic footgun: a slim `prototype` patch wiping tokens / components).
+    if (patch.meta) next.meta = deepMerge(current.meta || {}, patch.meta);
+    if (patch.prototype) next.prototype = deepMerge(current.prototype || {}, patch.prototype);
     if (!next.meta) return err("Resulting state has no meta — set one first.");
     writeState(next);
-    return text({ ok: true, mergedKeys: Object.keys(patch) });
+    return text({ ok: true, mergedKeys: Object.keys(patch), deepMerged: Object.keys(patch).filter((k) => k === "meta" || k === "prototype") });
   }
 );
 
@@ -579,12 +599,19 @@ server.registerTool(
   "harness_set_component",
   {
     description:
-      "Create or replace a shared component (.harness/prototype/components/<name>.html), referenced as {{>name}} from the layout or screens. Edit it once and every screen that uses it updates — no per-screen edits. Style with Tailwind utility classes (injected live), not inline style=; lucide icons, not emoji.",
+      "Create or replace a shared component (.harness/prototype/components/<name>.html), referenced as {{>name}} from the layout or screens. Edit it once and every screen that uses it updates — no per-screen edits. The file is the source of truth: this also clears any stale inline `prototype.components[name]` override in state.json, so a slim patch can't blank the component out. Style with Tailwind utility classes (injected live), not inline style=; lucide icons, not emoji.",
     inputSchema: { name: zod.string(), html: zod.string().describe("Component HTML. Tailwind utility classes for styling (not inline style=); lucide icons, not emoji.") },
   },
   async ({ name, html }) => {
     fs.mkdirSync(COMP_DIR, { recursive: true });
     fs.writeFileSync(componentFile(name), html);
+    // Drop any inline override in the state map so the file we just wrote wins
+    // (an inline "" here is exactly what used to blank a real component).
+    const state = readJson(STATE_FILE);
+    if (state && state.prototype && state.prototype.components && name in state.prototype.components) {
+      delete state.prototype.components[name];
+      writeState(state);
+    }
     return text({ ok: true, name, wrote: componentFile(name) });
   }
 );
