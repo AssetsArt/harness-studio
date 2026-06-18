@@ -5,7 +5,7 @@
 //   • harness_get_state     — read the whole state.json (what you've built)
 //   • harness_set_state     — replace state.json (triggers the live viewer)
 //   • harness_patch_state   — shallow-merge a section (spec/plan/prototype/…)
-//   • harness_set_phase     — advance the phase stepper
+//   • harness_set_phase     — record the current phase (shown in the status bar)
 //   • harness_get_view      — see what the dev is looking at right now
 //                             (active tab + prototype screen) — "see what you did"
 //   • harness_get_feedback  — drain notes the dev left from inside the viewer
@@ -240,7 +240,7 @@ server.registerTool(
 server.registerTool(
   "harness_set_phase",
   {
-    description: "Advance the phase stepper in the viewer. The flow is prototype → data → flow → architecture → plan.",
+    description: "Record the current phase (prototype → data → flow → architecture → plan), shown in the viewer's status bar. Navigation is free: each tab is a real route the dev can jump to and revisit in any order, so this marks where you're working rather than forcing the view.",
     inputSchema: { phase: zod.enum(["prototype", "data", "flow", "architecture", "plan"]) },
   },
   async ({ phase }) => {

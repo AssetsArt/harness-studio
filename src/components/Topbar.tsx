@@ -1,20 +1,10 @@
 import { useState } from "react";
-import { Check, Moon, Sun, SlidersHorizontal } from "lucide-react";
-import type { Meta, Phase } from "../lib/types";
-import { TAB_ORDER, normalizePhase } from "../lib/types";
+import { Moon, Sun, SlidersHorizontal } from "lucide-react";
+import type { Meta } from "../lib/types";
 import { MONO, useTheme, ACCENT_PRESETS } from "../lib/theme";
 
-const STEP_LABEL: Record<Phase, string> = {
-  prototype: "Prototype",
-  data: "Data",
-  flow: "Flow",
-  architecture: "Architecture",
-  plan: "Plan",
-};
-
-export function Topbar({ meta, setTab }: { meta: Meta; setTab: (t: Phase) => void }) {
+export function Topbar({ meta }: { meta: Meta }) {
   const { c, mode, toggleMode } = useTheme();
-  const curIdx = Math.max(0, TAB_ORDER.indexOf(normalizePhase(meta.phase)));
 
   return (
     <div
@@ -37,9 +27,7 @@ export function Topbar({ meta, setTab }: { meta: Meta; setTab: (t: Phase) => voi
         </span>
       </div>
 
-      <div className="flex flex-1 justify-center">
-        <Stepper curIdx={curIdx} setTab={setTab} />
-      </div>
+      <div className="flex-1" />
 
       <div className="flex items-center gap-2">
         <Settings />
@@ -68,59 +56,6 @@ export function Topbar({ meta, setTab }: { meta: Meta; setTab: (t: Phase) => voi
           </span>
         </div>
       </div>
-    </div>
-  );
-}
-
-function Stepper({ curIdx, setTab }: { curIdx: number; setTab: (t: Phase) => void }) {
-  const { c } = useTheme();
-  return (
-    <div className="flex items-center">
-      {TAB_ORDER.map((key, i) => {
-        const done = i < curIdx;
-        const active = i === curIdx;
-        return (
-          <div key={key} className="flex items-center">
-            <button
-              onClick={() => setTab(key)}
-              className="flex cursor-pointer items-center gap-[7px]"
-            >
-              <span
-                className="flex h-[17px] w-[17px] shrink-0 items-center justify-center rounded-full text-[9.5px] font-bold"
-                style={
-                  done
-                    ? { background: c.invBg, color: c.invFg }
-                    : active
-                      ? {
-                          background: c.accentSoft,
-                          border: `1.5px solid ${c.accent}`,
-                          color: c.accent2,
-                          boxShadow: `0 0 10px ${c.accentSoft}`,
-                        }
-                      : { border: `1px solid ${c.borderStrong}`, color: c.faint }
-                }
-              >
-                {done ? <Check size={11} /> : i + 1}
-              </span>
-              <span
-                className="text-[12px]"
-                style={{
-                  fontWeight: active ? 600 : 500,
-                  color: active || done ? c.text : c.faint,
-                }}
-              >
-                {STEP_LABEL[key]}
-              </span>
-            </button>
-            {i < TAB_ORDER.length - 1 && (
-              <span
-                className="mx-[9px] h-px w-[22px]"
-                style={{ background: i < curIdx ? c.faint : c.border2 }}
-              />
-            )}
-          </div>
-        );
-      })}
     </div>
   );
 }

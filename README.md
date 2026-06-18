@@ -177,7 +177,7 @@ on the current project's `.harness/`:
 - `harness_get_screen` / `harness_set_screen` — read/write one screen body (one file)
 - `harness_get_component` / `harness_set_component` — read/write one shared fragment
 - `harness_get_design_system` / `harness_set_design_system` — the shared CSS
-- `harness_set_phase` / `harness_set_frame` — advance the stepper / set the device frame
+- `harness_set_phase` / `harness_set_frame` — record the current phase (shown in the status bar; tabs are free routes) / set the device frame
 - `harness_get_api` / `harness_set_api` — the `api` section (the Flow tab): an OpenAPI 3 document — routes, middleware, params, body, responses, and `x-screens` (which screens call each route → screen→API edges)
 - `harness_get_architecture` / `harness_set_architecture` — the `architecture` section (the Architecture tab): C4-style system diagram (nodes/edges), ADRs (`decisions`), `nfrs`, `security` notes, `stack`
 - `harness_get_plan` / `harness_set_plan` / `harness_set_task` — the `plan` Kanban board (custom statuses = columns, milestones = swimlanes, tasks = cards w/ priority); `set_task` moves a card between columns

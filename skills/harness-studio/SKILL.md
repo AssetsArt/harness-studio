@@ -40,7 +40,7 @@ Never describe a screen in prose when you could render it. Show, ask, adjust.
 - `harness_set_state` — write the whole canvas. Use for the first build or a full rewrite.
 - `harness_patch_state` — merge one top-level section (`spec`, `dataModel`,
   `flow`, `plan`, or the prototype manifest). Your workhorse for the structured tabs.
-- `harness_set_phase` — advance the stepper: `prototype → data → flow → plan`.
+- `harness_set_phase` — record the current phase (`prototype → data → flow → architecture → plan`), shown in the status bar. Tabs are free routes the dev can revisit in any order, so this just marks where you're working.
 - `harness_get_api` / `harness_set_api` — read/write the `api` section (the Flow
   tab) as an OpenAPI 3 document: routes, middleware (`x-middleware`), and
   per-operation params (path/query/header), request body, and responses. Tie a

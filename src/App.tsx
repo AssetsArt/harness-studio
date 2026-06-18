@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import type { Phase, StoreState } from "./lib/types";
-import { normalizePhase } from "./lib/types";
+import { TAB_ORDER } from "./lib/types";
 import { useHarness, reportRuntime } from "./lib/useHarness";
 import { nowLabel } from "./lib/utils";
 import { useTheme } from "./lib/theme";
@@ -14,13 +15,30 @@ import { FlowTab } from "./components/tabs/FlowTab";
 import { ArchitectureTab } from "./components/tabs/ArchitectureTab";
 import { PlanTab } from "./components/tabs/PlanTab";
 
+// Each tab is a real route (/prototype, /data, …) so navigation is free and
+// non-linear — the dev (or the agent's dev) can jump back to any phase to refine
+// it, with working browser back/forward and deep links. The route is the single
+// source of truth for the active tab; meta.phase is just recorded metadata now.
+const pathFor = (p: Phase) => `/${p}`;
+function phaseFromPath(pathname: string): Phase {
+  const seg = pathname.replace(/^\/+/, "").split("/")[0];
+  return (TAB_ORDER as readonly string[]).includes(seg) ? (seg as Phase) : "prototype";
+}
+
 export default function App() {
+  return (
+    <BrowserRouter>
+      <AppInner />
+    </BrowserRouter>
+  );
+}
+
+function AppInner() {
   const { c } = useTheme();
   const { data, error, updatedAt, flashing, changes, applyLocal } = useHarness();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // UI state, separate from the canvas. A manual tab/screen pick is sticky and
-  // overrides the phase; until then the viewer follows meta.phase.
-  const [tabState, setTabState] = useState<Phase | null>(null);
   const [screenState, setScreenState] = useState<string | null>(null);
   const [specOpen, setSpecOpen] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -38,7 +56,9 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storeKey]);
 
-  const tab: Phase = tabState ?? normalizePhase(data?.meta.phase);
+  const tab: Phase = phaseFromPath(location.pathname);
+  const setTab = useCallback((p: Phase) => navigate(pathFor(p)), [navigate]);
+
   const screens = data?.prototype?.screens ?? [];
   const screen = useMemo(() => {
     const wanted = screenState ?? data?.prototype?.start;
@@ -78,11 +98,7 @@ export default function App() {
     return (
       <div className="flex h-full items-center justify-center" style={{ background: c.bg, color: c.faint }}>
         <div className="text-center font-mono text-[13px]">
-          {error ? (
-            <span style={{ color: c.red }}>{error}</span>
-          ) : (
-            "waiting for .harness/state.json …"
-          )}
+          {error ? <span style={{ color: c.red }}>{error}</span> : "waiting for .harness/state.json …"}
         </div>
       </div>
     );
@@ -97,30 +113,34 @@ export default function App() {
       className="absolute inset-0 flex flex-col overflow-hidden text-[14px]"
       style={{ background: c.bg, color: c.text }}
     >
-      <Topbar meta={data.meta} setTab={setTabState} />
-      <TabBar tab={tab} setTab={setTabState} />
+      <Topbar meta={data.meta} />
+      <TabBar tab={tab} setTab={setTab} />
 
       <div className={"relative flex min-h-0 flex-1" + (flashing ? " hs-flash" : "")}>
-        {tab === "prototype" && (
-          <PrototypeTab
-            prototype={data.prototype ?? {}}
-            spec={data.spec ?? {}}
-            screen={screen}
-            go={go}
-            specOpen={specOpen}
-            onToggleSpec={() => setSpecOpen((o) => !o)}
-            store={store}
-            storeVersion={storeVersion}
-            onStore={setStore}
-            onError={onError}
+        <Routes>
+          <Route
+            path="/prototype"
+            element={
+              <PrototypeTab
+                prototype={data.prototype ?? {}}
+                spec={data.spec ?? {}}
+                screen={screen}
+                go={go}
+                specOpen={specOpen}
+                onToggleSpec={() => setSpecOpen((o) => !o)}
+                store={store}
+                storeVersion={storeVersion}
+                onStore={setStore}
+                onError={onError}
+              />
+            }
           />
-        )}
-        {/* Data model and Flow are full-bleed React Flow canvases (pan/zoom), so
-            they fill the area directly instead of living in the scroll wrapper. */}
-        {tab === "data" && <DataTab dataModel={data.dataModel ?? {}} />}
-        {tab === "flow" && <FlowTab api={data.api ?? {}} screens={data.prototype?.screens ?? []} />}
-        {tab === "architecture" && <ArchitectureTab architecture={data.architecture ?? {}} />}
-        {tab === "plan" && <PlanTab plan={data.plan ?? {}} />}
+          <Route path="/data" element={<DataTab dataModel={data.dataModel ?? {}} />} />
+          <Route path="/flow" element={<FlowTab api={data.api ?? {}} screens={data.prototype?.screens ?? []} />} />
+          <Route path="/architecture" element={<ArchitectureTab architecture={data.architecture ?? {}} />} />
+          <Route path="/plan" element={<PlanTab plan={data.plan ?? {}} />} />
+          <Route path="*" element={<Navigate to="/prototype" replace />} />
+        </Routes>
       </div>
 
       <StatusBar
@@ -132,7 +152,7 @@ export default function App() {
         onEditState={() => setDrawerOpen(true)}
         onJump={(ch) => {
           if (ch.kind === "screen" && ch.id) {
-            setTabState("prototype");
+            navigate("/prototype");
             setScreenState(ch.id);
           }
         }}
