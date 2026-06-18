@@ -106,8 +106,10 @@ Normally you never start the viewer yourself — `/hns` does it via the
 ### Freeform prototype
 
 Each prototype screen is real HTML in a sandboxed `<iframe>`, sharing a CSS
-`designSystem`. Interactivity is wired with a tiny attribute vocabulary — no
-framework, no backend:
+`designSystem`. **Tailwind** (`@tailwindcss/browser@4`) and **lucide** icons are
+loaded into every screen from a CDN, so the AI writes real utility classes and
+`<i data-lucide="…">` icons — not emoji. Interactivity is wired with a tiny attribute
+vocabulary — no framework, no backend:
 
 | Attribute | Effect |
 |---|---|

@@ -219,6 +219,22 @@ from it, and lean on these attributes for the clickable behaviour — no real
 backend, just believable mock state. You can read the current store via
 `harness_get_view`.
 
+**Styling & icons — Tailwind and lucide are loaded in every freeform screen.**
+Use them; do not hand-roll what they give you, and **never use emoji as icons.**
+
+- **Tailwind utility classes** work out of the box (the viewer injects
+  `@tailwindcss/browser@4`, compiled live) — e.g.
+  `class="flex items-center gap-3 rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-100"`.
+  A `designSystem` (custom CSS / tokens) still works and coexists, so reach for it
+  only for what utilities can't express.
+- **lucide icons** instead of emoji: `<i data-lucide="search"></i>`. Size and colour
+  with classes — `<i data-lucide="shopping-cart" class="w-5 h-5 text-sky-500"></i>`
+  (the SVG inherits `currentColor`). Names are the kebab-case lucide names from
+  lucide.dev/icons. The runtime calls `lucide.createIcons()` on every render, so new
+  icons appear automatically. **Emoji are not icons — use lucide.**
+- Both load from a CDN, so the prototype needs network; offline, classes go
+  unstyled and icons stay blank.
+
 **Pick the device frame** with `prototype.frame` (or per-screen `frame`):
 `web` (browser, default), `desktop` (native app window), `ios` or `android`
 (phone). The phone frames render the page at ~390px wide, so write responsive CSS

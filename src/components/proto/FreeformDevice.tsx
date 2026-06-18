@@ -37,6 +37,10 @@ const RUNTIME = `
   var annotate = false;
   function up(msg){ parent.postMessage(Object.assign({ source:'harness-frame' }, msg), '*'); }
   function num(v){ var n = parseFloat(v); return isNaN(n) ? 0 : n; }
+  // Render any <i data-lucide="name"> placeholders into SVGs (lucide loads from
+  // the CDN injected in <head>). Idempotent — safe to call repeatedly.
+  function icons(){ try { if(window.lucide && window.lucide.createIcons) window.lucide.createIcons(); } catch(_){} }
+  window.addEventListener('load', icons);
   window.addEventListener('error', function(e){ up({ type:'error', message: e.message + (e.filename ? (' @ ' + e.filename + ':' + e.lineno) : '') }); });
   window.addEventListener('unhandledrejection', function(e){ up({ type:'error', message: 'unhandled rejection: ' + ((e.reason && e.reason.message) || e.reason) }); });
   var _err = console.error; console.error = function(){ try { up({ type:'error', message: Array.prototype.map.call(arguments, String).join(' ') }); } catch(_){} _err.apply(console, arguments); };
@@ -104,6 +108,7 @@ const RUNTIME = `
     });
     markNav();
     render();
+    icons();
   }
   // Error capture is live immediately (this script is in <head>, before body
   // parses), so errors thrown by the screen's own markup are caught too. DOM
@@ -126,6 +131,16 @@ body.harness-annotate *:hover{outline:2px solid #38bdf8 !important;outline-offse
 `;
 
 const FONT_LINK = `<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">`;
+
+// Real Tailwind + lucide in every freeform screen, so the AI writes utility
+// classes and proper icons (<i data-lucide="name">) instead of emoji + inline CSS.
+// Loaded via CDN and deferred so the body parses first (no blocking on the fetch);
+// both run before DOMContentLoaded, so the runtime's icons() finds lucide ready.
+const HEAD_LIBS =
+  `<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4" defer></script>` +
+  // The bare `lucide` spec on jsDelivr resolves to the CJS build (no global, throws
+  // "exports is not defined"); the UMD build is what exposes window.lucide.
+  `<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" defer></script>`;
 
 export function FreeformDevice({
   screenId,
@@ -154,7 +169,7 @@ export function FreeformDevice({
     const boot = `<script>window.__STORE__=${JSON.stringify(storeRef.current)};window.__SCREEN__=${JSON.stringify(screenId)}</script>`;
     // boot + runtime go in <head> so error capture is armed before the body
     // (and any screen-authored <script>) runs.
-    return `<!doctype html><html><head><meta charset="utf-8">${FONT_LINK}<style>${sheet}</style>${boot}<script>${RUNTIME}</script></head><body>${html}</body></html>`;
+    return `<!doctype html><html><head><meta charset="utf-8">${FONT_LINK}<style>${sheet}</style>${boot}<script>${RUNTIME}</script>${HEAD_LIBS}</head><body>${html}</body></html>`;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screenId, html, css, designSystem, storeVersion]);
 
