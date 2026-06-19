@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AppWindow, Monitor, MessageSquarePlus, Send, Smartphone, X } from "lucide-react";
+import { AppWindow, Maximize, Monitor, MessageSquarePlus, Send, Smartphone, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { FrameKind, Prototype, Spec, StoreState } from "../../lib/types";
 import { LIGHT, MONO, useTheme } from "../../lib/theme";
@@ -56,6 +56,12 @@ export function PrototypeTab({
   useEffect(() => setFrameOverride(null), [stateFrame]);
   const frame = frameOverride ?? stateFrame;
   const isMobile = frame === "ios" || frame === "android";
+
+  // Full / full-bleed toggle: hide the status bar + home indicator (no safe area).
+  const stateChrome = cur.chrome ?? prototype.chrome ?? true;
+  const [chromeOverride, setChromeOverride] = useState<boolean | null>(null);
+  useEffect(() => setChromeOverride(null), [stateChrome]);
+  const chrome = chromeOverride ?? stateChrome;
 
   // Comment-on-element mode: click an element in the prototype to attach feedback.
   const [annotate, setAnnotate] = useState(false);
@@ -155,6 +161,21 @@ export function PrototypeTab({
                 );
               })}
             </div>
+            {isMobile && (
+              <button
+                onClick={() => setChromeOverride(!chrome)}
+                className="mt-1.5 flex w-full items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[12px] font-medium transition-colors"
+                style={{
+                  color: !chrome ? c.text : c.dim,
+                  background: !chrome ? c.panel2 : "transparent",
+                  border: `1px solid ${!chrome ? alpha(c.accent, 0.4) : c.border}`,
+                }}
+                title="Full-bleed — hide the status bar and home indicator (no safe area)"
+              >
+                <Maximize size={13} color={!chrome ? c.accent : c.faint} />
+                Full screen{!chrome ? " · on" : ""}
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -196,6 +217,7 @@ export function PrototypeTab({
             url={cur.url || `shop.demo/${cur.id || ""}`}
             title={cur.title}
             safeArea={cur.safeArea ?? prototype.safeArea}
+            chrome={chrome}
           >
             <FreeformDevice
               screenId={cur.id}

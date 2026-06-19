@@ -94,10 +94,11 @@ you keep big prototypes cheap to edit):
   in the Prototype → **Design system** sub-view; tokens compile to CSS custom
   properties (`--color-*`, `--space-*`, `--radius-*`, `--shadow-*`, `--text-*`,
   `--font-*`) injected into every screen.
-- `harness_set_frame` — set the device frame and/or the `safeArea` colour (prototype
-  default or per screen). On ios/android, `safeArea` paints the status-bar +
-  home-indicator bands so a full-bleed screen reads edge-to-edge instead of leaving
-  white bands; status-bar contents auto-contrast.
+- `harness_set_frame` — set the device frame, `safeArea` colour, and/or `chrome`
+  (prototype default or per screen). On ios/android, `safeArea` paints the status-bar
+  + home-indicator bands so a full-bleed screen reads edge-to-edge instead of leaving
+  white bands (contents auto-contrast); `chrome:false` is **Full** — drops those bands
+  entirely so the design fills the whole screen.
 
 ## Storage layout (.harness/)
 
@@ -382,6 +383,13 @@ bands above and below your design. Status-bar text and the home pill auto-contra
 (light on a dark safe area). Set it via `harness_set_frame` / `harness_set_screen`,
 or in state: `"safeArea": "#0b0b0c"`. A dark app with no `safeArea` looks like it's
 floating in white — match it to the edge colour for a real edge-to-edge look.
+
+**Full screen (no safe area)** — set `chrome: false` (per screen or
+`prototype.chrome`) to drop the simulated status bar and home indicator entirely;
+the design fills the whole phone screen. Use it for splash, login, camera, media
+viewers, or any screen that draws its own top/bottom bars. With `chrome:false`,
+`safeArea` is moot (there are no bands). The viewer's frame switcher also has a
+**Full screen** toggle for previewing this without changing the saved state.
 
 Example button: `<button class="btn" data-inc="cart">Add to cart</button>` and a
 header badge `<span data-bind="cart">0</span>`.

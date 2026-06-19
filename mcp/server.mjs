@@ -538,7 +538,7 @@ server.registerTool(
   "harness_set_screen",
   {
     description:
-      "Create or replace one screen: writes only .harness/prototype/screens/<id>.html and upserts the screen's entry in the manifest (title/url/frame/safeArea). Other screens and the rest of the design are untouched. This is how you edit a screen cheaply. For a full-bleed ios/android screen, pass `safeArea` so the status-bar + home-indicator bands take the screen's edge colour instead of staying white. STYLE WITH TAILWIND UTILITY CLASSES (injected live) — not inline style=; use lucide icons (<i data-lucide=\"…\">), never emoji.",
+      "Create or replace one screen: writes only .harness/prototype/screens/<id>.html and upserts the screen's entry in the manifest (title/url/frame/safeArea). Other screens and the rest of the design are untouched. This is how you edit a screen cheaply. For an ios/android screen, pass `safeArea` so the status-bar + home-indicator bands take the screen's edge colour instead of staying white — or `chrome:false` for a Full / full-bleed screen with no safe area at all (content fills the whole screen). STYLE WITH TAILWIND UTILITY CLASSES (injected live) — not inline style=; use lucide icons (<i data-lucide=\"…\">), never emoji.",
     inputSchema: {
       id: zod.string(),
       html: zod
@@ -555,9 +555,15 @@ server.registerTool(
         .describe(
           "For ios/android frames: the colour painted into the device safe areas (status bar + home indicator) so the screen reads edge-to-edge instead of leaving white bands. Use any CSS colour — set it to this screen's top/bottom edge colour. Status-bar text auto-contrasts. Empty string clears it."
         ),
+      chrome: zod
+        .boolean()
+        .optional()
+        .describe(
+          "Show the device chrome (status bar + home indicator) on ios/android. Default true. Pass false for a Full / full-bleed screen with NO safe area — content fills the whole screen (splash, camera, media viewer, or a design that draws its own status bar)."
+        ),
     },
   },
-  async ({ id, html, title, url, frame, safeArea }) => {
+  async ({ id, html, title, url, frame, safeArea, chrome }) => {
     fs.mkdirSync(SCREEN_DIR, { recursive: true });
     fs.writeFileSync(screenFile(id), html);
     const state = readJson(STATE_FILE) || { meta: { name: "Untitled", phase: "prototype" } };
@@ -576,6 +582,7 @@ server.registerTool(
       if (safeArea === "") delete sc.safeArea;
       else sc.safeArea = safeArea;
     }
+    if (chrome !== undefined) sc.chrome = chrome;
     delete sc.html; // body lives in the file now
     writeState(state);
     return text({ ok: true, id, wrote: screenFile(id) });
@@ -743,19 +750,23 @@ server.registerTool(
   "harness_set_frame",
   {
     description:
-      "Set the device frame and/or the safe-area background — for one screen (pass `screen`) or the prototype default. `safeArea` is the colour painted into a phone's status-bar + home-indicator bands for ios/android frames; set it to the screen's edge colour so it reads edge-to-edge instead of leaving white bands (status-bar text auto-contrasts). Pass `safeArea: \"\"` to clear it. Provide `frame`, `safeArea`, or both.",
+      "Set the device frame, safe-area background, and/or chrome visibility — for one screen (pass `screen`) or the prototype default. `safeArea` is the colour painted into a phone's status-bar + home-indicator bands for ios/android frames; set it to the screen's edge colour so it reads edge-to-edge instead of leaving white bands (status-bar text auto-contrasts), or pass `safeArea: \"\"` to clear it. `chrome:false` renders Full / full-bleed with NO safe area — content fills the whole screen. Provide at least one of `frame` / `safeArea` / `chrome`.",
     inputSchema: {
       frame: zod.enum(["web", "desktop", "ios", "android"]).optional(),
       safeArea: zod
         .string()
         .optional()
         .describe("Safe-area background for ios/android frames (any CSS colour). Empty string clears it."),
+      chrome: zod
+        .boolean()
+        .optional()
+        .describe("Show the device chrome (status bar + home indicator) on ios/android. false = Full / full-bleed, no safe area."),
       screen: zod.string().optional().describe("Screen id to scope to; omit for the prototype default."),
     },
   },
-  async ({ frame, safeArea, screen }) => {
-    if (frame === undefined && safeArea === undefined)
-      return err("Provide `frame`, `safeArea`, or both.");
+  async ({ frame, safeArea, chrome, screen }) => {
+    if (frame === undefined && safeArea === undefined && chrome === undefined)
+      return err("Provide at least one of `frame`, `safeArea`, or `chrome`.");
     const state = readJson(STATE_FILE);
     if (state == null) return err("No state.json yet.");
     state.prototype = state.prototype || {};
@@ -772,8 +783,9 @@ server.registerTool(
       if (safeArea === "") delete dest.safeArea;
       else dest.safeArea = safeArea;
     }
+    if (chrome !== undefined) dest.chrome = chrome;
     writeState(state);
-    return text({ ok: true, frame: dest.frame, safeArea: dest.safeArea ?? null, screen: screen || "(default)" });
+    return text({ ok: true, frame: dest.frame, safeArea: dest.safeArea ?? null, chrome: dest.chrome ?? true, screen: screen || "(default)" });
   }
 );
 

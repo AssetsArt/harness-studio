@@ -188,6 +188,11 @@ export interface Screen {
    *  white bands. Any CSS color; status-bar text + the home pill auto-contrast.
    *  Overrides prototype.safeArea. */
   safeArea?: string;
+  /** Show the device chrome (status bar + home indicator) on ios/android frames.
+   *  Default true. Set false for a Full / full-bleed screen that draws edge-to-edge
+   *  with no safe area — a splash, camera, media viewer, or a design that paints its
+   *  own status bar. Overrides prototype.chrome. */
+  chrome?: boolean;
   /** Browser-bar URL shown in the freeform device frame, e.g. "shop.demo/cart". */
   url?: string;
   /** Freeform mode: HTML for this screen. With a layout, this is just the body slot. */
@@ -246,6 +251,10 @@ export interface Prototype {
    *  `safeArea` overrides it). Set it to the screens' edge colour for a
    *  full-bleed look instead of white status-bar / home-indicator bands. */
   safeArea?: string;
+  /** Default for showing the device chrome on ios/android (a screen's own
+   *  `chrome` overrides it). Set false to render every screen Full / edge-to-edge
+   *  with no status bar or home indicator. */
+  chrome?: boolean;
   /** Global CSS (tokens + component classes) injected into every freeform screen. */
   designSystem?: string;
   /** Structured design tokens — rendered as a style guide and compiled to CSS

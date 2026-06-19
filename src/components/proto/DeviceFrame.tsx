@@ -9,6 +9,9 @@ interface Props {
   /** Colour painted into the phone safe areas (status bar + home indicator);
    *  defaults to white. Status-bar contents auto-contrast against it. */
   safeArea?: string;
+  /** Show the device chrome (status bar + home indicator) on phone frames.
+   *  Default true; false renders Full / full-bleed with no safe area. */
+  chrome?: boolean;
   children: React.ReactNode;
 }
 
@@ -47,16 +50,16 @@ function isDarkColor(color: string): boolean {
 
 // Wraps the freeform iframe in a believable device frame so the same HTML can be
 // previewed as desktop web, a native desktop app, or an iOS / Android phone.
-export function DeviceFrame({ frame, url, title, safeArea, children }: Props) {
+export function DeviceFrame({ frame, url, title, safeArea, chrome = true, children }: Props) {
   if (frame === "ios")
     return (
-      <IosFrame title={title} safeArea={safeArea}>
+      <IosFrame title={title} safeArea={safeArea} chrome={chrome}>
         {children}
       </IosFrame>
     );
   if (frame === "android")
     return (
-      <AndroidFrame title={title} safeArea={safeArea}>
+      <AndroidFrame title={title} safeArea={safeArea} chrome={chrome}>
         {children}
       </AndroidFrame>
     );
@@ -178,7 +181,16 @@ function StatusIcons({ color }: { color: string }) {
   );
 }
 
-function IosFrame({ safeArea, children }: { title: string; safeArea?: string; children: React.ReactNode }) {
+function IosFrame({
+  safeArea,
+  chrome = true,
+  children,
+}: {
+  title: string;
+  safeArea?: string;
+  chrome?: boolean;
+  children: React.ReactNode;
+}) {
   const dark = safeArea ? isDarkColor(safeArea) : false;
   const fg = dark ? "#f5f5f7" : LIGHT.fg;
   return (
@@ -188,23 +200,28 @@ function IosFrame({ safeArea, children }: { title: string; safeArea?: string; ch
       screenRadius={42}
       pad={11}
       screenBg={safeArea || LIGHT.bg}
+      // Full / full-bleed: no status bar, no home indicator — content fills the screen.
       statusBar={
-        <div className="relative flex h-11 shrink-0 items-center justify-between px-7 pt-1">
-          <span className="text-[14px] font-semibold" style={{ color: fg }}>
-            9:41
-          </span>
-          {/* Dynamic Island — a physical cutout, always black */}
-          <span className="absolute left-1/2 top-2 h-[26px] w-[96px] -translate-x-1/2 rounded-full bg-black" />
-          <StatusIcons color={fg} />
-        </div>
+        chrome ? (
+          <div className="relative flex h-11 shrink-0 items-center justify-between px-7 pt-1">
+            <span className="text-[14px] font-semibold" style={{ color: fg }}>
+              9:41
+            </span>
+            {/* Dynamic Island — a physical cutout, always black */}
+            <span className="absolute left-1/2 top-2 h-[26px] w-[96px] -translate-x-1/2 rounded-full bg-black" />
+            <StatusIcons color={fg} />
+          </div>
+        ) : null
       }
       bottom={
-        <div className="flex h-6 shrink-0 items-end justify-center pb-2">
-          <span
-            className="h-[5px] w-[134px] rounded-full"
-            style={{ background: dark ? "rgba(255,255,255,.85)" : "rgba(0,0,0,.85)" }}
-          />
-        </div>
+        chrome ? (
+          <div className="flex h-6 shrink-0 items-end justify-center pb-2">
+            <span
+              className="h-[5px] w-[134px] rounded-full"
+              style={{ background: dark ? "rgba(255,255,255,.85)" : "rgba(0,0,0,.85)" }}
+            />
+          </div>
+        ) : null
       }
     >
       {children}
@@ -212,7 +229,16 @@ function IosFrame({ safeArea, children }: { title: string; safeArea?: string; ch
   );
 }
 
-function AndroidFrame({ safeArea, children }: { title: string; safeArea?: string; children: React.ReactNode }) {
+function AndroidFrame({
+  safeArea,
+  chrome = true,
+  children,
+}: {
+  title: string;
+  safeArea?: string;
+  chrome?: boolean;
+  children: React.ReactNode;
+}) {
   const dark = safeArea ? isDarkColor(safeArea) : false;
   const fg = dark ? "#f5f5f7" : LIGHT.fg;
   return (
@@ -223,26 +249,30 @@ function AndroidFrame({ safeArea, children }: { title: string; safeArea?: string
       pad={9}
       screenBg={safeArea || LIGHT.bg}
       statusBar={
-        <div className="relative flex h-8 shrink-0 items-center justify-between px-4">
-          <span className="text-[12px] font-medium" style={{ color: fg }}>
-            9:41
-          </span>
-          {/* punch-hole camera — a physical cutout, always black */}
-          <span className="absolute left-1/2 top-2.5 h-3 w-3 -translate-x-1/2 rounded-full bg-black" />
-          <div className="flex items-center gap-1.5" style={{ color: fg }}>
-            <Signal size={13} />
-            <Wifi size={13} />
-            <BatteryFull size={16} />
+        chrome ? (
+          <div className="relative flex h-8 shrink-0 items-center justify-between px-4">
+            <span className="text-[12px] font-medium" style={{ color: fg }}>
+              9:41
+            </span>
+            {/* punch-hole camera — a physical cutout, always black */}
+            <span className="absolute left-1/2 top-2.5 h-3 w-3 -translate-x-1/2 rounded-full bg-black" />
+            <div className="flex items-center gap-1.5" style={{ color: fg }}>
+              <Signal size={13} />
+              <Wifi size={13} />
+              <BatteryFull size={16} />
+            </div>
           </div>
-        </div>
+        ) : null
       }
       bottom={
-        <div className="flex h-6 shrink-0 items-center justify-center pb-1.5">
-          <span
-            className="h-[4px] w-[118px] rounded-full"
-            style={{ background: dark ? "rgba(255,255,255,.5)" : "rgba(0,0,0,.55)" }}
-          />
-        </div>
+        chrome ? (
+          <div className="flex h-6 shrink-0 items-center justify-center pb-1.5">
+            <span
+              className="h-[4px] w-[118px] rounded-full"
+              style={{ background: dark ? "rgba(255,255,255,.5)" : "rgba(0,0,0,.55)" }}
+            />
+          </div>
+        ) : null
       }
     >
       {children}
