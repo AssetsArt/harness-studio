@@ -5,6 +5,10 @@ dist
 .playwright-mcp
 .DS_Store
 
+# Eval build outputs — large, transient, regenerated per run (the harness in
+# evals/ is committed; the per-iteration builds it grades are not).
+harness-eval/
+
 # Live runtime mirrors written by the viewer — regenerated each session.
 .harness/runtime.json
 .harness/feedback.json

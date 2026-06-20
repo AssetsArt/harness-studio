@@ -1,0 +1,108 @@
+{
+  "$schema": "Design-brief eval set for the harness-studio skill. Each brief is built by a builder agent following the skill, then graded deterministically by evals/grade.mjs. 'approvedDirection' lets the build-quality arm skip the interactive brainstorm (brainstorm-first is graded separately, cold-open). split: train = diagnose+fix on these; heldout = stop-condition only, never fit to them.",
+  "serious_antipatterns": [
+    "gradient-text", "side-tab", "border-accent-on-rounded", "gpt-thin-border-wide-shadow",
+    "repeating-stripes-gradient", "repeated-section-kickers",
+    "hero-eyebrow-chip", "low-contrast", "gray-on-color", "cream-palette", "ai-color-palette",
+    "nested-cards", "icon-tile-stack", "extreme-negative-tracking", "oversized-h1"
+  ],
+  "_serious_note": "These gate A5 (any one = fail). 'numbered-section-markers' was REMOVED from gating: in data-dense APP screens it false-positives on numeric data (metric values like 0.02/0.08, Tailwind opacity utilities like bg-white/[.02]) — it's a marketing-page tell, unreliable for app UIs. It still appears in the full findings (designReview.byId) for visibility, just non-gating.",
+  "briefs": [
+    {
+      "id": "checkout",
+      "split": "train",
+      "title": "Coffee subscription checkout",
+      "domain": "commerce",
+      "frame": "web",
+      "prompt": "Design the checkout flow for a specialty coffee subscription. The customer reviews their box, edits quantity, enters shipping, picks a plan cadence, and confirms. It should feel like a premium independent roaster, not a generic Shopify theme.",
+      "approvedDirection": "A 3-screen web checkout for 'Meridian Roasters': (1) Review box — line items with quantity steppers and an order summary; (2) Shipping & cadence — address form + weekly/biweekly/monthly cadence choice; (3) Confirm — order placed with summary. Premium editorial roaster feel. Shared header (logo + cart badge) and footer across all screens.",
+      "minScreens": 3,
+      "store": { "qty": 2, "cadence": "biweekly" },
+      "expectInteractivity": ["data-to", "data-inc", "data-dec", "data-bind"]
+    },
+    {
+      "id": "saas-dashboard",
+      "split": "train",
+      "title": "Observability SaaS dashboard",
+      "domain": "saas",
+      "frame": "web",
+      "prompt": "Design the main dashboard for an observability/monitoring SaaS (think uptime, latency, error rate across services). A logged-in engineer lands here, scans health, and drills into one service. Data-dense but calm and legible.",
+      "approvedDirection": "A 2-3 screen desktop-web dashboard for 'Pulse': (1) Overview — service health cards, latency/error sparml charts, recent incidents; (2) Service detail — one service's metrics + recent deploys; optional (3) Incidents list. Shared left nav + top bar. Technical, calm, legible — not a marketing page.",
+      "minScreens": 2,
+      "store": {},
+      "expectInteractivity": ["data-to"]
+    },
+    {
+      "id": "mobile-onboarding",
+      "split": "train",
+      "title": "Meditation app onboarding",
+      "domain": "mobile",
+      "frame": "ios",
+      "prompt": "Design the first-run onboarding for a meditation app: a welcome splash, a couple of personalization steps (goal, experience level), and a finish screen that lands them in their first session. It's the user's very first impression.",
+      "approvedDirection": "A 4-screen iOS onboarding for 'Still': (1) Splash/welcome (full-bleed, no chrome); (2) Pick your goal (choice list); (3) Experience level (choice list with a progress indicator); (4) You're set — start first session. Calm, premium, full-bleed where it counts. Shared progress component on steps 2-3.",
+      "minScreens": 4,
+      "store": { "step": 1, "goal": "", "level": "" },
+      "expectInteractivity": ["data-to", "data-set", "data-show"]
+    },
+    {
+      "id": "editorial",
+      "split": "train",
+      "title": "Longform journalism home + article",
+      "domain": "editorial",
+      "frame": "web",
+      "prompt": "Design a longform journalism publication: a home page that frames the lead story and a few features, plus an article reading view. Typography is the product. Should feel like a serious, modern magazine.",
+      "approvedDirection": "A 2-screen web publication for 'The Meridian Review': (1) Home — a strong lead story, a small grid of features, a section rail; (2) Article — a single longform piece with confident reading typography. Shared masthead + footer. Type-forward, editorial, restrained.",
+      "minScreens": 2,
+      "store": {},
+      "expectInteractivity": ["data-to"]
+    },
+    {
+      "id": "admin-forms",
+      "split": "train",
+      "title": "Clinic admin — patients",
+      "domain": "admin",
+      "frame": "web",
+      "prompt": "Design the patients section of a small clinic's admin tool: a list/table of patients with status, and an add/edit patient form. Form-heavy, dense, but humane — staff use it all day.",
+      "approvedDirection": "A 2-3 screen desktop-web admin for 'Carehub': (1) Patients — searchable table with status badges and a primary 'Add patient' action; (2) Patient form — add/edit with grouped fields; optional (3) Patient detail. Shared left nav + header. Dense, legible, calm — a real internal tool.",
+      "minScreens": 2,
+      "store": {},
+      "expectInteractivity": ["data-to"]
+    },
+    {
+      "id": "booking",
+      "split": "heldout",
+      "title": "Restaurant reservation",
+      "domain": "commerce",
+      "frame": "ios",
+      "prompt": "Design a restaurant reservation flow on mobile: browse availability, pick a date/time and party size, and confirm the booking. A polished, modern dining brand.",
+      "approvedDirection": "A 3-screen iOS reservation flow for 'Cardoon': (1) Restaurant — hero, info, a 'Reserve' CTA; (2) Pick date/time + party size (selectable chips that set store); (3) Confirm booking. Shared header. Polished modern dining brand, full-bleed hero.",
+      "minScreens": 3,
+      "store": { "party": 2, "time": "" },
+      "expectInteractivity": ["data-to", "data-set", "data-inc", "data-dec", "data-bind"]
+    },
+    {
+      "id": "crm-pipeline",
+      "split": "heldout",
+      "title": "Sales CRM pipeline",
+      "domain": "saas",
+      "frame": "web",
+      "prompt": "Design the deal pipeline view of a sales CRM: deals across stages, a way to open one deal, and the deal detail. For a salesperson working their book daily.",
+      "approvedDirection": "A 2-3 screen desktop-web CRM for 'Closer': (1) Pipeline — columns by stage with deal cards (value, company, owner); (2) Deal detail — one deal's timeline, contact, next step. Shared left nav + top bar. Confident, dense, calm SaaS.",
+      "minScreens": 2,
+      "store": {},
+      "expectInteractivity": ["data-to"]
+    },
+    {
+      "id": "fitness-tracker",
+      "split": "heldout",
+      "title": "Workout tracker",
+      "domain": "mobile",
+      "frame": "android",
+      "prompt": "Design a workout tracker on Android: today's plan, an active workout screen where you log sets/reps, and a simple progress view. Energetic but not loud.",
+      "approvedDirection": "A 3-screen Android tracker for 'Forge': (1) Today — the day's planned workout, start CTA; (2) Active workout — exercises with set/rep counters (data-inc/dec on a live store); (3) Progress — weekly summary. Shared bottom tab bar. Energetic, clean, full-bleed where it helps.",
+      "minScreens": 3,
+      "store": { "set": 0, "reps": 10 },
+      "expectInteractivity": ["data-to", "data-inc", "data-dec", "data-bind"]
+    }
+  ]
+}

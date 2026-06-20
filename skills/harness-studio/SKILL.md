@@ -223,7 +223,12 @@ the dev react at each step.
     "start": "screenId",
     "frame": "web",                         // device frame: web | desktop | ios | android (screens can override)
     "store": { "cart": 0 },                 // initial mock-store values
-    "designSystem": ":root{--brand:#e8482b} .btn{...}",  // CSS shared by every freeform screen
+    "tokens": {                             // the STRUCTURED design system — set this (it's the source of truth)
+      "colors": [ { "name": "brand", "value": "#e8482b" }, { "name": "ink", "value": "#1a1a1a" } ],  // ≥4 — compile to --color-<name>
+      "typography": [ { "name": "display", "family": "Fraunces", "size": "3rem", "weight": 600 }, { "name": "body", "family": "Geist", "size": "1rem" } ],
+      "fonts": [ { "name": "sans", "value": "Geist, system-ui, sans-serif" } ],  // also: spacing / radii / shadows
+    },
+    "designSystem": ".btn{ background: var(--color-brand) }",  // EXTRA CSS only — what tokens can't express (the vars come from tokens, don't re-declare :root here)
     "vars": { "brand": "Aurora" },          // default template variables ({{brand}})
     "layout": "{{>header}}{{slot}}{{>footer}}",          // shell wrapping every screen body
     "components": {                          // reusable HTML fragments, referenced as {{>name}}
