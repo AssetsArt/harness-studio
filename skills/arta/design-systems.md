@@ -14,8 +14,8 @@ the prototype's foundation, then build every screen from its tokens.
    radius/shadow/motion language, density) and swap the **accent + brand name** to the
    project. One kit, infinite brands. Shift the neutral's hue a touch toward the accent
    if it helps cohesion — don't default-tint warm.
-3. **Set the foundation first** (before any screen): call `harness_set_design_tokens`
-   with the kit's token block (edited), and `harness_set_design_system` with its CSS.
+3. **Set the foundation first** (before any screen): call `arta_set_design_tokens`
+   with the kit's token block (edited), and `arta_set_design_system` with its CSS.
    Then style screens from the vars — `var(--color-…)`, `var(--radius-…)`,
    `font-[var(--font-display)]` / the `.display` class — never ad-hoc values.
 4. **Fonts are preloaded** — Geist, Geist Mono, Instrument Serif, Fraunces, Space
@@ -25,7 +25,7 @@ the prototype's foundation, then build every screen from its tokens.
    Thai'` / `'Noto Serif Thai'` to the font-family chain (e.g. the kit's display
    `'Fraunces', 'Noto Serif Thai', serif`) so headings don't fall back to a broken system
    face. See SKILL.md's non-Latin note.
-5. **Then check craft** with `harness_design_review` and fix what it flags.
+5. **Then check craft** with `arta_design_review` and fix what it flags.
 
 The tokens compile to CSS custom properties (`--color-<slug>`, `--font-<slug>`,
 `--radius-<slug>`, …) injected into every screen, and render as the style guide in
@@ -288,5 +288,5 @@ Compose your own with the same discipline: **commit to one color strategy** (res
 / committed / drenched), **pair fonts on a contrast axis** (serif + sans, geometric +
 humanist, or one family in many weights), **pick a spacing rhythm and stick to it**, and
 **keep radius / shadow / motion consistent** across every screen. Then set it via
-`harness_set_design_tokens` + `harness_set_design_system` before building. The point is
+`arta_set_design_tokens` + `arta_set_design_system` before building. The point is
 the same: decide the language first, then every screen inherits it.

@@ -2,17 +2,17 @@
 // ── Harness Studio MCP server ───────────────────────────────────────────────
 // Gives Claude Code eyes and hands on the shared canvas:
 //
-//   • harness_get_state     — read state.json — whole, or {outline} / {sections}
+//   • arta_get_state     — read state.json — whole, or {outline} / {sections}
 //                             to spend tokens only on the parts you need
-//   • harness_get_spec /    — read one section on its own (cheap in big projects);
+//   • arta_get_spec /    — read one section on its own (cheap in big projects);
 //     _data_model / _api /     also _plan, _architecture, _design_tokens
-//   • harness_set_state     — replace state.json (triggers the live viewer)
-//   • harness_patch_state   — shallow-merge a section (spec/plan/prototype/…)
-//   • harness_set_phase     — record the current phase (shown in the status bar)
-//   • harness_get_view      — see what the dev is looking at right now
+//   • arta_set_state     — replace state.json (triggers the live viewer)
+//   • arta_patch_state   — shallow-merge a section (spec/plan/prototype/…)
+//   • arta_set_phase     — record the current phase (shown in the status bar)
+//   • arta_get_view      — see what the dev is looking at right now
 //                             (active tab + prototype screen) — "see what you did"
-//   • harness_get_feedback  — drain notes the dev left from inside the viewer
-//   • harness_start_viewer  — launch the viewer FROM THE INSTALLED PLUGIN (always
+//   • arta_get_feedback  — drain notes the dev left from inside the viewer
+//   • arta_start_viewer  — launch the viewer FROM THE INSTALLED PLUGIN (always
 //                             matches the installed version; no stale npx cache)
 //
 // State lives in <project>/.harness/. The server resolves that relative to its
@@ -239,15 +239,15 @@ function buildOutline(state) {
     meta: state.meta || {},
     sections,
     screens,
-    note: "Outline only. Pull a section with harness_get_state({ sections:['spec','dataModel'] }) or a named getter (harness_get_spec, harness_get_data_model, harness_get_api, harness_get_plan, harness_get_architecture, harness_get_design_tokens). Screen HTML: harness_get_screen({ id }).",
+    note: "Outline only. Pull a section with arta_get_state({ sections:['spec','dataModel'] }) or a named getter (arta_get_spec, arta_get_data_model, arta_get_api, arta_get_plan, arta_get_architecture, arta_get_design_tokens). Screen HTML: arta_get_screen({ id }).",
   };
 }
 
 server.registerTool(
-  "harness_get_state",
+  "arta_get_state",
   {
     description:
-      "Read .harness/state.json — meta/spec/plan/dataModel/api/architecture plus the prototype MANIFEST (screen ids, titles, frames; NOT the screen HTML). Defaults to the whole state. In a LARGE project that blob gets expensive, so narrow it: `outline:true` returns just an index (which sections exist, their item counts and byte sizes, plus the screen manifest); `sections:['spec','dataModel']` returns only those top-level keys (meta is always included). Then pull screen markup with harness_get_screen / harness_get_component / harness_get_design_system so you only spend tokens on what you need.",
+      "Read .harness/state.json — meta/spec/plan/dataModel/api/architecture plus the prototype MANIFEST (screen ids, titles, frames; NOT the screen HTML). Defaults to the whole state. In a LARGE project that blob gets expensive, so narrow it: `outline:true` returns just an index (which sections exist, their item counts and byte sizes, plus the screen manifest); `sections:['spec','dataModel']` returns only those top-level keys (meta is always included). Then pull screen markup with arta_get_screen / arta_get_component / arta_get_design_system so you only spend tokens on what you need.",
     inputSchema: {
       sections: zod
         .array(zod.string())
@@ -266,7 +266,7 @@ server.registerTool(
   async ({ sections, outline } = {}) => {
     const state = readJson(STATE_FILE);
     if (state == null)
-      return text({ exists: false, note: "No state.json yet — write one with harness_set_state." });
+      return text({ exists: false, note: "No state.json yet — write one with arta_set_state." });
     if (outline) return text(buildOutline(state));
     if (Array.isArray(sections) && sections.length) {
       const picked = { meta: state.meta };
@@ -284,10 +284,10 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_set_state",
+  "arta_set_state",
   {
     description:
-      "Replace .harness/state.json with a full state object. The running viewer repaints instantly (cyan flash). Use for the first write or a wholesale rewrite; prefer harness_patch_state for incremental edits.",
+      "Replace .harness/state.json with a full state object. The running viewer repaints instantly (cyan flash). Use for the first write or a wholesale rewrite; prefer arta_patch_state for incremental edits.",
     inputSchema: {
       state: zod
         .record(zod.any())
@@ -305,10 +305,10 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_patch_state",
+  "arta_patch_state",
   {
     description:
-      "Merge a section into state.json without resending the whole object. Top-level keys you provide REPLACE that key (send the full `spec`, `api`, `dataModel`, … to swap it) — EXCEPT `meta` and `prototype`, which DEEP-MERGE so a partial patch can't wipe what it omits. That guard matters because `prototype` holds your tokens, components, screens and layout: patching `{ prototype: { components: { card: \"…\" } } }` keeps tokens + the other components intact (it used to blank them). To replace a screen/component/token set outright, prefer the granular setters (harness_set_screen / harness_set_component / harness_set_design_tokens) — they touch one file and keep the manifest clean. This is the workhorse for iterating during a design phase.",
+      "Merge a section into state.json without resending the whole object. Top-level keys you provide REPLACE that key (send the full `spec`, `api`, `dataModel`, … to swap it) — EXCEPT `meta` and `prototype`, which DEEP-MERGE so a partial patch can't wipe what it omits. That guard matters because `prototype` holds your tokens, components, screens and layout: patching `{ prototype: { components: { card: \"…\" } } }` keeps tokens + the other components intact (it used to blank them). To replace a screen/component/token set outright, prefer the granular setters (arta_set_screen / arta_set_component / arta_set_design_tokens) — they touch one file and keep the manifest clean. This is the workhorse for iterating during a design phase.",
     inputSchema: {
       patch: zod
         .record(zod.any())
@@ -333,7 +333,7 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_set_phase",
+  "arta_set_phase",
   {
     description: "Record the current phase (prototype → data → flow → architecture → plan), shown in the viewer's status bar. Navigation is free: each tab is a real route the dev can jump to and revisit in any order, so this marks where you're working rather than forcing the view.",
     inputSchema: { phase: zod.enum(["prototype", "data", "flow", "architecture", "plan"]) },
@@ -348,37 +348,37 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_get_spec",
+  "arta_get_spec",
   {
     description:
-      "Read just the `spec` section — goal, users, userStories, scope (in/out), constraints. Cheaper than harness_get_state when you only need the brief. Write it with harness_patch_state({ spec: {...} }).",
+      "Read just the `spec` section — goal, users, userStories, scope (in/out), constraints. Cheaper than arta_get_state when you only need the brief. Write it with arta_patch_state({ spec: {...} }).",
     inputSchema: {},
   },
   async () => {
     const state = readJson(STATE_FILE) || {};
     if (!state.spec)
-      return text({ exists: false, note: "No spec yet — write one with harness_patch_state({ spec: {...} })." });
+      return text({ exists: false, note: "No spec yet — write one with arta_patch_state({ spec: {...} })." });
     return text(state.spec);
   }
 );
 
 server.registerTool(
-  "harness_get_data_model",
+  "arta_get_data_model",
   {
     description:
-      "Read just the `dataModel` section — entities (each with fields carrying pk/fk/type/required) and relationships. This is what the Data tab renders. Cheaper than harness_get_state when you only need the schema. Write it with harness_patch_state({ dataModel: {...} }).",
+      "Read just the `dataModel` section — entities (each with fields carrying pk/fk/type/required) and relationships. This is what the Data tab renders. Cheaper than arta_get_state when you only need the schema. Write it with arta_patch_state({ dataModel: {...} }).",
     inputSchema: {},
   },
   async () => {
     const state = readJson(STATE_FILE) || {};
     if (!state.dataModel)
-      return text({ exists: false, note: "No dataModel yet — write one with harness_patch_state({ dataModel: {...} })." });
+      return text({ exists: false, note: "No dataModel yet — write one with arta_patch_state({ dataModel: {...} })." });
     return text(state.dataModel);
   }
 );
 
 server.registerTool(
-  "harness_get_api",
+  "arta_get_api",
   {
     description:
       "Read the `api` section — the OpenAPI-3-shaped HTTP API (info, servers, the x-middleware registry, and paths with operations). This is what the Flow tab renders.",
@@ -386,13 +386,13 @@ server.registerTool(
   },
   async () => {
     const state = readJson(STATE_FILE) || {};
-    if (!state.api) return text({ exists: false, note: "No api yet — write one with harness_set_api (OpenAPI 3 shape)." });
+    if (!state.api) return text({ exists: false, note: "No api yet — write one with arta_set_api (OpenAPI 3 shape)." });
     return text(state.api);
   }
 );
 
 server.registerTool(
-  "harness_set_api",
+  "arta_set_api",
   {
     description:
       'Write the `api` section (the Flow tab) as an OpenAPI 3 document. Shape: { info?, servers?, "x-middleware"?: [{ name, description }], paths: { "/route/{id}": { get|post|put|patch|delete: { summary?, tags?, "x-middleware"?: ["auth"], "x-screens"?: ["screenId"], parameters?: [{ name, in: "path"|"query"|"header", required?, schema, description?, example? }], requestBody?: { required?, content: { "application/json": { schema, example? } } }, responses?: { "200": { description, content? } } } } } }. `x-screens` lists the prototype screen ids that call the route, drawing screen→API edges in the graph. Replaces the whole api section and the viewer repaints. Vendor extensions (x-*) are valid OpenAPI and export cleanly.',
@@ -412,7 +412,7 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_get_plan",
+  "arta_get_plan",
   {
     description:
       "Read the `plan` section — the Kanban board: stack, statuses (the columns), and milestones (swimlanes) with their tasks.",
@@ -420,13 +420,13 @@ server.registerTool(
   },
   async () => {
     const state = readJson(STATE_FILE) || {};
-    if (!state.plan) return text({ exists: false, note: "No plan yet — write one with harness_set_plan." });
+    if (!state.plan) return text({ exists: false, note: "No plan yet — write one with arta_set_plan." });
     return text(state.plan);
   }
 );
 
 server.registerTool(
-  "harness_set_plan",
+  "arta_set_plan",
   {
     description:
       'Write the `plan` section (the Kanban board). Shape: { stack?: ["React", ...], statuses?: [{ id, name, color? }] — the columns (ClickUp-style custom statuses; defaults to to-do/in-progress/done if omitted), milestones: [{ name, tasks: [{ title, status: "<status id>", priority?: "urgent"|"high"|"normal"|"low" }] }] — each milestone is a swimlane (row). Replaces the whole plan; the viewer repaints.',
@@ -444,7 +444,7 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_set_task",
+  "arta_set_task",
   {
     description:
       "Add or update one Kanban card. Finds the task by title within the milestone (creating the milestone if needed): updates its status / priority / title, or adds it if new. Use this to MOVE a card between columns (just set `status`) without resending the whole plan.",
@@ -484,7 +484,7 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_get_architecture",
+  "arta_get_architecture",
   {
     description:
       "Read the `architecture` section — the system-level design (the Architecture tab): stack, C4-style nodes/edges (the system diagram), decisions (ADRs), nfrs, and security notes.",
@@ -492,13 +492,13 @@ server.registerTool(
   },
   async () => {
     const state = readJson(STATE_FILE) || {};
-    if (!state.architecture) return text({ exists: false, note: "No architecture yet — write one with harness_set_architecture." });
+    if (!state.architecture) return text({ exists: false, note: "No architecture yet — write one with arta_set_architecture." });
     return text(state.architecture);
   }
 );
 
 server.registerTool(
-  "harness_set_architecture",
+  "arta_set_architecture",
   {
     description:
       'Write the `architecture` section (the Architecture tab). Shape: { stack?: ["Node", ...], nodes: [{ id, name, kind: "client"|"service"|"datastore"|"external"|"gateway"|"queue"|"cache"|"infra", tech?, description?, deployment?, group? }], edges: [{ from, to, protocol?: "REST"|"gRPC"|"AMQP"|..., mode?: "sync"|"async", label? }] (the C4-style system diagram), decisions?: [{ id?, title, status?: "proposed"|"accepted"|"superseded"|"rejected", context?, options?: [..], decision?, consequences? }] (ADRs), nfrs?: [{ name, target?, note? }], security?: [{ boundary?, note }] }. Replaces the whole architecture section; the viewer repaints.',
@@ -521,7 +521,7 @@ server.registerTool(
 // ── Granular prototype edits — touch one file, not the whole design ─────────
 
 server.registerTool(
-  "harness_get_screen",
+  "arta_get_screen",
   {
     description:
       "Read one prototype screen's HTML body (.harness/prototype/screens/<id>.html). Use this instead of pulling the whole state when you only need to look at or edit one screen.",
@@ -535,7 +535,7 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_set_screen",
+  "arta_set_screen",
   {
     description:
       "Create or replace one screen: writes only .harness/prototype/screens/<id>.html and upserts the screen's entry in the manifest (title/url/frame/safeArea). Other screens and the rest of the design are untouched. This is how you edit a screen cheaply. For an ios/android/ipad screen, pass `safeArea` so the status-bar + home-indicator bands take the screen's edge colour instead of staying white — or `chrome:false` for a Full / full-bleed screen with no safe area at all (content fills the whole screen). STYLE WITH TAILWIND UTILITY CLASSES (injected live) — not inline style=; use lucide icons (<i data-lucide=\"…\">), never emoji.",
@@ -590,7 +590,7 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_delete_screen",
+  "arta_delete_screen",
   {
     description:
       "Remove one screen: drops its manifest entry AND deletes .harness/prototype/screens/<id>.html. If it was the prototype `start`, start is repointed to the first remaining screen. Use this to clean up a stray / leftover screen — e.g. the seed `home` placeholder (\"Ask Claude Code to design here\") once you've built the real screens, or a lo-fi sketch you no longer need. Leaving an empty placeholder in the manifest shows the dev a blank screen, so delete it.",
@@ -614,7 +614,7 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_get_component",
+  "arta_get_component",
   {
     description: "Read a shared component's HTML (.harness/prototype/components/<name>.html).",
     inputSchema: { name: zod.string() },
@@ -627,7 +627,7 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_set_component",
+  "arta_set_component",
   {
     description:
       "Create or replace a shared component (.harness/prototype/components/<name>.html), referenced as {{>name}} from the layout or screens. Edit it once and every screen that uses it updates — no per-screen edits. The file is the source of truth: this also clears any stale inline `prototype.components[name]` override in state.json, so a slim patch can't blank the component out. Style with Tailwind utility classes (injected live), not inline style=; lucide icons, not emoji.",
@@ -648,7 +648,7 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_get_design_system",
+  "arta_get_design_system",
   {
     description: "Read the shared prototype CSS (.harness/prototype/design-system.css).",
     inputSchema: {},
@@ -661,7 +661,7 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_set_design_system",
+  "arta_set_design_system",
   {
     description: "Replace the shared prototype CSS (.harness/prototype/design-system.css), injected into every freeform screen.",
     inputSchema: { css: zod.string() },
@@ -674,7 +674,7 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_get_design_tokens",
+  "arta_get_design_tokens",
   {
     description:
       "Read the structured design tokens (prototype.tokens) — the design system's foundations: colors, typography, spacing, radii, shadows, fonts.",
@@ -682,12 +682,12 @@ server.registerTool(
   },
   async () => {
     const state = readJson(STATE_FILE);
-    return text(state?.prototype?.tokens ?? { note: "No design tokens yet — set them with harness_set_design_tokens." });
+    return text(state?.prototype?.tokens ?? { note: "No design tokens yet — set them with arta_set_design_tokens." });
   }
 );
 
 server.registerTool(
-  "harness_set_design_tokens",
+  "arta_set_design_tokens",
   {
     description:
       "Write the design system's foundations (prototype.tokens), shown in the Prototype tab's 'Design system' sub-view as a style guide. Tokens COMPILE TO CSS CUSTOM PROPERTIES injected into every screen — colors→var(--color-<name>), spacing→var(--space-<name>), radii→var(--radius-<name>), shadows→var(--shadow-<name>), fonts→var(--font-<name>), typography→var(--text-<name>). Define tokens here first, then style screens with those vars (or Tailwind arbitrary values like bg-[var(--color-primary)]) so the design system is the single source of truth. Replaces the whole tokens object; the viewer repaints.",
@@ -727,10 +727,10 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_design_review",
+  "arta_design_review",
   {
     description:
-      "Run impeccable's deterministic design-quality detectors over the prototype's screen HTML and return the findings — an anti-slop craft eye for the loop (gradient text, side-stripe borders, glassmorphism-by-default, identical card grids, low-contrast text, tiny uppercase eyebrows, over-rounded cards, etc.). Like harness_get_screenshot sees the pixels and the error feed sees runtime, this catches design issues before the dev does. Needs impeccable available — the first run fetches it via `npx` (a few seconds); offline / unavailable returns a note, NOT an error. Pass a screen id to scan one screen, or omit to scan all.",
+      "Run impeccable's deterministic design-quality detectors over the prototype's screen HTML and return the findings — an anti-slop craft eye for the loop (gradient text, side-stripe borders, glassmorphism-by-default, identical card grids, low-contrast text, tiny uppercase eyebrows, over-rounded cards, etc.). Like arta_get_screenshot sees the pixels and the error feed sees runtime, this catches design issues before the dev does. Needs impeccable available — the first run fetches it via `npx` (a few seconds); offline / unavailable returns a note, NOT an error. Pass a screen id to scan one screen, or omit to scan all.",
     inputSchema: {
       screen: zod.string().optional().describe("Screen id to scan; omit to scan every prototype screen."),
     },
@@ -771,7 +771,7 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_set_frame",
+  "arta_set_frame",
   {
     description:
       "Set the device frame, safe-area background, and/or chrome visibility — for one screen (pass `screen`) or the prototype default. `safeArea` is the colour painted into a phone's status-bar + home-indicator bands for ios/android/ipad frames; set it to the screen's edge colour so it reads edge-to-edge instead of leaving white bands (status-bar text auto-contrasts), or pass `safeArea: \"\"` to clear it. `chrome:false` renders Full / full-bleed with NO safe area — content fills the whole screen. Provide at least one of `frame` / `safeArea` / `chrome`.",
@@ -814,7 +814,7 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_get_view",
+  "arta_get_view",
   {
     description:
       "See what the dev is currently looking at in the viewer: active tab, the prototype screen on screen, and the list of screens. Use this to know which screen your changes will land on and to confirm the dev is where you expect.",
@@ -831,7 +831,7 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_get_screenshot",
+  "arta_get_screenshot",
   {
     description:
       "Get a PNG of how a prototype screen actually renders — the same pixels the dev sees, captured by the viewer. Use this to check your work visually instead of reasoning only from the HTML. Returns an image; if none exists yet, the screen may not have been viewed in the browser.",
@@ -850,7 +850,7 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_get_feedback",
+  "arta_get_feedback",
   {
     description:
       "Drain the feedback the dev left from inside the viewer (notes attached to a tab/screen). Returns unread items and marks them read. This is how the dev → AI half of the loop closes without leaving the viewer.",
@@ -874,10 +874,10 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_start_viewer",
+  "arta_start_viewer",
   {
     description:
-      "Start the Harness Studio viewer FROM THE INSTALLED PLUGIN, pointed at this project's .harness/. Because it runs the launcher that ships with the plugin, the viewer always matches the installed plugin version — no stale npx/bunx cache. First run installs the viewer's deps (a few seconds). Idempotent: if a viewer is already on the port, it just returns the URL (it does NOT restart it — use harness_restart_viewer to pick up a new build after an update). Call this once at the start of a design session so the dev has the canvas open, then keep using the other tools as normal.",
+      "Start the Harness Studio viewer FROM THE INSTALLED PLUGIN, pointed at this project's .harness/. Because it runs the launcher that ships with the plugin, the viewer always matches the installed plugin version — no stale npx/bunx cache. First run installs the viewer's deps (a few seconds). Idempotent: if a viewer is already on the port, it just returns the URL (it does NOT restart it — use arta_restart_viewer to pick up a new build after an update). Call this once at the start of a design session so the dev has the canvas open, then keep using the other tools as normal.",
     inputSchema: {
       port: zod.number().int().optional().describe("Port for the viewer (default 7317)."),
     },
@@ -889,7 +889,7 @@ server.registerTool(
         ok: true,
         alreadyRunning: true,
         url: `http://localhost:${p}`,
-        note: "A viewer is already responding on this port — reuse it. (If it's serving an old build after an update, use harness_restart_viewer.)",
+        note: "A viewer is already responding on this port — reuse it. (If it's serving an old build after an update, use arta_restart_viewer.)",
       });
     const r = spawnViewer(p);
     if (!r.ok)
@@ -908,7 +908,7 @@ server.registerTool(
 );
 
 server.registerTool(
-  "harness_restart_viewer",
+  "arta_restart_viewer",
   {
     description:
       "Restart the Harness Studio viewer so it serves the LATEST installed plugin build. Stops whatever is listening on the port, waits for it to exit, then relaunches from the installed plugin. Use this right after the plugin updates (`/hns update` or `/plugin update`) — the running viewer keeps serving the old build until it's restarted, so this is what makes an update actually show up on screen. The dev no longer needs to clear caches or kill processes by hand.",

@@ -59,7 +59,7 @@ The `arta` skill and its MCP tools are now available in any project, and
 the MCP reads/writes that project's `.harness/` folder.
 
 **2. The viewer starts itself.** You don't run anything — when you `/hns`, the skill
-calls the `harness_start_viewer` MCP tool, which launches the viewer **from the
+calls the `arta_start_viewer` MCP tool, which launches the viewer **from the
 installed plugin** (so it always matches your installed version — no stale cache) on
 `http://localhost:7317`, watching this project's `./.harness/`. The first launch
 installs the viewer's deps (a few seconds, needs [Bun](https://bun.sh)); it seeds a
@@ -100,15 +100,15 @@ Everything you can type, in one place.
 | `/hns <what to build>` | Brainstorm the idea, then design it in the harness |
 | `/hns update` | Update the plugin to the latest **and re-run the viewer** on the new build |
 | `/hns restart` | Re-run the viewer from the installed plugin (pick up a new build, no manual cache-clearing) |
-| `/hns feedback` | Drain the comments the dev left in the viewer and act on them (`harness_get_feedback`) |
-| `/hns review [screen]` | Design-quality pass — run impeccable's anti-slop detectors on the prototype and fix what they flag (`harness_design_review`) |
+| `/hns feedback` | Drain the comments the dev left in the viewer and act on them (`arta_get_feedback`) |
+| `/hns review [screen]` | Design-quality pass — run impeccable's anti-slop detectors on the prototype and fix what they flag (`arta_design_review`) |
 | *"design this in the harness"* | Natural-language trigger — same as `/hns` |
 
 `/hns update` wraps `/plugin marketplace update arta` then
 `/plugin update arta@arta` (or use `/plugin` → Manage → Update),
-then restarts the viewer via `harness_restart_viewer` so the new build shows up — after
+then restarts the viewer via `arta_restart_viewer` so the new build shows up — after
 you **restart Claude Code** so the updated skill/commands/MCP load. Normally you never
-start the viewer yourself — `/hns` does it via the `harness_start_viewer` tool, and
+start the viewer yourself — `/hns` does it via the `arta_start_viewer` tool, and
 `/hns restart` re-runs it.
 
 **In your shell** — only if you want the viewer *without* the plugin:
@@ -154,7 +154,7 @@ vocabulary — no framework, no backend:
 
 The mock `store` (declared in `prototype.store`) persists across navigation, so a
 cart filled on one screen is still full on the next — the AI reads it via
-`harness_get_view`.
+`arta_get_view`.
 
 ### Shared layout & components — don't repeat markup
 
@@ -175,7 +175,7 @@ The skill ships a library of opinionated, ready-to-adapt design languages
 (`skills/arta/design-systems.md`) — **Ink** (editorial), **Graphite**
 (technical dark), **Clay** (warm commerce), **Mist** (calm SaaS), **Signal** (bold
 display). The AI picks one for the brief, swaps in the project's accent, and sets it as
-the prototype's foundation (`harness_set_design_tokens` + `designSystem`) before
+the prototype's foundation (`arta_set_design_tokens` + `designSystem`) before
 building any screen — so output looks *designed*, not like a generic AI webpage. Pair
 that with `/hns review` (anti-slop) for a craft pass.
 
@@ -216,22 +216,22 @@ lo-fi screens.
 The plugin registers a self-contained MCP server (no extra install) that operates
 on the current project's `.harness/`:
 
-- `harness_get_state` / `harness_set_state` / `harness_patch_state` — read & write the structured canvas + prototype manifest. `get_state` takes `{ outline: true }` (a cheap index of sections + counts + sizes) or `{ sections: [...] }` (only the keys you want) so large projects don't pay for the whole blob each time. In `patch_state`, top-level keys replace, but `meta` and `prototype` **deep-merge** — a partial `{ prototype: … }` patch keeps the tokens / components / screens it omits instead of wiping them
-- `harness_get_spec` / `harness_get_data_model` — read just the `spec` or `dataModel` section on its own (token-cheap grounding); write them via `harness_patch_state`
-- `harness_get_screen` / `harness_set_screen` — read/write one screen body (one file)
-- `harness_get_component` / `harness_set_component` — read/write one shared fragment
-- `harness_get_design_system` / `harness_set_design_system` — the shared CSS
-- `harness_get_design_tokens` / `harness_set_design_tokens` — the structured design system (colors, typography, spacing, radii, shadows, fonts); shown as a style guide in the Prototype → **Design system** sub-view, and compiled to CSS custom properties (`--color-*`, `--space-*`, …) injected into every screen
-- `harness_set_phase` / `harness_set_frame` — record the current phase (shown in the status bar; tabs are free routes) / set the device frame, the `safeArea` colour (paints a phone's status-bar + home-indicator bands for full-bleed ios/android screens), and/or `chrome` (`false` = Full / no safe area, content fills the whole screen)
-- `harness_get_api` / `harness_set_api` — the `api` section (the Flow tab): an OpenAPI 3 document — routes, middleware, params, body, responses, and `x-screens` (which screens call each route → screen→API edges)
-- `harness_get_architecture` / `harness_set_architecture` — the `architecture` section (the Architecture tab): C4-style system diagram (nodes/edges), ADRs (`decisions`), `nfrs`, `security` notes, `stack`
-- `harness_get_plan` / `harness_set_plan` / `harness_set_task` — the `plan` Kanban board (custom statuses = columns, milestones = swimlanes, tasks = cards w/ priority); `set_task` moves a card between columns
-- `harness_start_viewer` — launch the viewer from the installed plugin (idempotent; no stale cache)
-- `harness_restart_viewer` — re-run the viewer from the installed plugin so it serves the latest build (what `/hns update` / `/hns restart` use; no manual cache-clearing)
-- `harness_get_screenshot` — a PNG of how a screen actually renders (the pixels you see)
-- `harness_design_review` — run [impeccable](https://github.com/pbakaus/impeccable)'s deterministic anti-slop detectors over a screen's HTML and return craft findings (low contrast, side-stripe borders, gradient text, identical card grids, …). Opt-in — returns a note if impeccable isn't available
-- `harness_get_view` — your active tab, prototype screen, store, and any prototype errors
-- `harness_get_feedback` — notes you left, including the element you clicked to comment on
+- `arta_get_state` / `arta_set_state` / `arta_patch_state` — read & write the structured canvas + prototype manifest. `get_state` takes `{ outline: true }` (a cheap index of sections + counts + sizes) or `{ sections: [...] }` (only the keys you want) so large projects don't pay for the whole blob each time. In `patch_state`, top-level keys replace, but `meta` and `prototype` **deep-merge** — a partial `{ prototype: … }` patch keeps the tokens / components / screens it omits instead of wiping them
+- `arta_get_spec` / `arta_get_data_model` — read just the `spec` or `dataModel` section on its own (token-cheap grounding); write them via `arta_patch_state`
+- `arta_get_screen` / `arta_set_screen` — read/write one screen body (one file)
+- `arta_get_component` / `arta_set_component` — read/write one shared fragment
+- `arta_get_design_system` / `arta_set_design_system` — the shared CSS
+- `arta_get_design_tokens` / `arta_set_design_tokens` — the structured design system (colors, typography, spacing, radii, shadows, fonts); shown as a style guide in the Prototype → **Design system** sub-view, and compiled to CSS custom properties (`--color-*`, `--space-*`, …) injected into every screen
+- `arta_set_phase` / `arta_set_frame` — record the current phase (shown in the status bar; tabs are free routes) / set the device frame, the `safeArea` colour (paints a phone's status-bar + home-indicator bands for full-bleed ios/android screens), and/or `chrome` (`false` = Full / no safe area, content fills the whole screen)
+- `arta_get_api` / `arta_set_api` — the `api` section (the Flow tab): an OpenAPI 3 document — routes, middleware, params, body, responses, and `x-screens` (which screens call each route → screen→API edges)
+- `arta_get_architecture` / `arta_set_architecture` — the `architecture` section (the Architecture tab): C4-style system diagram (nodes/edges), ADRs (`decisions`), `nfrs`, `security` notes, `stack`
+- `arta_get_plan` / `arta_set_plan` / `arta_set_task` — the `plan` Kanban board (custom statuses = columns, milestones = swimlanes, tasks = cards w/ priority); `set_task` moves a card between columns
+- `arta_start_viewer` — launch the viewer from the installed plugin (idempotent; no stale cache)
+- `arta_restart_viewer` — re-run the viewer from the installed plugin so it serves the latest build (what `/hns update` / `/hns restart` use; no manual cache-clearing)
+- `arta_get_screenshot` — a PNG of how a screen actually renders (the pixels you see)
+- `arta_design_review` — run [impeccable](https://github.com/pbakaus/impeccable)'s deterministic anti-slop detectors over a screen's HTML and return craft findings (low contrast, side-stripe borders, gradient text, identical card grids, …). Opt-in — returns a note if impeccable isn't available
+- `arta_get_view` — your active tab, prototype screen, store, and any prototype errors
+- `arta_get_feedback` — notes you left, including the element you clicked to comment on
 
 The skill (`skills/arta/`) tells the agent how to run the prototype-based
 loop. The agent can also just `Write` files under `.harness/` — the watcher catches
@@ -242,7 +242,7 @@ feedback channel.
 with [`superpowers:subagent-driven-development`](https://github.com/obra/superpowers/blob/main/skills/subagent-driven-development/SKILL.md):
 the **Plan** Kanban is the task list (one implementer subagent per card), and the
 `.harness/` artifacts (spec, prototype HTML, data model, API) are the source of truth
-each subagent reads. The agent moves cards (`harness_set_task`) as work lands, so the
+each subagent reads. The agent moves cards (`arta_set_task`) as work lands, so the
 dev watches the build advance on the same board they designed.
 
 ## Develop the tool

@@ -16,67 +16,67 @@ at and read their feedback through the MCP server. Design is one tight loop.
   you write state.json  ──▶  viewer repaints (the dev sees it)
           ▲                              │
           │                              ▼
-  harness_get_feedback  ◀──  dev clicks the prototype, leaves a note
+  arta_get_feedback  ◀──  dev clicks the prototype, leaves a note
 ```
 
 Never describe a screen in prose when you could render it. Show, ask, adjust.
 
 ## Tools (MCP server: arta)
 
-- `harness_start_viewer` — **call this once at the very start of a session** to open
+- `arta_start_viewer` — **call this once at the very start of a session** to open
   the viewer for the dev. It launches the viewer that ships **inside the installed
   plugin** (so it always matches the plugin version — no stale `npx`/`bunx` cache),
   pointed at this project's `.harness/`. It's idempotent (re-running just returns the
   URL) and installs the viewer's deps on first run. Tell the dev the URL it returns
   (default `http://localhost:7317`).
-- `harness_restart_viewer` — stop the running viewer and relaunch it from the
+- `arta_restart_viewer` — stop the running viewer and relaunch it from the
   installed plugin, so it serves the **latest** build. Use this after the plugin
   updates (the `/hns update` / `/hns restart` flow calls it): an already-open viewer
   keeps serving the old assets until it's restarted. The dev no longer clears caches
   or kills processes by hand.
-- `harness_get_state` — read the canvas before editing. Always start here. Whole
+- `arta_get_state` — read the canvas before editing. Always start here. Whole
   state by default; in a **large** project pass `{ outline: true }` for a cheap index
   (which sections exist, their counts + byte sizes, and the screen manifest), then
   pull only what you need with `{ sections: ['spec','dataModel'] }` or a named getter.
-- `harness_get_view` — see what the dev is looking at right now (active tab +
+- `arta_get_view` — see what the dev is looking at right now (active tab +
   prototype screen). Check this before changing a screen so you edit what they see.
-- `harness_set_state` — write the whole canvas. Use for the first build or a full rewrite.
-- `harness_patch_state` — merge one top-level section (`spec`, `dataModel`,
+- `arta_set_state` — write the whole canvas. Use for the first build or a full rewrite.
+- `arta_patch_state` — merge one top-level section (`spec`, `dataModel`,
   `flow`, `plan`, or the prototype manifest). Your workhorse for the structured tabs.
   Top-level keys replace; **`meta` and `prototype` deep-merge**, so a slim
   `{ prototype: { … } }` patch keeps the keys it omits (tokens, components, screens)
   instead of wiping them. Even so, edit prototype pieces with the granular setters
-  (`harness_set_screen` / `harness_set_component` / `harness_set_design_tokens`) —
+  (`arta_set_screen` / `arta_set_component` / `arta_set_design_tokens`) —
   they touch one file and keep the manifest clean.
-- `harness_set_phase` — record the current phase (`prototype → data → flow → architecture → plan`), shown in the status bar. Tabs are free routes the dev can revisit in any order, so this just marks where you're working.
-- `harness_get_spec` — read just the `spec` (goal, users, userStories, scope,
-  constraints) without pulling the whole state. Write it via `harness_patch_state`.
-- `harness_get_data_model` — read just the `dataModel` (entities + relationships,
-  the Data tab) on its own. Write it via `harness_patch_state`.
-- `harness_get_api` / `harness_set_api` — read/write the `api` section (the Flow
+- `arta_set_phase` — record the current phase (`prototype → data → flow → architecture → plan`), shown in the status bar. Tabs are free routes the dev can revisit in any order, so this just marks where you're working.
+- `arta_get_spec` — read just the `spec` (goal, users, userStories, scope,
+  constraints) without pulling the whole state. Write it via `arta_patch_state`.
+- `arta_get_data_model` — read just the `dataModel` (entities + relationships,
+  the Data tab) on its own. Write it via `arta_patch_state`.
+- `arta_get_api` / `arta_set_api` — read/write the `api` section (the Flow
   tab) as an OpenAPI 3 document: routes, middleware (`x-middleware`), and
   per-operation params (path/query/header), request body, and responses. Tie a
   route to the prototype screens that call it with `x-screens: ["screenId"]` — the
   Flow graph then draws screen → API edges (which screen hits which endpoint,
   through which middleware).
-- `harness_get_architecture` / `harness_set_architecture` — read/write the
+- `arta_get_architecture` / `arta_set_architecture` — read/write the
   `architecture` section (the Architecture tab): the C4-style `nodes`/`edges` (system
   diagram), `decisions` (ADRs), `nfrs`, `security` notes, and `stack`.
-- `harness_get_plan` / `harness_set_plan` — read/write the `plan` Kanban board:
+- `arta_get_plan` / `arta_set_plan` — read/write the `plan` Kanban board:
   `statuses` (columns), `milestones` (swimlanes), and tasks (`status` id +
-  `priority`). `harness_set_task` adds/updates one card by milestone + title —
+  `priority`). `arta_set_task` adds/updates one card by milestone + title —
   use it to **move a card** (set its `status`) without resending the whole plan.
-- `harness_get_feedback` — drain notes the dev left in the viewer. Check it after
+- `arta_get_feedback` — drain notes the dev left in the viewer. Check it after
   every meaningful change and act on what you find. Notes may include an `element`
   (tag/text/selector) when the dev clicked a specific element to comment on it —
   use it to target the exact thing they mean.
-- `harness_get_screenshot` — get a PNG of how a screen actually renders (the same
+- `arta_get_screenshot` — get a PNG of how a screen actually renders (the same
   pixels the dev sees). Use it to **check your own work visually**, not just from
   the HTML — after building or changing a screen, look at it.
-- `harness_get_view` also returns `errors`: console/runtime errors from the
+- `arta_get_view` also returns `errors`: console/runtime errors from the
   prototype. If something you wrote is broken, you'll see it here — fix it without
   waiting for the dev.
-- `harness_design_review` — run impeccable's deterministic anti-slop detectors over
+- `arta_design_review` — run impeccable's deterministic anti-slop detectors over
   a screen's HTML and get craft findings (low contrast, side-stripe borders, gradient
   text, identical card grids, over-rounded cards, eyebrow overuse…). A design-quality
   eye to pair with the screenshot; fix what it flags. Opt-in — returns a note if
@@ -85,20 +85,20 @@ Never describe a screen in prose when you could render it. Show, ask, adjust.
 Granular prototype edits — **touch one piece, not the whole design** (this is how
 you keep big prototypes cheap to edit):
 
-- `harness_get_screen` / `harness_set_screen` — read/write ONE screen body. `set`
+- `arta_get_screen` / `arta_set_screen` — read/write ONE screen body. `set`
   writes `prototype/screens/<id>.html` and upserts its manifest entry (title/url/frame).
-- `harness_delete_screen` — remove ONE screen (manifest entry + its file), repointing
+- `arta_delete_screen` — remove ONE screen (manifest entry + its file), repointing
   `start` if needed. Use it to clear a stray / leftover screen — above all the seed
   `home` placeholder once the real screens exist (a leftover blank screen is what the
   dev sees if you don't).
-- `harness_get_component` / `harness_set_component` — read/write ONE shared fragment.
-- `harness_get_design_system` / `harness_set_design_system` — the shared CSS.
-- `harness_get_design_tokens` / `harness_set_design_tokens` — the structured design
+- `arta_get_component` / `arta_set_component` — read/write ONE shared fragment.
+- `arta_get_design_system` / `arta_set_design_system` — the shared CSS.
+- `arta_get_design_tokens` / `arta_set_design_tokens` — the structured design
   system (colors, typography, spacing, radii, shadows, fonts). Shown as a style guide
   in the Prototype → **Design system** sub-view; tokens compile to CSS custom
   properties (`--color-*`, `--space-*`, `--radius-*`, `--shadow-*`, `--text-*`,
   `--font-*`) injected into every screen.
-- `harness_set_frame` — set the device frame, `safeArea` colour, and/or `chrome`
+- `arta_set_frame` — set the device frame, `safeArea` colour, and/or `chrome`
   (prototype default or per screen). On ios/android/ipad, `safeArea` paints the status-bar
   + home-indicator bands so a full-bleed screen reads edge-to-edge instead of leaving
   white bands (contents auto-contrast); `chrome:false` is **Full** — drops those bands
@@ -115,10 +115,10 @@ The canvas is split so each piece stays small:
 .harness/prototype/screens/<id>.html        each screen body
 ```
 
-`harness_get_state` returns the small manifest (screen ids/titles/frames, not the
+`arta_get_state` returns the small manifest (screen ids/titles/frames, not the
 markup) — so reading the design stays cheap as it grows. Pull actual HTML only when
-you need it via `harness_get_screen` / `harness_get_component`. To edit a screen,
-call `harness_set_screen` (one file); to change something shared, edit the component
+you need it via `arta_get_screen` / `arta_get_component`. To edit a screen,
+call `arta_set_screen` (one file); to change something shared, edit the component
 or design system (one file) — never rewrite every screen. The dev server re-assembles
 the files into one state for the viewer automatically.
 
@@ -141,9 +141,9 @@ does, then build.
 
 The brainstorm, in order:
 
-1. **Open the viewer & ground yourself** — `harness_start_viewer` (so the dev can
-   see, and so your lo-fi sketches land somewhere visible), then `harness_get_state`
-   / `harness_get_view` and skim the project (files, recent work) so you don't ask
+1. **Open the viewer & ground yourself** — `arta_start_viewer` (so the dev can
+   see, and so your lo-fi sketches land somewhere visible), then `arta_get_state`
+   / `arta_get_view` and skim the project (files, recent work) so you don't ask
    what you could read.
 2. **Check scope.** If the request is really several independent products
    (chat + billing + analytics…), say so first and help split it — don't refine the
@@ -154,12 +154,12 @@ The brainstorm, in order:
 4. **Propose 2–3 approaches** with trade-offs; lead with your recommendation and why.
 5. **Present the direction** — a few sentences: what it is, who it's for, the key
    screens, what's in / out of scope. Ask if it looks right; revise until it does.
-6. **Get an explicit yes.** Only then `harness_set_phase` to `prototype`, write the
+6. **Get an explicit yes.** Only then `arta_set_phase` to `prototype`, write the
    spec into the rail, and build the first real screens.
 
 **The viewer is your visual companion.** This is a *picture* tool — so when a
 question is easier shown than told (a layout choice, two nav patterns, where a
-control goes), drop a quick **lo-fi** sketch on the canvas (`harness_set_screen` with
+control goes), drop a quick **lo-fi** sketch on the canvas (`arta_set_screen` with
 the lo-fi component vocab, or a rough freeform block) and ask the dev to look. Keep
 these cheap and disposable — they answer one question, they aren't the product, and
 they don't count as "building". Decide per question: a requirements / scope /
@@ -194,21 +194,21 @@ a document.
    **statuses** (`plan.statuses`), milestones become **swimlanes** (rows), and tasks
    are cards (each with a `status` id and optional `priority`). Plus the tech `stack`.
 
-Move the phase with `harness_set_phase` as each is settled. Don't race ahead — let
+Move the phase with `arta_set_phase` as each is settled. Don't race ahead — let
 the dev react at each step.
 
 ## How to work
 
 1. **On a fresh design request, brainstorm first** (above) and get a direction
    approved before building. Skip this only when the dev is clearly mid-loop already.
-2. `harness_get_state` and `harness_get_view` to ground yourself.
+2. `arta_get_state` and `arta_get_view` to ground yourself.
 3. Make the smallest change that answers the current question. Patch one section.
 4. **Self-review and fix it (below) BEFORE you show the dev.** This is a hard gate, not
    an optional polish — every time.
 5. Tell the dev in one line what changed and what you want them to react to
    ("Click *Add walk-in* — does that field set feel right?").
-6. `harness_get_feedback`; fold their notes in; repeat.
-7. When a phase is solid, `harness_set_phase` to the next.
+6. `arta_get_feedback`; fold their notes in; repeat.
+7. When a phase is solid, `arta_set_phase` to the next.
 
 ## Self-review — before you hand a screen back (every time)
 
@@ -222,10 +222,10 @@ the dev react at each step.
 
 Do this for every screen you touched:
 
-1. **Look at the pixels** — `harness_get_screenshot` for each screen, and actually read
+1. **Look at the pixels** — `arta_get_screenshot` for each screen, and actually read
    the image. The snapshot is the full framed device (chrome + safe area), i.e. exactly
-   what the dev sees. Also check `harness_get_view`'s `errors` for runtime/icon problems.
-2. **Run the craft check** — `harness_design_review` on the screen(s); fix every finding
+   what the dev sees. Also check `arta_get_view`'s `errors` for runtime/icon problems.
+2. **Run the craft check** — `arta_design_review` on the screen(s); fix every finding
    (gradient text, side-stripe borders, low contrast, identical card grids, blank icons…).
    It's a static reader, so it has blind spots: it can't resolve a Tailwind colour utility
    (`text-white`) on a `background:linear-gradient`, so it flags **false low-contrast**, and
@@ -235,7 +235,7 @@ Do this for every screen you touched:
 3. **Run this checklist — fix anything that fails, then re-check:**
    - **No stray or empty screens.** Every screen in the manifest has real content. The
      viewer seeds a `home` placeholder ("Ask Claude Code to design here"); once the real
-     screens exist, fill it or `harness_delete_screen` it, and make sure `start` points at
+     screens exist, fill it or `arta_delete_screen` it, and make sure `start` points at
      a real, built screen. A leftover placeholder = the dev clicks it and sees a blank.
    - **Shared chrome is factored, never repeated.** If a header / nav / tab-bar / footer
      shows on 2+ screens, it lives in `prototype.layout` + `prototype.components`
@@ -374,7 +374,7 @@ It persists across screen navigation, so a cart count set on the home screen is
 still there on the cart screen. Build the design system once, compose screens
 from it, and lean on these attributes for the clickable behaviour — no real
 backend, just believable mock state. You can read the current store via
-`harness_get_view`.
+`arta_get_view`.
 
 **Styling & icons — Tailwind and lucide are loaded in every freeform screen.**
 Use them; do not hand-roll what they give you, and **never use emoji as icons.**
@@ -383,7 +383,7 @@ Use them; do not hand-roll what they give you, and **never use emoji as icons.**
   building any screen, **read `design-systems.md`** (next to this file): a library of
   opinionated, ready-to-adapt systems (Ink · Graphite · Clay · Mist · Signal). Pick the
   one that fits the brief, swap its accent + brand to the project, and set it as the
-  foundation with `harness_set_design_tokens` + `harness_set_design_system`. This is the
+  foundation with `arta_set_design_tokens` + `arta_set_design_system`. This is the
   single biggest lever on whether the output looks *designed* or looks like "an AI made
   a webpage." Starting from generic grays + a blue accent is the #1 tell.
 - **Then build every screen from those tokens.** The tokens show as a style guide in the
@@ -394,7 +394,7 @@ Use them; do not hand-roll what they give you, and **never use emoji as icons.**
   screen. **No raw hex in a screen body** (no `style="color:#1a1a1a"`, no `bg-[#f5f5f5]`,
   no `text-[#666]`): every colour is a `var(--color-*)` or a Tailwind class that maps to one.
   Need a shade the kit doesn't have (a brighter heading ink, a tint)? **Add it to the tokens**
-  (`harness_set_design_tokens`) and reference the var — don't inline the hex. Hardcoded hex in
+  (`arta_set_design_tokens`) and reference the var — don't inline the hex. Hardcoded hex in
   screens is the #1 reason a build "has a design system but doesn't use it." This bites hardest
   in **data-dense apps**: the repeated **semantic palette** (status / priority / severity badge
   colours — the same in-progress purple, done green, warning amber on every screen) belongs in
@@ -474,7 +474,7 @@ Use them; do not hand-roll what they give you, and **never use emoji as icons.**
   lucide.dev/icons. The runtime calls `lucide.createIcons()` on every render, so new
   icons appear automatically. An **unknown name renders nothing** (a blank gap — e.g.
   `chevron-up-down` doesn't exist; it's `chevrons-up-down`); the error feed flags any
-  name it couldn't find, so check `harness_get_view` (or the screenshot) and fix it.
+  name it couldn't find, so check `arta_get_view` (or the screenshot) and fix it.
   - **Brand / social icons are NOT in the loaded set.** `github`, `twitter`, `linkedin`,
     `slack`, `facebook`, `instagram`, `youtube`, `discord` and the like were dropped from
     lucide's core and render BLANK — a row of empty gaps in a footer "trusted by" / social
@@ -488,7 +488,7 @@ Use them; do not hand-roll what they give you, and **never use emoji as icons.**
   unstyled and icons stay blank.
 
 **Avoid AI-slop — these read as "an AI made this".** Don't ship them; rework the
-element instead. (Run `harness_design_review` to catch them automatically.)
+element instead. (Run `arta_design_review` to catch them automatically.)
 
 - **Side-stripe borders** (a thick coloured `border-left`/`right` as a card/alert
   accent) — use a full border, a background tint, or nothing.
@@ -514,7 +514,7 @@ matches what you're actually building — a mobile app spec should preview in
 or `prototype.safeArea` as the default) to the screen's top/bottom edge colour so
 the status-bar and home-indicator bands take that colour instead of leaving white
 bands above and below your design. Status-bar text and the home pill auto-contrast
-(light on a dark safe area). Set it via `harness_set_frame` / `harness_set_screen`,
+(light on a dark safe area). Set it via `arta_set_frame` / `arta_set_screen`,
 or in state: `"safeArea": "#0b0b0c"`. A dark app with no `safeArea` looks like it's
 floating in white — match it to the edge colour for a real edge-to-edge look.
 
@@ -550,7 +550,7 @@ every screen updates — no hunting through screens, nothing missed.
   this only for genuinely standalone pages (a landing splash, an auth screen).
 
 Workflow: build the design system + layout + components first, then add screens
-as thin bodies. When iterating, prefer `harness_patch_state` with just
+as thin bodies. When iterating, prefer `arta_patch_state` with just
 `{ "prototype": { … } }`, editing the shared piece — not every screen.
 
 ### Prototype component vocabulary (lo-fi alternative)
@@ -580,7 +580,7 @@ the prototype clickable.
   sketches are allowed before that.
 - Keep `meta` valid at all times (it must always have `name` and `phase`); the
   viewer shows a waiting/error state otherwise.
-- Patch, don't clobber: use `harness_patch_state` so untouched sections survive.
+- Patch, don't clobber: use `arta_patch_state` so untouched sections survive.
 - One change, one question. The viewer is a conversation, not a deliverable.
 - Read feedback before assuming you're done. The dev's clicks are the spec.
 
@@ -601,6 +601,6 @@ board is filled in, stop designing and build the real thing — and build it wit
   - `api` — the OpenAPI 3 routes, middleware, params, bodies, responses
 - Follow that skill's loop: per-task brief → implement + test + commit → task review
   (spec compliance **and** code quality) → fix until clean → final whole-branch review.
-- **Drive the board as you go:** move each card with `harness_set_task` (e.g. to your
+- **Drive the board as you go:** move each card with `arta_set_task` (e.g. to your
   `doing` / `review` / `done` status ids) as its subagent progresses, so the dev
   watches implementation advance live on the same Kanban they designed.

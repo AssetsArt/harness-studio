@@ -12,7 +12,7 @@ design/quality/structure decisions. This file only covers harness mechanics.
 
 ## Harness mechanics for this eval (the only deviations from the skill)
 
-- **The arta MCP server is NOT connected here.** You cannot call `harness_*`
+- **The arta MCP server is NOT connected here.** You cannot call `arta_*`
   tools. The skill says you may `Write` the `.harness/` files directly and the watcher
   picks them up — do that. Produce the same artifacts the MCP tools would.
 - **The direction is already approved** (it's in your task). Do NOT brainstorm or ask

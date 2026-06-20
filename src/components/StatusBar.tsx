@@ -126,7 +126,7 @@ function ChangesButton({ changes, onJump }: { changes: ChangeEntry[]; onJump: (c
 }
 
 // Lets the dev leave a note from inside the viewer. The MCP server drains it via
-// harness_get_feedback, so the dev → AI half of the loop never leaves the screen.
+// arta_get_feedback, so the dev → AI half of the loop never leaves the screen.
 function FeedbackButton({ tab, screen }: { tab: Phase; screen: string | undefined }) {
   const { c } = useTheme();
   const [open, setOpen] = useState(false);

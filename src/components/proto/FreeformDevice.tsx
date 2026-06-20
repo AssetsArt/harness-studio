@@ -47,7 +47,7 @@ const RUNTIME = `
   // runs, any <i data-lucide> still in the DOM had an UNKNOWN icon name (a typo /
   // hallucinated name like "chevron-up-down" vs "chevrons-up-down") and renders
   // BLANK. lucide only console.warns that, which is easy to miss — so surface each
-  // bad name once as an error, so harness_get_view shows it and the agent can fix it.
+  // bad name once as an error, so arta_get_view shows it and the agent can fix it.
   var _iconWarned = {};
   function icons(){
     var ready = !!(window.lucide && window.lucide.createIcons);
