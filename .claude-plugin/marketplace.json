@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "Harness Studio — live AI↔dev design canvas",
-    "version": "0.1.26"
+    "version": "0.1.27"
   },
   "plugins": [
     {
       "name": "harness-studio",
       "source": "./",
       "description": "A live design canvas the AI writes into and the dev watches — spec, freeform prototype, data model, flow, and plan.",
-      "version": "0.1.26",
+      "version": "0.1.27",
       "author": {
         "name": "AssetsArt"
       },

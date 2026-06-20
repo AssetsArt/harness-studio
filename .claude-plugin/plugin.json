@@ -1,6 +1,6 @@
 {
   "name": "harness-studio",
-  "version": "0.1.26",
+  "version": "0.1.27",
   "description": "A live design canvas the AI writes into and the dev watches — spec, freeform prototype, data model, flow, and plan, driven from a single .harness/ folder.",
   "author": {
     "name": "AssetsArt"
