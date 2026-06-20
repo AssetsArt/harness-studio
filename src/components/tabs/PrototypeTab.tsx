@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AppWindow, Maximize, Monitor, MessageSquarePlus, Send, Smartphone, X } from "lucide-react";
+import { AppWindow, Maximize, Monitor, MessageSquarePlus, Send, Smartphone, Tablet, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { FrameKind, Prototype, Spec, StoreState } from "../../lib/types";
 import { LIGHT, MONO, useTheme } from "../../lib/theme";
@@ -31,6 +31,7 @@ const FRAMES: { key: FrameKind; label: string; Icon: LucideIcon }[] = [
   { key: "desktop", label: "Desktop", Icon: AppWindow },
   { key: "ios", label: "iOS", Icon: Smartphone },
   { key: "android", label: "Android", Icon: Smartphone },
+  { key: "ipad", label: "iPad", Icon: Tablet },
 ];
 
 export function PrototypeTab({
@@ -55,7 +56,9 @@ export function PrototypeTab({
   const [frameOverride, setFrameOverride] = useState<FrameKind | null>(null);
   useEffect(() => setFrameOverride(null), [stateFrame]);
   const frame = frameOverride ?? stateFrame;
-  const isMobile = frame === "ios" || frame === "android";
+  // Device frames with a safe area (status bar + home indicator) — they get the
+  // centered canvas layout and the Full-screen (no-safe-area) toggle. iPad included.
+  const isMobile = frame === "ios" || frame === "android" || frame === "ipad";
 
   // Full / full-bleed toggle: hide the status bar + home indicator (no safe area).
   const stateChrome = cur.chrome ?? prototype.chrome ?? true;

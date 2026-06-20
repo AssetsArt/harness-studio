@@ -63,6 +63,12 @@ export function DeviceFrame({ frame, url, title, safeArea, chrome = true, childr
         {children}
       </AndroidFrame>
     );
+  if (frame === "ipad")
+    return (
+      <IpadFrame title={title} safeArea={safeArea} chrome={chrome}>
+        {children}
+      </IpadFrame>
+    );
   if (frame === "desktop") return <DesktopFrame title={title}>{children}</DesktopFrame>;
   return <WebFrame url={url}>{children}</WebFrame>;
 }
@@ -125,12 +131,15 @@ function DesktopFrame({ title, children }: { title: string; children: React.Reac
   );
 }
 
-// Shared phone shell: dark bezel + rounded screen, sized to fit the canvas.
+// Shared phone / tablet shell: dark bezel + rounded screen, sized to fit the canvas.
+// `maxH` caps the height so the device keeps a believable aspect — phones stay ~820,
+// the taller tablet (iPad portrait) gets more room before the canvas height clamps it.
 function Phone({
   radius,
   screenRadius,
   pad,
   width,
+  maxH = 820,
   screenBg,
   statusBar,
   bottom,
@@ -140,6 +149,7 @@ function Phone({
   screenRadius: number;
   pad: number;
   width: number;
+  maxH?: number;
   screenBg: string;
   statusBar: React.ReactNode;
   bottom: React.ReactNode;
@@ -150,7 +160,7 @@ function Phone({
       className="relative flex flex-col"
       style={{
         width,
-        height: `min(820px, 100%)`,
+        height: `min(${maxH}px, 100%)`,
         background: BEZEL,
         borderRadius: radius,
         padding: pad,
@@ -270,6 +280,56 @@ function AndroidFrame({
             <span
               className="h-[4px] w-[118px] rounded-full"
               style={{ background: dark ? "rgba(255,255,255,.5)" : "rgba(0,0,0,.55)" }}
+            />
+          </div>
+        ) : null
+      }
+    >
+      {children}
+    </Phone>
+  );
+}
+
+// Tablet shell (iPad portrait): a uniform slim bezel, gently rounded corners, and —
+// unlike the phones — NO notch / Dynamic Island (just a status bar). Renders the page
+// at a tablet width so `md:` / `lg:` breakpoints kick in. safeArea + chrome behave the
+// same as the phones (chrome:false = full-bleed, no status bar / home indicator).
+function IpadFrame({
+  safeArea,
+  chrome = true,
+  children,
+}: {
+  title: string;
+  safeArea?: string;
+  chrome?: boolean;
+  children: React.ReactNode;
+}) {
+  const dark = safeArea ? isDarkColor(safeArea) : false;
+  const fg = dark ? "#f5f5f7" : LIGHT.fg;
+  return (
+    <Phone
+      width={810}
+      maxH={1120}
+      radius={30}
+      screenRadius={18}
+      pad={16}
+      screenBg={safeArea || LIGHT.bg}
+      statusBar={
+        chrome ? (
+          <div className="relative flex h-8 shrink-0 items-center justify-between px-6 pt-1">
+            <span className="text-[13px] font-semibold" style={{ color: fg }}>
+              9:41
+            </span>
+            <StatusIcons color={fg} />
+          </div>
+        ) : null
+      }
+      bottom={
+        chrome ? (
+          <div className="flex h-6 shrink-0 items-end justify-center pb-2">
+            <span
+              className="h-[5px] w-[180px] rounded-full"
+              style={{ background: dark ? "rgba(255,255,255,.85)" : "rgba(0,0,0,.85)" }}
             />
           </div>
         ) : null

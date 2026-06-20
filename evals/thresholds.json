@@ -33,5 +33,9 @@
     "meanFloor": 0.83,
     "worstFloor": 0.66,
     "heldoutMeanFloor": 0.83
+  },
+  "handoff": {
+    "_doc": "For --handoff runs: how complete the structured sections (spec/dataModel/api) are for subagent-driven-development. The shipped demo should be a complete handoff example.",
+    "floor": 0.8
   }
 }

@@ -170,6 +170,18 @@
       "expectInteractivity": ["data-to", "data-set", "data-show"]
     },
     {
+      "id": "scale-app",
+      "split": "scale",
+      "title": "Scale — 10-screen SaaS app (stresses shared layout)",
+      "domain": "saas",
+      "frame": "web",
+      "prompt": "A full project-management SaaS, 'Tasklane' — enough screens to stress shared layout + factoring.",
+      "approvedDirection": "A 10-screen desktop-web app sharing ONE left-nav + top-bar shell (put it in layout + components, NEVER repeat it per screen): dashboard, projects, project, tasks, task, team, settings, billing, notifications, search. Calm dense SaaS. Real copy and numbers. Heavy reuse — thin screen bodies, all chrome shared via the layout/components.",
+      "minScreens": 10,
+      "store": {},
+      "expectInteractivity": ["data-to"]
+    },
+    {
       "id": "demo",
       "split": "ship",
       "title": "Helix — the .harness/ demo that ships in the repo",

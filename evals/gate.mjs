@@ -170,10 +170,66 @@ function runParity(dir, json) {
   return ok;
 }
 
+// ── Handoff completeness: is the design buildable by a subagent? ─────────────
+// The grader's A1-A5 only inspect the prototype. But subagent-driven-development reads
+// spec/dataModel/api too — so a "designed" canvas that's missing them can't be built.
+// This scores those structured sections deterministically (no LLM).
+function gradeHandoff(state) {
+  const checks = [];
+  const add = (id, ok, note) => checks.push({ id, ok: !!ok, note });
+  const spec = state.spec || {};
+  add("spec.goal", typeof spec.goal === "string" && spec.goal.trim().length > 8, "one-sentence goal");
+  add("spec.users", Array.isArray(spec.users) && spec.users.length >= 1, "≥1 user");
+  add("spec.userStories", Array.isArray(spec.userStories) && spec.userStories.length >= 1, "≥1 story");
+  add("spec.scope", spec.scope && (Array.isArray(spec.scope.in) && spec.scope.in.length >= 1), "scope.in");
+  add("spec.constraints", Array.isArray(spec.constraints) && spec.constraints.length >= 1, "≥1 constraint");
+
+  const dm = state.dataModel || {};
+  const entities = Array.isArray(dm.entities) ? dm.entities : [];
+  add("data.entities", entities.length >= 1, "≥1 entity");
+  add("data.fields", entities.length >= 1 && entities.every((e) => Array.isArray(e.fields) && e.fields.length >= 1), "every entity has fields");
+  add("data.pk", entities.some((e) => (e.fields || []).some((f) => f.pk)), "≥1 primary key");
+  add("data.relationships", Array.isArray(dm.relationships) && dm.relationships.length >= 1, "≥1 relationship");
+
+  const api = state.api || {};
+  const paths = api.paths && typeof api.paths === "object" ? api.paths : {};
+  const ops = Object.values(paths).flatMap((p) => Object.entries(p).filter(([m]) => ["get", "post", "put", "patch", "delete"].includes(m)).map(([, o]) => o));
+  const screenIds = new Set((state.prototype?.screens || []).map((s) => s.id));
+  const xScreens = ops.flatMap((o) => o["x-screens"] || []);
+  add("api.paths", Object.keys(paths).length >= 1, "≥1 route");
+  add("api.responses", ops.length >= 1 && ops.every((o) => o.responses && Object.keys(o.responses).length >= 1), "every op has responses");
+  add("api.xScreens", xScreens.length >= 1 && xScreens.every((id) => screenIds.has(id)), "x-screens tie routes to real screens");
+
+  const passed = checks.filter((c) => c.ok).length;
+  return { score: +(passed / checks.length).toFixed(3), passed, total: checks.length, checks, missing: checks.filter((c) => !c.ok).map((c) => c.id) };
+}
+
+function runHandoff(dir, json) {
+  const state = JSON.parse(fs.readFileSync(path.join(path.resolve(dir), "state.json"), "utf8"));
+  const r = gradeHandoff(state);
+  if (json) { console.log(JSON.stringify({ mode: "handoff", dir, ...r }, null, 2)); return r.score >= (TH.handoff?.floor ?? 0.8); }
+  console.log(`\n  HANDOFF COMPLETENESS — can a subagent build from this canvas? ${path.relative(ROOT, path.resolve(dir)) || dir}\n`);
+  const groups = { spec: [], data: [], api: [] };
+  for (const c of r.checks) groups[c.id.split(".")[0]].push(c);
+  for (const [g, cs] of Object.entries(groups)) {
+    console.log("  " + pad(g, 6) + cs.map((c) => `${c.ok ? "✓" : "✗"} ${c.id.split(".")[1]}`).join("   "));
+  }
+  const floor = TH.handoff?.floor ?? 0.8;
+  const ok = r.score >= floor;
+  console.log(`\n  ${r.passed}/${r.total} complete  (score ${r.score}, floor ${floor})` + (r.missing.length ? `  missing: ${r.missing.join(", ")}` : ""));
+  console.log("\n  " + (ok ? "HANDOFF READY" : "HANDOFF INCOMPLETE — fill the missing sections before 'design approved'.") + "\n");
+  return ok;
+}
+
 // ── CLI ──────────────────────────────────────────────────────────────────────
 const args = process.argv.slice(2);
 const json = args.includes("--json");
 const si = args.indexOf("--suite");
 const pi = args.indexOf("--parity");
-const ok = pi >= 0 ? runParity(args[pi + 1], json) : si >= 0 ? runSuite(args[si + 1], json) : runGate(json);
+const hi = args.indexOf("--handoff");
+const ok =
+  hi >= 0 ? runHandoff(args[hi + 1], json)
+  : pi >= 0 ? runParity(args[pi + 1], json)
+  : si >= 0 ? runSuite(args[si + 1], json)
+  : runGate(json);
 process.exit(ok ? 0 : 1);

@@ -95,7 +95,7 @@ you keep big prototypes cheap to edit):
   properties (`--color-*`, `--space-*`, `--radius-*`, `--shadow-*`, `--text-*`,
   `--font-*`) injected into every screen.
 - `harness_set_frame` — set the device frame, `safeArea` colour, and/or `chrome`
-  (prototype default or per screen). On ios/android, `safeArea` paints the status-bar
+  (prototype default or per screen). On ios/android/ipad, `safeArea` paints the status-bar
   + home-indicator bands so a full-bleed screen reads edge-to-edge instead of leaving
   white bands (contents auto-contrast); `chrome:false` is **Full** — drops those bands
   entirely so the design fills the whole screen.
@@ -221,7 +221,7 @@ the dev react at each step.
   },
   "prototype": {
     "start": "screenId",
-    "frame": "web",                         // device frame: web | desktop | ios | android (screens can override)
+    "frame": "web",                         // device frame: web | desktop | ios | android | ipad (screens can override)
     "store": { "cart": 0 },                 // initial mock-store values
     "tokens": {                             // the STRUCTURED design system — set this (it's the source of truth)
       "colors": [ { "name": "brand", "value": "#e8482b" }, { "name": "ink", "value": "#1a1a1a" } ],  // ≥4 — compile to --color-<name>
@@ -436,12 +436,13 @@ element instead. (Run `harness_design_review` to catch them automatically.)
 
 **Pick the device frame** with `prototype.frame` (or per-screen `frame`):
 `web` (browser, default), `desktop` (native app window), `ios` or `android`
-(phone). The phone frames render the page at ~390px wide, so write responsive CSS
-and your `@media` rules will kick in. Choose the frame that matches what you're
-actually building — a mobile app spec should preview in `ios`/`android`, not a
-browser.
+(phone), `ipad` (tablet). The phone frames render the page at ~390px wide and the
+`ipad` frame at ~780px (a real tablet breakpoint, so `md:`/`lg:` utilities and your
+`@media` rules kick in) — write responsive CSS accordingly. Choose the frame that
+matches what you're actually building — a mobile app spec should preview in
+`ios`/`android`, a tablet layout in `ipad`, not a browser.
 
-**Full-bleed phone screens** — for `ios`/`android`, set `safeArea` (on the screen,
+**Full-bleed phone / tablet screens** — for `ios`/`android`/`ipad`, set `safeArea` (on the screen,
 or `prototype.safeArea` as the default) to the screen's top/bottom edge colour so
 the status-bar and home-indicator bands take that colour instead of leaving white
 bands above and below your design. Status-bar text and the home pill auto-contrast

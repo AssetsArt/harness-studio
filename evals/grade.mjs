@@ -26,6 +26,15 @@ const DETECT =
   path.join(os.homedir(), ".claude/skills/impeccable/scripts/detect.mjs");
 
 const sanitize = (s) => String(s).replace(/[^a-z0-9_-]/gi, "");
+// Rough luminance of a hex/rgb colour → is it dark? (for the safe-area heuristic)
+function isDarkColor(v) {
+  const s = String(v || "").trim();
+  let r = 255, g = 255, b = 255;
+  let m = s.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if (m) { let h = m[1]; if (h.length === 3) h = h.replace(/./g, "$&$&"); r = parseInt(h.slice(0, 2), 16); g = parseInt(h.slice(2, 4), 16); b = parseInt(h.slice(4, 6), 16); }
+  else { m = s.match(/rgba?\(([^)]+)\)/i); if (m) { const p = m[1].split(",").map(parseFloat); [r, g, b] = p; } else return false; }
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 < 0.5;
+}
 // Brand / social icon names lucide's UMD core DROPPED — they render BLANK (an empty gap,
 // the classic footer "social strip" tell). data-lucide on any of these = a render defect a
 // raw HTML check can catch without a browser. Keep in sync with the SKILL.md icon note.
@@ -213,6 +222,40 @@ export function grade(briefId, dir) {
   for (const n of blankIcons) renderIssues.push({ issue: "blank icon (not in lucide set)", name: n });
   metrics.render = { screens: screens.length, minScreens: brief.minScreens, blankIcons, issues: renderIssues };
   const A4 = renderIssues.length === 0 && screens.length >= (brief.minScreens || 1);
+
+  // ── frame / safe-area heuristic (reported, non-gating) ───────────────────────
+  // A dark mobile/tablet design with no safeArea and chrome on "floats in white".
+  // Reported (not gated) — a light design legitimately needs no safeArea.
+  const protoFrame = proto.frame;
+  const isDevice = (f) => f === "ios" || f === "android" || f === "ipad";
+  const bgTok = (tk.colors || []).find((c) => /^bg$|background/i.test(c.name));
+  const bgDark = bgTok ? isDarkColor(bgTok.value) : false;
+  const safeAreaMissing = [];
+  for (const s of screens) {
+    const f = s.frame || protoFrame;
+    if (!isDevice(f)) continue;
+    const chromeOff = s.chrome === false || proto.chrome === false;
+    const hasSafe = (s.safeArea != null && s.safeArea !== "") || (proto.safeArea != null && proto.safeArea !== "");
+    if (bgDark && !chromeOff && !hasSafe) safeAreaMissing.push(s.id);
+  }
+  metrics.frame = { frame: protoFrame || "web", deviceScreens: screens.filter((s) => isDevice(s.frame || protoFrame)).length, bgDark, safeAreaMissing };
+
+  // ── factoring efficiency (matters most for big apps) ─────────────────────────
+  // How much markup lives in the SHARED layout+components vs repeated per-screen.
+  // A high shared ratio + low cross-screen similarity = the agent factored the chrome
+  // instead of pasting it into every screen — the behaviour the granular setters /
+  // deep-merge patch encourage, and what keeps a 10+ screen app cheap to edit. (True
+  // tool-call/token efficiency needs MCP-call instrumentation — not visible in an
+  // artifact, so this is the artifact-side proxy.)
+  const sharedBytes = (typeof proto.layout === "string" ? proto.layout.length : 0) + Object.values(proto.components || {}).reduce((n, v) => n + (typeof v === "string" ? v.length : 0), 0);
+  const screenBytes = screens.reduce((n, s) => n + (typeof s.html === "string" ? s.html.length : 0), 0);
+  metrics.factoring = {
+    screens: screens.length,
+    sharedBytes,
+    screenBytes,
+    sharedRatio: sharedBytes + screenBytes ? +(sharedBytes / (sharedBytes + screenBytes)).toFixed(3) : 0,
+    maxSim: metrics.shared.maxSim,
+  };
 
   // ── A5 design-review (impeccable detect) ─────────────────────────────────────
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "hns-grade-"));

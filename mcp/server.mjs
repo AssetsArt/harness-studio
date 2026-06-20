@@ -538,7 +538,7 @@ server.registerTool(
   "harness_set_screen",
   {
     description:
-      "Create or replace one screen: writes only .harness/prototype/screens/<id>.html and upserts the screen's entry in the manifest (title/url/frame/safeArea). Other screens and the rest of the design are untouched. This is how you edit a screen cheaply. For an ios/android screen, pass `safeArea` so the status-bar + home-indicator bands take the screen's edge colour instead of staying white — or `chrome:false` for a Full / full-bleed screen with no safe area at all (content fills the whole screen). STYLE WITH TAILWIND UTILITY CLASSES (injected live) — not inline style=; use lucide icons (<i data-lucide=\"…\">), never emoji.",
+      "Create or replace one screen: writes only .harness/prototype/screens/<id>.html and upserts the screen's entry in the manifest (title/url/frame/safeArea). Other screens and the rest of the design are untouched. This is how you edit a screen cheaply. For an ios/android/ipad screen, pass `safeArea` so the status-bar + home-indicator bands take the screen's edge colour instead of staying white — or `chrome:false` for a Full / full-bleed screen with no safe area at all (content fills the whole screen). STYLE WITH TAILWIND UTILITY CLASSES (injected live) — not inline style=; use lucide icons (<i data-lucide=\"…\">), never emoji.",
     inputSchema: {
       id: zod.string(),
       html: zod
@@ -548,18 +548,18 @@ server.registerTool(
         ),
       title: zod.string().optional(),
       url: zod.string().optional(),
-      frame: zod.enum(["web", "desktop", "ios", "android"]).optional(),
+      frame: zod.enum(["web", "desktop", "ios", "android", "ipad"]).optional(),
       safeArea: zod
         .string()
         .optional()
         .describe(
-          "For ios/android frames: the colour painted into the device safe areas (status bar + home indicator) so the screen reads edge-to-edge instead of leaving white bands. Use any CSS colour — set it to this screen's top/bottom edge colour. Status-bar text auto-contrasts. Empty string clears it."
+          "For ios/android/ipad frames: the colour painted into the device safe areas (status bar + home indicator) so the screen reads edge-to-edge instead of leaving white bands. Use any CSS colour — set it to this screen's top/bottom edge colour. Status-bar text auto-contrasts. Empty string clears it."
         ),
       chrome: zod
         .boolean()
         .optional()
         .describe(
-          "Show the device chrome (status bar + home indicator) on ios/android. Default true. Pass false for a Full / full-bleed screen with NO safe area — content fills the whole screen (splash, camera, media viewer, or a design that draws its own status bar)."
+          "Show the device chrome (status bar + home indicator) on ios/android/ipad. Default true. Pass false for a Full / full-bleed screen with NO safe area — content fills the whole screen (splash, camera, media viewer, or a design that draws its own status bar)."
         ),
     },
   },
@@ -750,17 +750,17 @@ server.registerTool(
   "harness_set_frame",
   {
     description:
-      "Set the device frame, safe-area background, and/or chrome visibility — for one screen (pass `screen`) or the prototype default. `safeArea` is the colour painted into a phone's status-bar + home-indicator bands for ios/android frames; set it to the screen's edge colour so it reads edge-to-edge instead of leaving white bands (status-bar text auto-contrasts), or pass `safeArea: \"\"` to clear it. `chrome:false` renders Full / full-bleed with NO safe area — content fills the whole screen. Provide at least one of `frame` / `safeArea` / `chrome`.",
+      "Set the device frame, safe-area background, and/or chrome visibility — for one screen (pass `screen`) or the prototype default. `safeArea` is the colour painted into a phone's status-bar + home-indicator bands for ios/android/ipad frames; set it to the screen's edge colour so it reads edge-to-edge instead of leaving white bands (status-bar text auto-contrasts), or pass `safeArea: \"\"` to clear it. `chrome:false` renders Full / full-bleed with NO safe area — content fills the whole screen. Provide at least one of `frame` / `safeArea` / `chrome`.",
     inputSchema: {
-      frame: zod.enum(["web", "desktop", "ios", "android"]).optional(),
+      frame: zod.enum(["web", "desktop", "ios", "android", "ipad"]).optional(),
       safeArea: zod
         .string()
         .optional()
-        .describe("Safe-area background for ios/android frames (any CSS colour). Empty string clears it."),
+        .describe("Safe-area background for ios/android/ipad frames (any CSS colour). Empty string clears it."),
       chrome: zod
         .boolean()
         .optional()
-        .describe("Show the device chrome (status bar + home indicator) on ios/android. false = Full / full-bleed, no safe area."),
+        .describe("Show the device chrome (status bar + home indicator) on ios/android/ipad. false = Full / full-bleed, no safe area."),
       screen: zod.string().optional().describe("Screen id to scope to; omit for the prototype default."),
     },
   },

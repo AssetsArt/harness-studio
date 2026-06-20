@@ -75,7 +75,12 @@ const brief = BRIEFS.briefs.find((b) => b.id === briefId);
 const state = assemble(path.resolve(dir));
 const proto = state?.prototype || {};
 const frame = (proto.screens || [])[0]?.frame || proto.frame || brief?.frame || "web";
-const viewport = frame === "ios" || frame === "android" ? { width: 390, height: 844 } : { width: 1280, height: 900 };
+const viewport =
+  frame === "ios" || frame === "android"
+    ? { width: 390, height: 844 }
+    : frame === "ipad"
+    ? { width: 810, height: 1120 } // portrait tablet — ≥768 so md: breakpoints fire
+    : { width: 1280, height: 900 };
 const outDir = path.join(path.resolve(dir), "_render");
 fs.mkdirSync(outDir, { recursive: true });
 const screens = (proto.screens || []).filter((s) => s && s.id);

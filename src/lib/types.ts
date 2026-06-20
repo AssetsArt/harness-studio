@@ -176,7 +176,7 @@ export interface Component {
   rows?: string[][];
   h?: number;
 }
-export type FrameKind = "web" | "desktop" | "ios" | "android";
+export type FrameKind = "web" | "desktop" | "ios" | "android" | "ipad";
 
 export interface Screen {
   id: string;
