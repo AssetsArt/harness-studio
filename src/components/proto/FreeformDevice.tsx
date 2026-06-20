@@ -221,13 +221,21 @@ export function FreeformDevice({
     if (!doc || !node) return;
     // modern-screenshot resolves the owner window from node.ownerDocument, so the
     // iframe's own styles / fonts / media queries paint exactly as displayed.
-    domToPng(node, {
-      scale: 2, // crisp text for the agent to read back
-      height: Math.min(node.scrollHeight, 2400),
-      // No forced background — capture the screen's real bg (dark screens stay dark).
-    })
-      .then((dataUrl) => reportSnapshot(screenId, dataUrl))
-      .catch(() => {});
+    const shoot = () =>
+      domToPng(node, {
+        scale: 2, // crisp text for the agent to read back
+        height: Math.min(node.scrollHeight, 2400),
+        // No forced background — capture the screen's real bg (dark screens stay dark).
+      })
+        .then((dataUrl) => reportSnapshot(screenId, dataUrl))
+        .catch(() => {});
+    // Wait for the screen's web fonts to finish loading before capturing — otherwise the
+    // snapshot can freeze a system fallback (e.g. Fraunces → Georgia/Times) and
+    // misrepresent the type the dev/agent actually sees. `fonts.ready` resolves right away
+    // if they're already loaded; we shoot on either settle so it can't hang.
+    const fonts = doc.fonts;
+    if (fonts && typeof fonts.ready?.then === "function") fonts.ready.then(shoot, shoot);
+    else shoot();
   }, [screenId]);
 
   useEffect(() => {
