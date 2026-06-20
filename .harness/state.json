@@ -1,961 +1,153 @@
 {
-  "meta": {
-    "name": "Aurora Store",
-    "phase": "prototype"
-  },
+  "meta": { "name": "Gateway Monitor", "phase": "prototype" },
   "spec": {
-    "goal": "Help a first-time shopper find a product and reach checkout in under two minutes.",
-    "users": [
-      "Shopper",
-      "Returning customer",
-      "Merchant"
-    ],
+    "goal": "Give an operator a single live screen to read an edge gateway's health — traffic, cache, latency and errors — in one glance.",
+    "users": ["Platform / edge operator", "On-call engineer", "Performance engineer"],
     "userStories": [
-      "As a shopper, I want to browse featured products on the home page so I can find something fast.",
-      "As a shopper, I want to add to cart without leaving the page so I keep browsing.",
-      "As a returning customer, I want my cart to persist while I look around the store."
+      "As an operator, I want live throughput, egress and cache-hit at the top so I know the gateway's state instantly.",
+      "As an engineer, I want a tailing request stream with status + cache decision so I can spot a bad pattern as it happens.",
+      "As a performance engineer, I want latency distribution and cache outcomes so I can see where time and misses go."
     ],
     "scope": {
-      "in": [
-        "Storefront",
-        "Product detail",
-        "Cart"
-      ],
-      "out": [
-        "Payments",
-        "Shipping rates",
-        "Reviews"
-      ]
+      "in": ["Live traffic + egress charts", "Top endpoints", "Tailing request stream", "Latency histogram", "Status + cache breakdown"],
+      "out": ["Config editing", "Per-tenant billing", "Historical (>1h) analytics"]
     },
-    "constraints": [
-      "Mobile-first, responsive",
-      "Guest checkout — no account required",
-      "Mock catalog only — no real inventory"
-    ]
+    "constraints": ["Single screen, no scroll on 1440p", "1s live refresh / tailing stream", "Light theme, mono numerics, log-scale latency"]
   },
-  "plan": {
-    "stack": [
-      "React 19",
-      "Vite",
-      "Tailwind",
-      "Node/Express",
-      "Postgres"
-    ],
-    "statuses": [
-      {
-        "id": "backlog",
-        "name": "Backlog",
-        "color": "#71717a"
-      },
-      {
-        "id": "doing",
-        "name": "In progress",
-        "color": "#fbbf24"
-      },
-      {
-        "id": "review",
-        "name": "In review",
-        "color": "#a78bfa"
-      },
-      {
-        "id": "done",
-        "name": "Done",
-        "color": "#34d399"
-      }
-    ],
-    "milestones": [
-      {
-        "name": "M1 · Storefront",
-        "tasks": [
-          {
-            "title": "Product list + search",
-            "status": "done",
-            "priority": "high"
-          },
-          {
-            "title": "Product detail page",
-            "status": "review",
-            "priority": "normal"
-          },
-          {
-            "title": "Cart + mock checkout",
-            "status": "doing",
-            "priority": "high"
-          },
-          {
-            "title": "Empty / loading states",
-            "status": "backlog",
-            "priority": "low"
-          }
-        ]
-      },
-      {
-        "name": "M2 · Queue",
-        "tasks": [
-          {
-            "title": "Walk-in API + QR",
-            "status": "doing",
-            "priority": "urgent"
-          },
-          {
-            "title": "Realtime queue stream (SSE)",
-            "status": "backlog",
-            "priority": "high"
-          },
-          {
-            "title": "Staff dashboard",
-            "status": "backlog",
-            "priority": "normal"
-          }
-        ]
-      }
+  "prototype": {
+    "start": "overview",
+    "frame": "web",
+    "store": {},
+    "tokens": {
+      "fonts": [
+        { "name": "body", "value": "'Geist', system-ui, sans-serif" },
+        { "name": "mono", "value": "'Geist Mono', ui-monospace, monospace" }
+      ],
+      "colors": [
+        { "name": "bg", "value": "#eef1f4", "description": "page" },
+        { "name": "surface", "value": "#ffffff", "description": "cards" },
+        { "name": "border", "value": "#e4e8ee", "description": "hairline" },
+        { "name": "ink", "value": "#1f2733", "description": "primary text" },
+        { "name": "dim", "value": "#7a828f", "description": "labels / secondary" },
+        { "name": "green", "value": "#16a34a", "description": "primary · healthy · 2xx · HIT" },
+        { "name": "blue", "value": "#2563eb", "description": "egress · 3xx · dynamic" },
+        { "name": "amber", "value": "#e0820c", "description": "bypass · slow" },
+        { "name": "red", "value": "#dc2626", "description": "errors · blocked" }
+      ],
+      "typography": [
+        { "name": "kpi", "sample": "56,112", "family": "'Geist', sans-serif", "size": "1.9rem", "weight": 650, "lineHeight": "1", "letterSpacing": "-0.01em" },
+        { "name": "body", "family": "'Geist', sans-serif", "size": "0.875rem", "weight": 400, "lineHeight": "1.5" },
+        { "name": "mono", "family": "'Geist Mono', monospace", "size": "0.8125rem", "weight": 500 },
+        { "name": "label", "sample": "CACHE HIT RATIO", "family": "'Geist Mono', monospace", "size": "0.65rem", "weight": 500, "letterSpacing": "0.07em" }
+      ],
+      "spacing": [
+        { "name": "xs", "value": "4px" }, { "name": "sm", "value": "8px" },
+        { "name": "md", "value": "14px" }, { "name": "lg", "value": "24px" }, { "name": "xl", "value": "40px" }
+      ],
+      "radii": [ { "name": "sm", "value": "5px" }, { "name": "md", "value": "10px" }, { "name": "lg", "value": "14px" } ],
+      "shadows": [ { "name": "card", "value": "0 1px 2px rgba(16,24,40,.04)" } ]
+    },
+    "layout": "{{>topbar}}<div class=\"dash\">{{slot}}</div>",
+    "screens": [
+      { "id": "overview", "title": "Overview", "url": "gateway.edge/overview" },
+      { "id": "requests", "title": "Requests", "url": "gateway.edge/requests" },
+      { "id": "cache", "title": "Cache", "url": "gateway.edge/cache" },
+      { "id": "routes", "title": "Routes", "url": "gateway.edge/routes" }
     ]
   },
   "dataModel": {
     "entities": [
-      {
-        "name": "Product",
-        "fields": [
-          {
-            "name": "id",
-            "type": "uuid",
-            "pk": true
-          },
-          {
-            "name": "title",
-            "type": "string",
-            "required": true
-          },
-          {
-            "name": "price",
-            "type": "int",
-            "required": true
-          },
-          {
-            "name": "slug",
-            "type": "string",
-            "required": true
-          },
-          {
-            "name": "image",
-            "type": "string"
-          }
-        ]
-      },
-      {
-        "name": "CartItem",
-        "fields": [
-          {
-            "name": "id",
-            "type": "uuid",
-            "pk": true
-          },
-          {
-            "name": "productId",
-            "type": "uuid",
-            "fk": "Product",
-            "required": true
-          },
-          {
-            "name": "qty",
-            "type": "int",
-            "required": true
-          }
-        ]
-      },
-      {
-        "name": "Order",
-        "fields": [
-          {
-            "name": "id",
-            "type": "uuid",
-            "pk": true
-          },
-          {
-            "name": "customerId",
-            "type": "uuid",
-            "fk": "Customer",
-            "required": true
-          },
-          {
-            "name": "total",
-            "type": "int",
-            "required": true
-          },
-          {
-            "name": "status",
-            "type": "enum",
-            "required": true
-          },
-          {
-            "name": "createdAt",
-            "type": "timestamp",
-            "required": true
-          }
-        ]
-      },
-      {
-        "name": "Customer",
-        "fields": [
-          {
-            "name": "id",
-            "type": "uuid",
-            "pk": true
-          },
-          {
-            "name": "email",
-            "type": "string",
-            "required": true
-          }
-        ]
-      }
+      { "name": "Route", "fields": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "method", "type": "enum(GET,POST,OPTIONS)", "required": true },
+        { "name": "path", "type": "string", "required": true },
+        { "name": "cachePolicy", "type": "enum(cacheable,bypass,dynamic)" }
+      ] },
+      { "name": "RequestSample", "fields": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "routeId", "type": "uuid", "fk": "Route", "required": true },
+        { "name": "status", "type": "int", "required": true },
+        { "name": "cacheDecision", "type": "enum(HIT_T1,HIT_T2,BYPASS,MISS)" },
+        { "name": "durationMs", "type": "float" },
+        { "name": "ts", "type": "timestamp", "required": true }
+      ] },
+      { "name": "Upstream", "fields": [
+        { "name": "id", "type": "uuid", "pk": true },
+        { "name": "host", "type": "string", "required": true },
+        { "name": "rttMs", "type": "float" },
+        { "name": "connReusePct", "type": "float" }
+      ] }
     ],
     "relationships": [
-      {
-        "from": "CartItem",
-        "to": "Product",
-        "type": "N:1",
-        "label": "of"
-      },
-      {
-        "from": "Order",
-        "to": "Customer",
-        "type": "N:1",
-        "label": "by"
-      }
+      { "from": "RequestSample", "to": "Route", "type": "N:1", "label": "for" },
+      { "from": "Route", "to": "Upstream", "type": "N:1", "label": "proxies to" }
     ]
-  },
-  "flow": {
-    "nodes": [
-      {
-        "id": "s_home",
-        "kind": "screen",
-        "label": "Home"
-      },
-      {
-        "id": "s_product",
-        "kind": "screen",
-        "label": "Product"
-      },
-      {
-        "id": "s_cart",
-        "kind": "screen",
-        "label": "Cart"
-      },
-      {
-        "id": "a_products",
-        "kind": "api",
-        "label": "GET /products"
-      },
-      {
-        "id": "a_cart",
-        "kind": "api",
-        "label": "POST /cart"
-      },
-      {
-        "id": "e_product",
-        "kind": "entity",
-        "label": "Product"
-      },
-      {
-        "id": "e_cart",
-        "kind": "entity",
-        "label": "CartItem"
-      }
-    ],
-    "edges": [
-      {
-        "from": "s_home",
-        "to": "a_products",
-        "label": "list",
-        "op": "read"
-      },
-      {
-        "from": "a_products",
-        "to": "e_product",
-        "op": "read"
-      },
-      {
-        "from": "s_product",
-        "to": "a_cart",
-        "label": "add to cart",
-        "op": "write"
-      },
-      {
-        "from": "a_cart",
-        "to": "e_cart",
-        "op": "write"
-      },
-      {
-        "from": "s_cart",
-        "to": "e_cart",
-        "label": "read bag",
-        "op": "read"
-      }
-    ]
-  },
-  "prototype": {
-    "start": "home",
-    "store": {
-      "cart": 0
-    },
-    "vars": {
-      "brand": "Aurora",
-      "logo": "A"
-    },
-    "layout": "{{>header}}{{slot}}{{>footer}}",
-    "screens": [
-      {
-        "id": "home",
-        "title": "Home",
-        "url": "aurora.shop"
-      },
-      {
-        "id": "product",
-        "title": "Product detail",
-        "url": "aurora.shop/p/oak-serving-tray"
-      },
-      {
-        "id": "cart",
-        "title": "Cart",
-        "url": "aurora.shop/cart"
-      }
-    ],
-    "tokens": {
-      "colors": [
-        {
-          "name": "brand",
-          "value": "#e8482b",
-          "description": "Primary accent — buttons, prices, active links"
-        },
-        {
-          "name": "ink",
-          "value": "#1c1917",
-          "description": "Primary text"
-        },
-        {
-          "name": "muted",
-          "value": "#78716c",
-          "description": "Secondary text"
-        },
-        {
-          "name": "line",
-          "value": "#ececea",
-          "description": "Borders & dividers"
-        },
-        {
-          "name": "soft",
-          "value": "#faf9f7",
-          "description": "Page background"
-        },
-        {
-          "name": "surface",
-          "value": "#ffffff",
-          "description": "Cards, header, footer"
-        }
-      ],
-      "typography": [
-        {
-          "name": "display",
-          "sample": "Everyday objects, quietly well made.",
-          "size": "40px",
-          "weight": 700,
-          "lineHeight": "1.08",
-          "letterSpacing": "-1px"
-        },
-        {
-          "name": "heading",
-          "sample": "Featured",
-          "size": "22px",
-          "weight": 600,
-          "letterSpacing": "-0.4px"
-        },
-        {
-          "name": "body",
-          "sample": "A small catalog of home goods we actually use.",
-          "size": "16px",
-          "weight": 400,
-          "lineHeight": "1.55"
-        },
-        {
-          "name": "small",
-          "sample": "Free shipping over THB 1,500",
-          "size": "13px",
-          "weight": 500
-        },
-        {
-          "name": "eyebrow",
-          "sample": "NEW SEASON",
-          "size": "12px",
-          "weight": 500,
-          "family": "monospace",
-          "letterSpacing": "2px"
-        }
-      ],
-      "spacing": [
-        {
-          "name": "xs",
-          "value": "6px"
-        },
-        {
-          "name": "sm",
-          "value": "12px"
-        },
-        {
-          "name": "md",
-          "value": "18px"
-        },
-        {
-          "name": "lg",
-          "value": "32px"
-        },
-        {
-          "name": "xl",
-          "value": "48px"
-        }
-      ],
-      "radii": [
-        {
-          "name": "sm",
-          "value": "8px"
-        },
-        {
-          "name": "md",
-          "value": "12px"
-        },
-        {
-          "name": "lg",
-          "value": "16px"
-        },
-        {
-          "name": "pill",
-          "value": "999px"
-        }
-      ],
-      "shadows": [
-        {
-          "name": "sm",
-          "value": "0 1px 2px rgba(28,25,23,.06)"
-        },
-        {
-          "name": "md",
-          "value": "0 8px 24px rgba(28,25,23,.10)"
-        },
-        {
-          "name": "lg",
-          "value": "0 20px 48px rgba(28,25,23,.14)"
-        }
-      ],
-      "fonts": [
-        {
-          "name": "sans",
-          "value": "'Geist', system-ui, sans-serif",
-          "description": "UI & body"
-        },
-        {
-          "name": "mono",
-          "value": "'Geist Mono', ui-monospace, monospace",
-          "description": "Eyebrows, code, prices"
-        }
-      ]
-    }
   },
   "api": {
-    "info": {
-      "title": "Aurora Store API",
-      "version": "1.0.0",
-      "description": "Storefront + queue endpoints"
-    },
-    "servers": [
-      {
-        "url": "https://api.aurora.shop/v1"
-      }
-    ],
-    "x-middleware": [
-      {
-        "name": "cors",
-        "description": "Allow cross-origin requests from the storefront"
-      },
-      {
-        "name": "auth",
-        "description": "Require a valid Bearer token"
-      },
-      {
-        "name": "rateLimit",
-        "description": "60 requests/min per IP"
-      }
-    ],
+    "info": { "title": "Gateway Admin API", "version": "1.0.0" },
+    "servers": [ { "url": "https://edge.acme.dev/admin/v1" } ],
+    "x-middleware": [ { "name": "auth", "description": "Admin bearer token" } ],
     "paths": {
-      "/products": {
-        "get": {
-          "summary": "List products",
-          "tags": [
-            "Products"
-          ],
-          "x-middleware": [
-            "cors",
-            "rateLimit"
-          ],
-          "parameters": [
-            {
-              "name": "page",
-              "in": "query",
-              "required": false,
-              "schema": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "example": 1,
-              "description": "Page number"
-            },
-            {
-              "name": "limit",
-              "in": "query",
-              "required": false,
-              "schema": {
-                "type": "integer"
-              },
-              "example": 20
-            },
-            {
-              "name": "q",
-              "in": "query",
-              "required": false,
-              "schema": {
-                "type": "string"
-              },
-              "description": "Search term"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "A page of products",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "title": {
-                          "type": "string"
-                        },
-                        "price": {
-                          "type": "number"
-                        }
-                      }
-                    }
-                  },
-                  "example": [
-                    {
-                      "id": "p_01",
-                      "title": "Aurora Mug",
-                      "price": 19
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "x-screens": [
-            "home"
-          ]
-        },
-        "post": {
-          "summary": "Create a product",
-          "tags": [
-            "Products"
-          ],
-          "x-middleware": [
-            "cors",
-            "auth"
-          ],
-          "parameters": [
-            {
-              "name": "Authorization",
-              "in": "header",
-              "required": true,
-              "schema": {
-                "type": "string"
-              },
-              "description": "Bearer <token>"
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "title",
-                    "price"
-                  ],
-                  "properties": {
-                    "title": {
-                      "type": "string"
-                    },
-                    "price": {
-                      "type": "number"
-                    },
-                    "tags": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                },
-                "example": {
-                  "title": "New Item",
-                  "price": 25
-                }
-              }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "Created"
-            },
-            "400": {
-              "description": "Validation error"
-            },
-            "401": {
-              "description": "Unauthorized"
-            }
-          }
-        }
+      "/stats": {
+        "get": { "summary": "Aggregate stats (rolling window)", "x-middleware": ["auth"], "x-screens": ["gateway"],
+          "parameters": [ { "name": "window", "in": "query", "schema": { "type": "string" }, "description": "60s | 5m | 1h" } ],
+          "responses": { "200": { "description": "OK" } } }
       },
-      "/products/{id}": {
-        "get": {
-          "summary": "Get a product",
-          "tags": [
-            "Products"
-          ],
-          "x-middleware": [
-            "cors",
-            "rateLimit"
-          ],
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              },
-              "description": "Product id"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "OK",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "title": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Not found"
-            }
-          },
-          "x-screens": [
-            "product"
-          ]
-        }
+      "/stream": {
+        "get": { "summary": "Tailing request stream (SSE)", "x-middleware": ["auth"], "x-screens": ["gateway"],
+          "responses": { "200": { "description": "text/event-stream of request samples" } } }
       },
-      "/queue/walk-in": {
-        "post": {
-          "summary": "Add a walk-in to the queue",
-          "tags": [
-            "Queue"
-          ],
-          "x-middleware": [
-            "cors",
-            "auth"
-          ],
-          "parameters": [
-            {
-              "name": "Authorization",
-              "in": "header",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "name",
-                    "size"
-                  ],
-                  "properties": {
-                    "name": {
-                      "type": "string"
-                    },
-                    "size": {
-                      "type": "integer"
-                    },
-                    "phone": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "example": {
-                  "name": "พี่บอส",
-                  "size": 4,
-                  "phone": "081-234-5678"
-                }
-              }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "Queued",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "ticket": {
-                        "type": "string"
-                      },
-                      "eta": {
-                        "type": "integer"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "x-screens": [
-            "cart"
-          ]
-        }
+      "/cache/purge": {
+        "post": { "summary": "Purge a cache key/prefix", "x-middleware": ["auth"],
+          "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["prefix"], "properties": { "prefix": { "type": "string" } } } } } },
+          "responses": { "202": { "description": "Accepted" } } }
       }
     }
   },
   "architecture": {
-    "stack": [
-      "React",
-      "Node/Express",
-      "Postgres",
-      "Redis",
-      "AWS"
-    ],
+    "stack": ["Rust edge proxy", "DragonflyDB (T2 cache)", "in-proc LRU (T1)", "ClickHouse (samples)", "React dashboard"],
     "nodes": [
-      {
-        "id": "web",
-        "name": "Storefront",
-        "kind": "client",
-        "tech": "React 19",
-        "deployment": "Vercel",
-        "description": "ลูกค้าเปิดผ่านมือถือ/เว็บ"
-      },
-      {
-        "id": "staff",
-        "name": "Staff dashboard",
-        "kind": "client",
-        "tech": "React",
-        "deployment": "Vercel"
-      },
-      {
-        "id": "gw",
-        "name": "API Gateway",
-        "kind": "gateway",
-        "tech": "Kong",
-        "deployment": "AWS",
-        "description": "auth, rate-limit, routing"
-      },
-      {
-        "id": "api",
-        "name": "Core API",
-        "kind": "service",
-        "tech": "Node/Express",
-        "deployment": "AWS ECS (Fargate)",
-        "description": "products, orders, queue"
-      },
-      {
-        "id": "queue",
-        "name": "Queue worker",
-        "kind": "service",
-        "tech": "Node",
-        "deployment": "AWS ECS",
-        "description": "คิว walk-in + แจ้งเตือน"
-      },
-      {
-        "id": "db",
-        "name": "Primary DB",
-        "kind": "datastore",
-        "tech": "Postgres 16",
-        "deployment": "AWS RDS"
-      },
-      {
-        "id": "cache",
-        "name": "Cache / pubsub",
-        "kind": "cache",
-        "tech": "Redis",
-        "deployment": "AWS ElastiCache"
-      },
-      {
-        "id": "mq",
-        "name": "Event bus",
-        "kind": "queue",
-        "tech": "SQS"
-      },
-      {
-        "id": "sms",
-        "name": "SMS/LINE notify",
-        "kind": "external",
-        "tech": "3rd-party",
-        "description": "แจ้งลูกค้าเมื่อถึงคิว"
-      }
+      { "id": "client", "name": "Clients", "kind": "external", "tech": "Browsers / apps" },
+      { "id": "edge", "name": "Edge gateway", "kind": "gateway", "tech": "Rust", "description": "TLS, routing, T1 mem cache, rate-limit" },
+      { "id": "t2", "name": "T2 cache", "kind": "cache", "tech": "DragonflyDB" },
+      { "id": "origin", "name": "Origin services", "kind": "service", "tech": "Upstream APIs" },
+      { "id": "samples", "name": "Samples store", "kind": "datastore", "tech": "ClickHouse" },
+      { "id": "dash", "name": "Monitor", "kind": "client", "tech": "React/Vite" }
     ],
     "edges": [
-      {
-        "from": "web",
-        "to": "gw",
-        "protocol": "REST",
-        "mode": "sync"
-      },
-      {
-        "from": "staff",
-        "to": "gw",
-        "protocol": "REST",
-        "mode": "sync"
-      },
-      {
-        "from": "gw",
-        "to": "api",
-        "protocol": "REST",
-        "mode": "sync"
-      },
-      {
-        "from": "api",
-        "to": "db",
-        "protocol": "SQL",
-        "mode": "sync"
-      },
-      {
-        "from": "api",
-        "to": "cache",
-        "protocol": "Redis",
-        "mode": "sync"
-      },
-      {
-        "from": "api",
-        "to": "mq",
-        "protocol": "AMQP",
-        "mode": "async",
-        "label": "queue.events"
-      },
-      {
-        "from": "mq",
-        "to": "queue",
-        "protocol": "AMQP",
-        "mode": "async"
-      },
-      {
-        "from": "queue",
-        "to": "sms",
-        "protocol": "HTTPS",
-        "mode": "async"
-      },
-      {
-        "from": "web",
-        "to": "cache",
-        "protocol": "WebSocket",
-        "mode": "async",
-        "label": "queue stream (SSE)"
-      }
+      { "from": "client", "to": "edge", "protocol": "HTTPS", "mode": "sync" },
+      { "from": "edge", "to": "t2", "protocol": "RESP", "mode": "sync" },
+      { "from": "edge", "to": "origin", "protocol": "HTTP", "mode": "sync" },
+      { "from": "edge", "to": "samples", "protocol": "native", "mode": "async" },
+      { "from": "dash", "to": "samples", "protocol": "REST", "mode": "sync" }
     ],
     "decisions": [
-      {
-        "id": "ADR-1",
-        "title": "Postgres เป็น primary store",
-        "status": "accepted",
-        "context": "ต้องการ transaction + relational (orders/queue)",
-        "options": [
-          "Postgres",
-          "MongoDB",
-          "DynamoDB"
-        ],
-        "decision": "ใช้ Postgres (RDS)",
-        "consequences": "ได้ ACID; ต้องดูแล scaling เอง (read replica ภายหลัง)"
-      },
-      {
-        "id": "ADR-2",
-        "title": "Realtime ผ่าน Redis pub/sub + SSE",
-        "status": "accepted",
-        "context": "แดชบอร์ดต้องเห็นคิวสด",
-        "options": [
-          "WebSocket server",
-          "Redis+SSE",
-          "polling"
-        ],
-        "decision": "Redis pub/sub → SSE",
-        "consequences": "เรียบง่าย scale ง่าย; ไม่ bi-directional"
-      },
-      {
-        "id": "ADR-3",
-        "title": "แยก queue worker ออกจาก API",
-        "status": "proposed",
-        "context": "งานแจ้งเตือน async ไม่ควร block request",
-        "decision": "worker service + SQS",
-        "consequences": "deploy เพิ่ม 1 service"
-      }
+      { "id": "ADR-1", "title": "Two-tier cache (mem T1 + DragonflyDB T2)", "status": "accepted", "context": "Hit ratio target >95% with low memory per edge node.", "options": ["mem only", "mem + DragonflyDB", "mem + Redis"], "decision": "T1 in-proc LRU for hot keys, T2 DragonflyDB shared across nodes.", "consequences": "Two lookups on T1 miss; needs T2 health in the cache-decision breakdown." }
     ],
     "nfrs": [
-      {
-        "name": "Availability",
-        "target": "99.9%",
-        "note": "multi-AZ RDS + ECS"
-      },
-      {
-        "name": "Latency (API)",
-        "target": "p95 < 200ms"
-      },
-      {
-        "name": "Realtime",
-        "target": "คิวอัปเดต < 2s"
-      },
-      {
-        "name": "Scale",
-        "target": "500 ร้าน / 50 rps"
-      }
+      { "name": "Cache hit ratio", "target": "> 95%", "note": "T1+T2 combined" },
+      { "name": "p99 latency", "target": "< 30ms", "note": "edge-terminated" }
     ],
-    "security": [
-      {
-        "boundary": "public → gateway",
-        "note": "JWT (staff) + ลายเซ็น QR (ลูกค้า); rate-limit ที่ gateway"
-      },
-      {
-        "boundary": "service → DB",
-        "note": "least-privilege DB user; ไม่เก็บ PII เกินจำเป็น (เบอร์โทร hash)"
-      },
-      {
-        "note": "3rd-party SMS/LINE: เก็บ token ใน secrets manager"
-      }
+    "security": [ { "boundary": "client → edge", "note": "TLS, per-tenant rate limit, tenant header required (else edge_blocked)" } ]
+  },
+  "plan": {
+    "stack": ["Rust", "DragonflyDB", "ClickHouse", "React/Vite"],
+    "statuses": [
+      { "id": "backlog", "name": "Backlog", "color": "#94a3b8" },
+      { "id": "doing", "name": "In progress", "color": "#2563eb" },
+      { "id": "review", "name": "Review", "color": "#e0820c" },
+      { "id": "done", "name": "Done", "color": "#16a34a" }
+    ],
+    "milestones": [
+      { "name": "M1 · Live monitor", "tasks": [
+        { "title": "KPI header + sparklines", "status": "done", "priority": "high" },
+        { "title": "Throughput + egress charts", "status": "review", "priority": "high" },
+        { "title": "Tailing request stream (SSE)", "status": "doing", "priority": "high" }
+      ] },
+      { "name": "M2 · Cache insight", "tasks": [
+        { "title": "Cache decision breakdown", "status": "doing", "priority": "normal" },
+        { "title": "One-click purge", "status": "backlog", "priority": "normal" }
+      ] }
     ]
   }
 }

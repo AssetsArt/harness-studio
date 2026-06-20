@@ -1,0 +1,211 @@
+<!-- ============ Row 1 · KPI header ============ -->
+<div class="grid grid-cols-6 gap-3.5">
+
+  <div class="panel p-4">
+    <div class="label">Total requests</div>
+    <div class="kpi-val mt-2.5 num">56,112</div>
+    <div class="mt-3 flex items-center justify-between">
+      <svg viewBox="0 0 104 26" class="h-[26px] w-[104px] c-green" fill="none" preserveAspectRatio="none"><polyline points="0,18 8,10 16,16 24,8 32,14 40,9 48,15 56,7 64,13 72,11 80,16 88,9 96,12 104,6" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>
+      <span class="num text-[11px] c-green font-semibold">▲ 2.4k/m</span>
+    </div>
+  </div>
+
+  <div class="panel p-4">
+    <div class="label">Egress transferred</div>
+    <div class="kpi-val mt-2.5 num">13.4<span class="text-base c-dim font-medium"> GB</span></div>
+    <div class="mt-3 flex items-center justify-between">
+      <svg viewBox="0 0 104 26" class="h-[26px] w-[104px] c-blue" fill="none" preserveAspectRatio="none"><polyline points="0,20 8,8 16,14 24,18 32,12 40,16 48,10 56,15 64,11 72,17 80,9 88,14 96,7 104,12" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>
+      <span class="num text-[11px] c-blue font-semibold">▲ egress</span>
+    </div>
+  </div>
+
+  <div class="panel p-4">
+    <div class="label">Cache hit ratio</div>
+    <div class="kpi-val mt-2.5 num c-green">95.1<span class="text-base">%</span></div>
+    <div class="mt-3.5 flex items-center gap-2">
+      <div class="hbar flex-1"><i class="fill-green" style="width:95%"></i></div>
+      <span class="num text-[10px] c-dim">T1+T2</span>
+    </div>
+  </div>
+
+  <div class="panel p-4">
+    <div class="label">Latency p99</div>
+    <div class="kpi-val mt-2.5 num">25<span class="text-base c-dim font-medium"> ms</span></div>
+    <div class="mt-3.5 num text-[11px] c-dim">p50 <span class="c-ink">0.9ms</span> · p95 <span class="c-ink">3ms</span></div>
+  </div>
+
+  <div class="panel p-4">
+    <div class="label">Conn reuse</div>
+    <div class="kpi-val mt-2.5 num c-green">99.0<span class="text-base">%</span></div>
+    <div class="mt-3.5 num text-[11px] c-dim">2696 reused · 26 new</div>
+  </div>
+
+  <div class="panel p-4">
+    <div class="label">Edge blocked</div>
+    <div class="kpi-val mt-2.5 num c-amber">46</div>
+    <div class="mt-3.5 num text-[11px] c-red">missing_tenant</div>
+  </div>
+
+</div>
+
+<!-- ============ Row 2 · charts + endpoints | live stream ============ -->
+<div class="grid grid-cols-[1.62fr_1fr] gap-3.5">
+
+  <!-- LEFT -->
+  <div class="panel p-5 flex flex-col gap-5">
+
+    <!-- Throughput -->
+    <div>
+      <div class="flex items-start justify-between">
+        <div><div class="text-[15px] font-semibold">Request throughput</div><div class="label mt-0.5" style="text-transform:none;letter-spacing:0">requests / second · rolling 60s</div></div>
+        <div class="flex gap-6 text-right">
+          <div><div class="label">Now</div><div class="num text-lg font-semibold">51</div></div>
+          <div><div class="label">Peak</div><div class="num text-lg font-semibold c-dim">126</div></div>
+        </div>
+      </div>
+      <svg viewBox="0 0 820 150" class="mt-3 h-[140px] w-full" preserveAspectRatio="none">
+        <defs><linearGradient id="gThru" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#16a34a" stop-opacity=".18"/><stop offset="1" stop-color="#16a34a" stop-opacity="0"/></linearGradient></defs>
+        <polygon fill="url(#gThru)" points="8,150 8,108 33,55 58,82 83,98 108,72 133,90 158,70 183,86 208,62 233,78 258,58 283,74 308,84 333,66 358,80 383,60 408,72 433,52 458,68 483,46 508,62 533,74 558,56 583,66 608,78 633,58 658,30 683,40 708,72 733,60 758,66 783,58 808,70 808,150"/>
+        <polyline fill="none" stroke="#16a34a" stroke-width="1.75" vector-effect="non-scaling-stroke" points="8,108 33,55 58,82 83,98 108,72 133,90 158,70 183,86 208,62 233,78 258,58 283,74 308,84 333,66 358,80 383,60 408,72 433,52 458,68 483,46 508,62 533,74 558,56 583,66 608,78 633,58 658,30 683,40 708,72 733,60 758,66 783,58 808,70"/>
+      </svg>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Egress -->
+    <div>
+      <div class="flex items-start justify-between">
+        <div><div class="text-[15px] font-semibold">Egress bandwidth</div><div class="label mt-0.5" style="text-transform:none;letter-spacing:0">bytes / second · upstream → client</div></div>
+        <div class="flex gap-6 text-right">
+          <div><div class="label">Now</div><div class="num text-lg font-semibold">11.4 <span class="text-xs c-dim">MB/s</span></div></div>
+          <div><div class="label">Peak</div><div class="num text-lg font-semibold c-dim">32.2 <span class="text-xs">MB/s</span></div></div>
+        </div>
+      </div>
+      <svg viewBox="0 0 820 150" class="mt-3 h-[130px] w-full" preserveAspectRatio="none">
+        <defs><linearGradient id="gEgr" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#2563eb" stop-opacity=".16"/><stop offset="1" stop-color="#2563eb" stop-opacity="0"/></linearGradient></defs>
+        <polygon fill="url(#gEgr)" points="8,150 8,120 33,70 58,95 83,110 108,86 133,100 158,84 183,96 208,78 233,90 258,80 283,88 308,70 333,82 358,64 383,76 408,60 433,72 458,55 483,66 508,74 533,58 558,68 583,50 608,62 633,72 658,28 683,48 708,80 733,70 758,76 783,66 808,72 808,150"/>
+        <polyline fill="none" stroke="#2563eb" stroke-width="1.75" vector-effect="non-scaling-stroke" points="8,120 33,70 58,95 83,110 108,86 133,100 158,84 183,96 208,78 233,90 258,80 283,88 308,70 333,82 358,64 383,76 408,60 433,72 458,55 483,66 508,74 533,58 558,68 583,50 608,62 633,72 658,28 683,48 708,80 733,70 758,76 783,66 808,72"/>
+      </svg>
+    </div>
+
+    <!-- mini tiles -->
+    <div class="grid grid-cols-4 gap-2.5">
+      <div class="rounded-[var(--radius-sm)] border border-[var(--color-border)] p-2.5"><div class="label">GET / POST / OPT</div><div class="num mt-1.5 text-[15px] font-semibold">36 <span class="c-dim">/</span> 11 <span class="c-dim">/</span> 4</div></div>
+      <div class="rounded-[var(--radius-sm)] border border-[var(--color-border)] p-2.5"><div class="label">Upstream RTT</div><div class="num mt-1.5 text-[15px] font-semibold">1.7 <span class="text-xs c-dim">ms</span></div></div>
+      <div class="rounded-[var(--radius-sm)] border border-[var(--color-border)] p-2.5"><div class="label">Conn pool</div><div class="num mt-1.5 text-[15px] font-semibold c-green">97.9% <span class="text-xs c-dim font-normal">reuse</span></div></div>
+      <div class="rounded-[var(--radius-sm)] border border-[var(--color-border)] p-2.5"><div class="label">Avg obj size</div><div class="num mt-1.5 text-[15px] font-semibold">189.1 <span class="text-xs c-dim">KB</span></div></div>
+    </div>
+
+    <!-- top endpoints -->
+    <div>
+      <div class="mb-2.5 flex items-center justify-between"><span class="text-[13px] font-semibold">Top endpoints</span><span class="label" style="text-transform:none;letter-spacing:0">by requests · rolling 60s</span></div>
+      <div class="flex flex-col gap-2">
+        <div class="grid grid-cols-[34px_1fr_auto] items-center gap-3"><span class="m-get num text-[11px] font-semibold">GET</span><div class="flex items-center gap-3"><span class="num text-[12.5px] w-[140px] shrink-0 truncate">/api/products</span><div class="hbar flex-1"><i class="fill-green" style="width:100%"></i></div></div><div class="flex items-center gap-3 num text-[11px]"><span class="w-[50px] text-right font-medium">14,880</span><span class="w-[42px] text-right c-dim">0.9ms</span><span class="tag tag-green w-[60px] text-center">HIT-T1</span></div></div>
+        <div class="grid grid-cols-[34px_1fr_auto] items-center gap-3"><span class="m-get num text-[11px] font-semibold">GET</span><div class="flex items-center gap-3"><span class="num text-[12.5px] w-[140px] shrink-0 truncate">/theme/main.css</span><div class="hbar flex-1"><i class="fill-green" style="width:76%"></i></div></div><div class="flex items-center gap-3 num text-[11px]"><span class="w-[50px] text-right font-medium">11,257</span><span class="w-[42px] text-right c-dim">0.7ms</span><span class="tag tag-green w-[60px] text-center">HIT-T1</span></div></div>
+        <div class="grid grid-cols-[34px_1fr_auto] items-center gap-3"><span class="m-get num text-[11px] font-semibold">GET</span><div class="flex items-center gap-3"><span class="num text-[12.5px] w-[140px] shrink-0 truncate">/img/banner.webp</span><div class="hbar flex-1"><i class="fill-green" style="width:64%"></i></div></div><div class="flex items-center gap-3 num text-[11px]"><span class="w-[50px] text-right font-medium">9,591</span><span class="w-[42px] text-right c-dim">1.4ms</span><span class="tag tag-teal w-[60px] text-center">HIT-T2</span></div></div>
+        <div class="grid grid-cols-[34px_1fr_auto] items-center gap-3"><span class="m-get num text-[11px] font-semibold">GET</span><div class="flex items-center gap-3"><span class="num text-[12.5px] w-[140px] shrink-0 truncate">/api/cart</span><div class="hbar flex-1"><i class="fill-gray" style="width:45%"></i></div></div><div class="flex items-center gap-3 num text-[11px]"><span class="w-[50px] text-right font-medium">6,705</span><span class="w-[42px] text-right c-dim">8.2ms</span><span class="tag tag-gray w-[60px] text-center">MISS</span></div></div>
+        <div class="grid grid-cols-[34px_1fr_auto] items-center gap-3"><span class="m-post num text-[11px] font-semibold">POST</span><div class="flex items-center gap-3"><span class="num text-[12.5px] w-[140px] shrink-0 truncate">/api/checkout</span><div class="hbar flex-1"><i class="fill-amber" style="width:21%"></i></div></div><div class="flex items-center gap-3 num text-[11px]"><span class="w-[50px] text-right font-medium">3,184</span><span class="w-[42px] text-right c-amber">19.6ms</span><span class="tag tag-amber w-[60px] text-center">BYPASS</span></div></div>
+        <div class="grid grid-cols-[34px_1fr_auto] items-center gap-3"><span class="m-get num text-[11px] font-semibold">GET</span><div class="flex items-center gap-3"><span class="num text-[12.5px] w-[140px] shrink-0 truncate">/api/search</span><div class="hbar flex-1"><i class="fill-blue" style="width:17%"></i></div></div><div class="flex items-center gap-3 num text-[11px]"><span class="w-[50px] text-right font-medium">2,581</span><span class="w-[42px] text-right c-dim">24.1ms</span><span class="tag tag-blue w-[60px] text-center">DYNAMIC</span></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT · live stream -->
+  <div class="panel flex flex-col">
+    <div class="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
+      <span class="text-[15px] font-semibold">Live request stream</span>
+      <span class="flex items-center gap-1.5 num text-[11px] c-green"><span class="inline-block h-1.5 w-1.5 rounded-full" style="background:var(--color-green)"></span> tailing</span>
+    </div>
+    <div class="scroll">
+      <div class="row-stream"><span class="m-post num text-[11px] font-semibold">POST</span><span class="num text-[12px] c-blue">304</span><div class="min-w-0"><div class="num text-[12.5px] truncate">/api/cart</div><div class="num text-[10px] c-dim">184.22.159.92 · 08:23:34</div></div><span class="tag tag-gray">MISS</span><span class="num text-[11px] c-amber text-right">23.0ms</span></div>
+      <div class="row-stream"><span class="m-get num text-[11px] font-semibold">GET</span><span class="num text-[12px] c-green">200</span><div class="min-w-0"><div class="num text-[12.5px] truncate">/api/checkout</div><div class="num text-[10px] c-dim">203.150.132.213 · 08:23:33</div></div><span class="tag tag-green">HIT-T1</span><span class="num text-[11px] c-dim text-right">1.1ms</span></div>
+      <div class="row-stream"><span class="m-opt num text-[11px] font-semibold">OPT</span><span class="num text-[12px] c-green">200</span><div class="min-w-0"><div class="num text-[12.5px] truncate">/api/customer/me</div><div class="num text-[10px] c-dim">184.22.100.199 · 08:23:32</div></div><span class="tag tag-amber">BYPASS</span><span class="num text-[11px] c-dim text-right">6.0ms</span></div>
+      <div class="row-stream"><span class="m-post num text-[11px] font-semibold">POST</span><span class="num text-[12px] c-green">200</span><div class="min-w-0"><div class="num text-[12.5px] truncate">/img/banner.webp</div><div class="num text-[10px] c-dim">49.228.98.179 · 08:23:31</div></div><span class="tag tag-amber">BYPASS</span><span class="num text-[11px] c-amber text-right">54.4ms</span></div>
+      <div class="row-stream"><span class="m-get num text-[11px] font-semibold">GET</span><span class="num text-[12px] c-green">200</span><div class="min-w-0"><div class="num text-[12.5px] truncate">/api/customer/me</div><div class="num text-[10px] c-dim">171.96.140.239 · 08:23:30</div></div><span class="tag tag-green">HIT-T1</span><span class="num text-[11px] c-dim text-right">0.6ms</span></div>
+      <div class="row-stream"><span class="m-post num text-[11px] font-semibold">POST</span><span class="num text-[12px] c-red">401</span><div class="min-w-0"><div class="num text-[12.5px] truncate">/api/checkout</div><div class="num text-[10px] c-dim">49.228.65.61 · 08:23:29</div></div><span class="tag tag-amber">BYPASS</span><span class="num text-[11px] c-amber text-right">41.1ms</span></div>
+      <div class="row-stream"><span class="m-get num text-[11px] font-semibold">GET</span><span class="num text-[12px] c-green">200</span><div class="min-w-0"><div class="num text-[12.5px] truncate">/api/customer/me</div><div class="num text-[10px] c-dim">2403:6200:56:97 · 08:23:29</div></div><span class="tag tag-green">HIT-T1</span><span class="num text-[11px] c-dim text-right">0.9ms</span></div>
+      <div class="row-stream"><span class="m-post num text-[11px] font-semibold">POST</span><span class="num text-[12px] c-green">200</span><div class="min-w-0"><div class="num text-[12.5px] truncate">/api/checkout</div><div class="num text-[10px] c-dim">171.96.179.45 · 08:23:28</div></div><span class="tag tag-amber">BYPASS</span><span class="num text-[11px] c-dim text-right">5.6ms</span></div>
+      <div class="row-stream"><span class="m-get num text-[11px] font-semibold">GET</span><span class="num text-[12px] c-green">200</span><div class="min-w-0"><div class="num text-[12.5px] truncate">/api/cart</div><div class="num text-[10px] c-dim">184.22.41.116 · 08:23:27</div></div><span class="tag tag-green">HIT-T1</span><span class="num text-[11px] c-dim text-right">1.0ms</span></div>
+      <div class="row-stream"><span class="m-get num text-[11px] font-semibold">GET</span><span class="num text-[12px] c-green">200</span><div class="min-w-0"><div class="num text-[12.5px] truncate">/api/customer/me</div><div class="num text-[10px] c-dim">171.96.30.232 · 08:23:26</div></div><span class="tag tag-gray">MISS</span><span class="num text-[11px] c-amber text-right">8.2ms</span></div>
+      <div class="row-stream"><span class="m-get num text-[11px] font-semibold">GET</span><span class="num text-[12px] c-green">200</span><div class="min-w-0"><div class="num text-[12.5px] truncate">/api/cart</div><div class="num text-[10px] c-dim">203.150.200.201 · 08:23:25</div></div><span class="tag tag-green">HIT-T1</span><span class="num text-[11px] c-dim text-right">1.1ms</span></div>
+      <div class="row-stream"><span class="m-get num text-[11px] font-semibold">GET</span><span class="num text-[12px] c-green">200</span><div class="min-w-0"><div class="num text-[12.5px] truncate">/api/search</div><div class="num text-[10px] c-dim">49.228.45.216 · 08:23:24</div></div><span class="tag tag-green">HIT-T1</span><span class="num text-[11px] c-dim text-right">0.5ms</span></div>
+      <div class="row-stream"><span class="m-opt num text-[11px] font-semibold">OPT</span><span class="num text-[12px] c-green">200</span><div class="min-w-0"><div class="num text-[12.5px] truncate">/api/checkout</div><div class="num text-[10px] c-dim">171.96.77.55 · 08:23:23</div></div><span class="tag tag-gray">MISS</span><span class="num text-[11px] c-amber text-right">13.6ms</span></div>
+      <div class="row-stream"><span class="m-get num text-[11px] font-semibold">GET</span><span class="num text-[12px] c-blue">304</span><div class="min-w-0"><div class="num text-[12.5px] truncate">/api/orders</div><div class="num text-[10px] c-dim">58.97.214.47 · 08:23:23</div></div><span class="tag tag-green">HIT-T1</span><span class="num text-[11px] c-dim text-right">1.2ms</span></div>
+      <div class="row-stream"><span class="m-get num text-[11px] font-semibold">GET</span><span class="num text-[12px] c-green">200</span><div class="min-w-0"><div class="num text-[12.5px] truncate">/api/search</div><div class="num text-[10px] c-dim">49.228.14.235 · 08:23:22</div></div><span class="tag tag-green">HIT-T1</span><span class="num text-[11px] c-dim text-right">0.5ms</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ Row 3 · latency | status | cache ============ -->
+<div class="grid grid-cols-3 gap-3.5">
+
+  <!-- Latency distribution -->
+  <div class="panel p-5">
+    <div class="text-[15px] font-semibold">Latency distribution</div>
+    <div class="label mt-0.5" style="text-transform:none;letter-spacing:0">requests by duration bucket · log scale</div>
+    <div class="vbars mt-6">
+      <div class="vbar"><span class="num text-[9.5px] c-dim">53256</span><div class="bar" style="height:100%;background:#1d4ed8"></div></div>
+      <div class="vbar"><span class="num text-[9.5px] c-dim">897</span><div class="bar" style="height:46%;background:#3b82f6"></div></div>
+      <div class="vbar"><span class="num text-[9.5px] c-dim">298</span><div class="bar" style="height:34%;background:#60a5fa"></div></div>
+      <div class="vbar"><span class="num text-[9.5px] c-dim">712</span><div class="bar" style="height:44%;background:#3b82f6"></div></div>
+      <div class="vbar"><span class="num text-[9.5px] c-dim">234</span><div class="bar" style="height:31%;background:#60a5fa"></div></div>
+      <div class="vbar"><span class="num text-[9.5px] c-dim">132</span><div class="bar" style="height:25%;background:#93c5fd"></div></div>
+      <div class="vbar"><span class="num text-[9.5px] c-dim">111</span><div class="bar" style="height:23%;background:#e0820c"></div></div>
+      <div class="vbar"><span class="num text-[9.5px] c-dim">36</span><div class="bar" style="height:15%;background:#e0820c"></div></div>
+      <div class="vbar"><span class="num text-[9.5px] c-dim">30</span><div class="bar" style="height:13%;background:#f0a847"></div></div>
+      <div class="vbar"><span class="num text-[9.5px] c-dim">0</span><div class="bar" style="height:2%;background:#f0a847"></div></div>
+      <div class="vbar"><span class="num text-[9.5px] c-dim">0</span><div class="bar" style="height:2%;background:#f0a847"></div></div>
+      <div class="vbar"><span class="num text-[9.5px] c-dim">0</span><div class="bar" style="height:2%;background:#f0a847"></div></div>
+    </div>
+    <div class="num mt-2 flex justify-between text-[9.5px] c-dim">
+      <span>1ms</span><span>5ms</span><span>10ms</span><span>25ms</span><span>50ms</span><span>100ms</span><span>250ms</span><span>500ms</span><span>1s</span><span>2.5s</span><span>5s</span><span>10s</span>
+    </div>
+  </div>
+
+  <!-- Status codes -->
+  <div class="panel p-5">
+    <div class="text-[15px] font-semibold">Status codes</div>
+    <div class="label mt-0.5" style="text-transform:none;letter-spacing:0">by response class</div>
+    <div class="mt-5 flex flex-col gap-4">
+      <div>
+        <div class="flex items-center justify-between text-[13px]"><span class="flex items-center gap-2"><span class="inline-block h-2.5 w-2.5 rounded-sm" style="background:var(--color-green)"></span> 2xx success</span><span class="num font-semibold">55,447</span></div>
+        <div class="hbar mt-2"><i class="fill-green" style="width:100%"></i></div>
+      </div>
+      <div>
+        <div class="flex items-center justify-between text-[13px]"><span class="flex items-center gap-2"><span class="inline-block h-2.5 w-2.5 rounded-sm" style="background:var(--color-blue)"></span> 3xx redirect</span><span class="num font-semibold">601</span></div>
+        <div class="hbar mt-2"><i class="fill-blue" style="width:7%"></i></div>
+      </div>
+      <div>
+        <div class="flex items-center justify-between text-[13px]"><span class="flex items-center gap-2"><span class="inline-block h-2.5 w-2.5 rounded-sm" style="background:var(--color-red)"></span> 4xx client err</span><span class="num font-semibold">64</span></div>
+        <div class="hbar mt-2"><i class="fill-red" style="width:3%"></i></div>
+      </div>
+    </div>
+    <div class="divider mt-5"></div>
+    <div class="mt-3 flex items-center justify-between text-[13px]"><span class="c-dim">5xx server err</span><span class="num c-green font-medium">0 · clean</span></div>
+  </div>
+
+  <!-- Cache decisions -->
+  <div class="panel p-5">
+    <div class="text-[15px] font-semibold">Cache decisions</div>
+    <div class="label mt-0.5" style="text-transform:none;letter-spacing:0">edge cache outcomes</div>
+    <div class="mt-4 flex items-center gap-6">
+      <svg viewBox="0 0 120 120" class="h-[118px] w-[118px] shrink-0">
+        <g transform="rotate(-90 60 60)" fill="none" stroke-width="18">
+          <circle cx="60" cy="60" r="42" stroke="#16a34a" stroke-dasharray="233.5 30.4" stroke-dashoffset="0"/>
+          <circle cx="60" cy="60" r="42" stroke="#86efac" stroke-dasharray="17.45 246.4" stroke-dashoffset="-233.5"/>
+          <circle cx="60" cy="60" r="42" stroke="#e0820c" stroke-dasharray="9.84 254" stroke-dashoffset="-250.95"/>
+          <circle cx="60" cy="60" r="42" stroke="#b6bcc6" stroke-dasharray="3.09 260.8" stroke-dashoffset="-260.79"/>
+        </g>
+      </svg>
+      <div class="flex-1 flex flex-col gap-3">
+        <div class="flex items-center justify-between"><span class="flex items-center gap-2 text-[13px]"><span class="inline-block h-2.5 w-2.5 rounded-sm" style="background:#16a34a"></span> HIT T1 <span class="c-dim text-[12px]">· mem</span></span><span class="num font-semibold">49,140</span></div>
+        <div class="flex items-center justify-between"><span class="flex items-center gap-2 text-[13px]"><span class="inline-block h-2.5 w-2.5 rounded-sm" style="background:#86efac"></span> HIT T2 <span class="c-dim text-[12px]">· dragonflydb</span></span><span class="num font-semibold">3,671</span></div>
+        <div class="flex items-center justify-between"><span class="flex items-center gap-2 text-[13px]"><span class="inline-block h-2.5 w-2.5 rounded-sm" style="background:#e0820c"></span> BYPASS</span><span class="num font-semibold">2,072</span></div>
+        <div class="flex items-center justify-between"><span class="flex items-center gap-2 text-[13px]"><span class="inline-block h-2.5 w-2.5 rounded-sm" style="background:#b6bcc6"></span> MISS</span><span class="num font-semibold">650</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>

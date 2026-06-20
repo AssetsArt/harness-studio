@@ -49,21 +49,22 @@ const HEAD_LIBS =
   `<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" defer></script>`;
 // Slim runtime: reflect the mock store into data-bind/data-show and render lucide icons —
 // the parts that affect the painted screenshot. (data-to/inc/dec are click-only.)
-const RUNTIME = (store) => `<script>
-(function(){var store=${JSON.stringify(store || {})};
+const RUNTIME = (store, screenId) => `<script>
+(function(){var store=${JSON.stringify(store || {})};var screenId=${JSON.stringify(screenId || "")};
 function render(){
   document.querySelectorAll('[data-bind]').forEach(function(el){var k=el.getAttribute('data-bind');el.textContent=(store[k]!==undefined&&store[k]!==null)?store[k]:'';});
   document.querySelectorAll('[data-show]').forEach(function(el){var c=el.getAttribute('data-show'),vis;if(c.indexOf('==')>-1){var p=c.split('==');vis=String(store[p[0].trim()])===p[1].trim();}else{var v=store[c.trim()];vis=!!v&&v!=='0'&&v!==0;}el.style.display=vis?'':'none';});
 }
+function markNav(){ if(!screenId) return; document.querySelectorAll('[data-nav]').forEach(function(el){ el.classList.toggle('is-active', el.getAttribute('data-nav')===screenId); }); }
 function icons(){try{if(window.lucide&&window.lucide.createIcons)window.lucide.createIcons();}catch(_){}}
-window.addEventListener('load',function(){render();icons();setTimeout(icons,300);});
+window.addEventListener('load',function(){render();markNav();icons();setTimeout(icons,300);});
 })();</script>`;
 
 function buildDoc(proto, screen) {
   const body = resolveScreenHtml(proto, screen);
   const sheet = `${BASE_CSS}\n${designSheet(proto)}\n${screen.css ?? ""}`;
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">` +
-    FONT_LINK + `<style>${sheet}</style>` + RUNTIME(proto.store) + HEAD_LIBS + `</head><body>${body}</body></html>`;
+    FONT_LINK + `<style>${sheet}</style>` + RUNTIME(proto.store, screen.id) + HEAD_LIBS + `</head><body>${body}</body></html>`;
 }
 
 const args = process.argv.slice(2);

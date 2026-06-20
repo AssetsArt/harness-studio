@@ -1,0 +1,24 @@
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark"><i data-lucide="waypoints" class="h-4 w-4"></i></span>
+      Gateway Monitor
+    </div>
+    <span class="chip"><span class="inline-block h-1.5 w-1.5 rounded-full" style="background:var(--color-green)"></span> prod · us-east-1</span>
+
+    <nav class="tabs ml-2">
+      <a class="tab" data-to="overview" data-nav="overview"><i data-lucide="activity"></i> Overview</a>
+      <a class="tab" data-to="requests" data-nav="requests"><i data-lucide="list"></i> Requests</a>
+      <a class="tab" data-to="cache" data-nav="cache"><i data-lucide="database"></i> Cache</a>
+      <a class="tab" data-to="routes" data-nav="routes"><i data-lucide="route"></i> Routes</a>
+    </nav>
+
+    <div class="ml-auto flex items-center gap-2.5">
+      <div class="flex items-center gap-2 rounded-[7px] border border-[var(--color-border)] px-2.5 py-1.5 text-[13px] c-dim">
+        <i data-lucide="search" class="h-3.5 w-3.5"></i> Search path or IP
+        <span class="num ml-2 rounded border border-[var(--color-border)] px-1 text-[10px]">/</span>
+      </div>
+      <span class="chip chip-on num text-[12px]"><i data-lucide="radio" class="h-3.5 w-3.5 c-green"></i> Live · 60s</span>
+    </div>
+  </div>
+</header>

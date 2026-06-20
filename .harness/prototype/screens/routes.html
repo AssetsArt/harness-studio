@@ -1,0 +1,40 @@
+<div class="flex flex-col gap-5">
+
+  <div class="page-head">
+    <div>
+      <h1 class="h1">Routes</h1>
+      <p class="c-dim text-[13px] mt-1 num">18 routes · 4 upstreams · 2 rules pending</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="chip"><i data-lucide="file-down" class="h-3.5 w-3.5"></i> Export config</button>
+      <button class="chip chip-on"><i data-lucide="plus" class="h-3.5 w-3.5"></i> Add route</button>
+    </div>
+  </div>
+
+  <!-- upstream health -->
+  <div class="grid grid-cols-4 gap-3.5">
+    <div class="panel p-4"><div class="flex items-center justify-between"><span class="font-medium text-[13px]">checkout-svc</span><span class="tag tag-green">healthy</span></div><div class="grid grid-cols-2 gap-2 mt-3 num text-[12px]"><div><div class="c-dim">RTT</div><div class="font-semibold text-[14px]">1.4ms</div></div><div><div class="c-dim">Reuse</div><div class="font-semibold text-[14px]">99.1%</div></div></div></div>
+    <div class="panel p-4"><div class="flex items-center justify-between"><span class="font-medium text-[13px]">search-svc</span><span class="tag tag-amber">slow</span></div><div class="grid grid-cols-2 gap-2 mt-3 num text-[12px]"><div><div class="c-dim">RTT</div><div class="font-semibold text-[14px] c-amber">22.0ms</div></div><div><div class="c-dim">Reuse</div><div class="font-semibold text-[14px]">94.2%</div></div></div></div>
+    <div class="panel p-4"><div class="flex items-center justify-between"><span class="font-medium text-[13px]">cart-svc</span><span class="tag tag-green">healthy</span></div><div class="grid grid-cols-2 gap-2 mt-3 num text-[12px]"><div><div class="c-dim">RTT</div><div class="font-semibold text-[14px]">2.1ms</div></div><div><div class="c-dim">Reuse</div><div class="font-semibold text-[14px]">98.7%</div></div></div></div>
+    <div class="panel p-4"><div class="flex items-center justify-between"><span class="font-medium text-[13px]">media-orig</span><span class="tag tag-green">healthy</span></div><div class="grid grid-cols-2 gap-2 mt-3 num text-[12px]"><div><div class="c-dim">RTT</div><div class="font-semibold text-[14px]">8.0ms</div></div><div><div class="c-dim">Reuse</div><div class="font-semibold text-[14px]">96.0%</div></div></div></div>
+  </div>
+
+  <!-- routes table -->
+  <div class="panel overflow-hidden">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]"><span class="text-[13px] font-semibold">Route table</span><span class="label" style="text-transform:none;letter-spacing:0">match order · top-down</span></div>
+    <table class="dtable">
+      <thead><tr><th>Method</th><th>Path pattern</th><th>Upstream</th><th>Cache policy</th><th class="text-right">p95</th><th class="text-right">Hit ratio</th><th class="text-right">Req / 60s</th></tr></thead>
+      <tbody class="num">
+        <tr><td class="m-get font-semibold">GET</td><td>/api/products/*</td><td class="c-dim text-[12px]">cart-svc</td><td><span class="tag tag-green">cache 60s</span></td><td class="text-right">0.9ms</td><td class="text-right c-green">99.4%</td><td class="text-right">14,880</td></tr>
+        <tr><td class="m-get font-semibold">GET</td><td>/theme/*</td><td class="c-dim text-[12px]">media-orig</td><td><span class="tag tag-green">cache 1h</span></td><td class="text-right">0.7ms</td><td class="text-right c-green">100%</td><td class="text-right">11,257</td></tr>
+        <tr><td class="m-get font-semibold">GET</td><td>/img/*</td><td class="c-dim text-[12px]">media-orig</td><td><span class="tag tag-teal">cache 10m · T2</span></td><td class="text-right">1.4ms</td><td class="text-right c-green">96.2%</td><td class="text-right">9,591</td></tr>
+        <tr><td class="m-get font-semibold">GET</td><td>/api/cart</td><td class="c-dim text-[12px]">cart-svc</td><td><span class="tag tag-gray">no-store</span></td><td class="text-right c-amber">8.2ms</td><td class="text-right c-dim">—</td><td class="text-right">6,705</td></tr>
+        <tr style="background:#fffaf0"><td class="m-post font-semibold">POST</td><td>/api/checkout</td><td class="c-dim text-[12px]">checkout-svc</td><td><span class="tag tag-amber">bypass · auth</span></td><td class="text-right c-amber">19.6ms</td><td class="text-right c-dim">—</td><td class="text-right">3,184</td></tr>
+        <tr><td class="m-get font-semibold">GET</td><td>/api/search</td><td class="c-dim text-[12px]">search-svc</td><td><span class="tag tag-blue">dynamic 5s</span></td><td class="text-right c-amber">24.1ms</td><td class="text-right">34.1%</td><td class="text-right">2,581</td></tr>
+        <tr><td class="m-get font-semibold">GET</td><td>/api/orders/*</td><td class="c-dim text-[12px]">checkout-svc</td><td><span class="tag tag-green">cache 30s</span></td><td class="text-right">1.2ms</td><td class="text-right c-green">91.0%</td><td class="text-right">4,012</td></tr>
+        <tr><td class="m-opt font-semibold">OPT</td><td>/api/*</td><td class="c-dim text-[12px]">—</td><td><span class="tag tag-amber">bypass · preflight</span></td><td class="text-right">0.3ms</td><td class="text-right c-dim">—</td><td class="text-right">1,944</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

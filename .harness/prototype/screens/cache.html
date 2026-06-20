@@ -1,0 +1,75 @@
+<div class="flex flex-col gap-5">
+
+  <div class="page-head">
+    <div>
+      <h1 class="h1">Cache</h1>
+      <p class="c-dim text-[13px] mt-1 num">55,533 lookups · 95.1% served from edge · last 60s</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="chip"><i data-lucide="rotate-cw" class="h-3.5 w-3.5"></i> Refresh</button>
+      <button class="chip chip-on"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i> Purge prefix</button>
+    </div>
+  </div>
+
+  <!-- tier cards -->
+  <div class="grid grid-cols-4 gap-3.5">
+    <div class="panel p-4"><div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm" style="background:#16a34a"></span><span class="label" style="letter-spacing:.04em">HIT T1 · mem</span></div><div class="kpi-val mt-2.5 num">49,140</div><div class="num text-[12px] c-dim mt-2">88.6% of lookups · 0.4ms avg</div></div>
+    <div class="panel p-4"><div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm" style="background:#86efac"></span><span class="label" style="letter-spacing:.04em">HIT T2 · dragonfly</span></div><div class="kpi-val mt-2.5 num">3,671</div><div class="num text-[12px] c-dim mt-2">6.5% of lookups · 1.3ms avg</div></div>
+    <div class="panel p-4"><div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm" style="background:#e0820c"></span><span class="label" style="letter-spacing:.04em">Bypass</span></div><div class="kpi-val mt-2.5 num c-amber">2,072</div><div class="num text-[12px] c-dim mt-2">3.7% · uncacheable / auth</div></div>
+    <div class="panel p-4"><div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm" style="background:#b6bcc6"></span><span class="label" style="letter-spacing:.04em">Miss → origin</span></div><div class="kpi-val mt-2.5 num">650</div><div class="num text-[12px] c-dim mt-2">1.2% · 8.4ms avg</div></div>
+  </div>
+
+  <div class="grid grid-cols-[1fr_1.25fr] gap-3.5">
+    <!-- donut -->
+    <div class="panel p-5">
+      <div class="text-[15px] font-semibold">Cache decisions</div>
+      <div class="label mt-0.5" style="text-transform:none;letter-spacing:0">edge cache outcomes · 60s</div>
+      <div class="mt-4 flex items-center gap-6">
+        <svg viewBox="0 0 120 120" class="h-[124px] w-[124px] shrink-0">
+          <g transform="rotate(-90 60 60)" fill="none" stroke-width="18">
+            <circle cx="60" cy="60" r="42" stroke="#16a34a" stroke-dasharray="233.5 30.4" stroke-dashoffset="0"/>
+            <circle cx="60" cy="60" r="42" stroke="#86efac" stroke-dasharray="17.45 246.4" stroke-dashoffset="-233.5"/>
+            <circle cx="60" cy="60" r="42" stroke="#e0820c" stroke-dasharray="9.84 254" stroke-dashoffset="-250.95"/>
+            <circle cx="60" cy="60" r="42" stroke="#b6bcc6" stroke-dasharray="3.09 260.8" stroke-dashoffset="-260.79"/>
+          </g>
+          <text x="60" y="57" text-anchor="middle" class="num" style="font-size:17px;font-weight:650;fill:var(--color-ink)">95.1%</text>
+          <text x="60" y="72" text-anchor="middle" style="font-size:8px;fill:var(--color-dim);font-family:var(--font-mono)">HIT RATIO</text>
+        </svg>
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="flex items-center justify-between text-[13px]"><span class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm" style="background:#16a34a"></span> HIT T1</span><span class="num font-semibold">88.6%</span></div>
+          <div class="flex items-center justify-between text-[13px]"><span class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm" style="background:#86efac"></span> HIT T2</span><span class="num font-semibold">6.5%</span></div>
+          <div class="flex items-center justify-between text-[13px]"><span class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm" style="background:#e0820c"></span> BYPASS</span><span class="num font-semibold">3.7%</span></div>
+          <div class="flex items-center justify-between text-[13px]"><span class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm" style="background:#b6bcc6"></span> MISS</span><span class="num font-semibold">1.2%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- savings -->
+    <div class="panel p-5 flex flex-col">
+      <div class="text-[15px] font-semibold">Origin offload</div>
+      <div class="label mt-0.5" style="text-transform:none;letter-spacing:0">work the edge saved the origin · 60s</div>
+      <div class="grid grid-cols-2 gap-4 mt-5">
+        <div><div class="label">Requests offloaded</div><div class="num text-2xl font-semibold mt-1.5 c-green">52,811</div><div class="num text-[12px] c-dim mt-1">95.1% never reached origin</div></div>
+        <div><div class="label">Egress saved</div><div class="num text-2xl font-semibold mt-1.5 c-green">11.9 <span class="text-sm c-dim">GB</span></div><div class="num text-[12px] c-dim mt-1">88.7% of total egress</div></div>
+        <div><div class="label">Origin RPS avoided</div><div class="num text-2xl font-semibold mt-1.5">880</div><div class="num text-[12px] c-dim mt-1">peak 2,140</div></div>
+        <div><div class="label">Est. cost saved</div><div class="num text-2xl font-semibold mt-1.5">$1.24k</div><div class="num text-[12px] c-dim mt-1">rolling 24h projection</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- top cached objects -->
+  <div class="panel overflow-hidden">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]"><span class="text-[13px] font-semibold">Top cached objects</span><span class="label" style="text-transform:none;letter-spacing:0">by hits · 60s</span></div>
+    <table class="dtable">
+      <thead><tr><th>Path</th><th>Tier</th><th>Hits</th><th class="w-[180px]">Hit ratio</th><th class="text-right">Bytes saved</th><th class="text-right">TTL</th></tr></thead>
+      <tbody class="num">
+        <tr><td>/api/products</td><td><span class="tag tag-green">T1</span></td><td>14,880</td><td><div class="flex items-center gap-2"><div class="hbar flex-1"><i class="fill-green" style="width:99%"></i></div><span class="text-[12px] c-dim w-[34px]">99.4%</span></div></td><td class="text-right">3.1 GB</td><td class="text-right c-dim text-[12px]">60s</td></tr>
+        <tr><td>/theme/main.css</td><td><span class="tag tag-green">T1</span></td><td>11,257</td><td><div class="flex items-center gap-2"><div class="hbar flex-1"><i class="fill-green" style="width:100%"></i></div><span class="text-[12px] c-dim w-[34px]">100%</span></div></td><td class="text-right">820 MB</td><td class="text-right c-dim text-[12px]">1h</td></tr>
+        <tr><td>/img/banner.webp</td><td><span class="tag tag-teal">T2</span></td><td>9,591</td><td><div class="flex items-center gap-2"><div class="hbar flex-1"><i class="fill-green" style="width:96%"></i></div><span class="text-[12px] c-dim w-[34px]">96.2%</span></div></td><td class="text-right">5.4 GB</td><td class="text-right c-dim text-[12px]">10m</td></tr>
+        <tr><td>/api/orders</td><td><span class="tag tag-green">T1</span></td><td>4,012</td><td><div class="flex items-center gap-2"><div class="hbar flex-1"><i class="fill-green" style="width:91%"></i></div><span class="text-[12px] c-dim w-[34px]">91.0%</span></div></td><td class="text-right">240 MB</td><td class="text-right c-dim text-[12px]">30s</td></tr>
+        <tr><td>/api/search</td><td><span class="tag tag-blue">DYN</span></td><td>2,581</td><td><div class="flex items-center gap-2"><div class="hbar flex-1"><i class="fill-amber" style="width:34%"></i></div><span class="text-[12px] c-dim w-[34px]">34.1%</span></div></td><td class="text-right">88 MB</td><td class="text-right c-dim text-[12px]">5s</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
