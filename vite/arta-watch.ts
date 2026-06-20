@@ -13,7 +13,7 @@ import type { Plugin, ViteDevServer } from "vite";
 // agent reads/writes one screen or component file at a time instead of the whole
 // design. This plugin re-assembles them into a single state object for the viewer,
 // so the client stays unaware of the split.
-const HARNESS_DIR = ".arta";
+const ARTA_DIR = ".arta";
 const STATE_FILE = "state.json";
 const RUNTIME_FILE = "runtime.json";
 const FEEDBACK_FILE = "feedback.json";
@@ -114,7 +114,7 @@ function readBody(req: import("node:http").IncomingMessage): Promise<string> {
   });
 }
 
-export function harnessWatch(): Plugin {
+export function artaWatch(): Plugin {
   let dir = "";
   let runtimeFile = "";
   let feedbackFile = "";
@@ -132,7 +132,7 @@ export function harnessWatch(): Plugin {
   };
 
   return {
-    name: "harness-watch",
+    name: "arta-watch",
 
     // Suppress Vite's default full-page reload for any .arta source change —
     // we push an in-place update over the WebSocket instead (keeps the dev's
@@ -143,11 +143,11 @@ export function harnessWatch(): Plugin {
     },
 
     configureServer(srv: ViteDevServer) {
-      // HARNESS_DIR lets one viewer watch any project's canvas (the launcher sets
+      // ARTA_DIR lets one viewer watch any project's canvas (the launcher sets
       // it to the user's project); otherwise default to <root>/.arta.
-      dir = process.env.HARNESS_DIR
-        ? path.resolve(process.env.HARNESS_DIR)
-        : path.resolve(srv.config.root, HARNESS_DIR);
+      dir = process.env.ARTA_DIR
+        ? path.resolve(process.env.ARTA_DIR)
+        : path.resolve(srv.config.root, ARTA_DIR);
       const stateFile = path.join(dir, STATE_FILE);
       runtimeFile = path.join(dir, RUNTIME_FILE);
       feedbackFile = path.join(dir, FEEDBACK_FILE);
@@ -161,7 +161,7 @@ export function harnessWatch(): Plugin {
       const pushState = () => {
         const assembled = assembleState(dir);
         if (assembled != null) {
-          srv.ws.send({ type: "custom", event: "harness:update", data: JSON.stringify(assembled) });
+          srv.ws.send({ type: "custom", event: "arta:update", data: JSON.stringify(assembled) });
         }
       };
 
@@ -186,7 +186,7 @@ export function harnessWatch(): Plugin {
       srv.watcher.add(path.join(dir, PROTO_DIR));
       srv.watcher.on("all", (event, file) => {
         if ((event === "add" || event === "change" || event === "unlink") && isHarnessSource(file)) {
-          srv.ws.send({ type: "custom", event: "harness:change", data: describeChange(file, event) });
+          srv.ws.send({ type: "custom", event: "arta:change", data: describeChange(file, event) });
           pushState();
         }
       });

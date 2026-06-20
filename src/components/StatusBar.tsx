@@ -1,8 +1,8 @@
 import { useState } from "react";
 import type { Meta, Phase } from "../lib/types";
-import type { ChangeEntry } from "../lib/useHarness";
+import type { ChangeEntry } from "../lib/useArta";
 import { MONO, SANS, useTheme } from "../lib/theme";
-import { sendFeedback } from "../lib/useHarness";
+import { sendFeedback } from "../lib/useArta";
 
 interface Props {
   meta: Meta;

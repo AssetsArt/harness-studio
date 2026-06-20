@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { domToPng } from "modern-screenshot";
 import type { StoreState } from "../../lib/types";
-import { reportSnapshot } from "../../lib/useHarness";
+import { reportSnapshot } from "../../lib/useArta";
 import { FONT_LINK } from "../../lib/prototype";
 
 export interface AnnotateTarget {
@@ -126,7 +126,7 @@ const RUNTIME = `
     window.addEventListener('message', function(e){
       var d = e.data;
       if(!d || d.source !== 'harness-parent') return;
-      if(d.type === 'annotate'){ annotate = !!d.on; document.body.classList.toggle('harness-annotate', annotate); }
+      if(d.type === 'annotate'){ annotate = !!d.on; document.body.classList.toggle('arta-annotate', annotate); }
     });
     markNav();
     render();
@@ -148,8 +148,8 @@ img{max-width:100%;display:block}
 a{color:inherit;text-decoration:none}
 button{font-family:inherit;cursor:pointer}
 [data-to],[data-inc],[data-dec],[data-set]{cursor:pointer}
-body.harness-annotate *{cursor:crosshair !important}
-body.harness-annotate *:hover{outline:2px solid #38bdf8 !important;outline-offset:-1px}
+body.arta-annotate *{cursor:crosshair !important}
+body.arta-annotate *:hover{outline:2px solid #38bdf8 !important;outline-offset:-1px}
 `;
 
 // Real Tailwind + lucide in every freeform screen, so the AI writes utility

@@ -331,7 +331,7 @@ export interface Architecture {
 
 export type StoreState = Record<string, string | number>;
 
-export interface HarnessState {
+export interface ArtaState {
   meta: Meta;
   spec?: Spec;
   plan?: Plan;

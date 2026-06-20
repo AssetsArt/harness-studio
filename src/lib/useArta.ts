@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { HarnessState } from "./types";
+import type { ArtaState } from "./types";
 import { nowLabel } from "./utils";
 
 export interface ChangeEntry {
@@ -9,23 +9,23 @@ export interface ChangeEntry {
   at: string;
 }
 
-interface HarnessLive {
-  data: HarnessState | null;
+interface ArtaLive {
+  data: ArtaState | null;
   error: string | null;
   updatedAt: string;
   flashing: boolean;
   /** Recent edits the AI made, newest first — for the "what changed" feed. */
   changes: ChangeEntry[];
   /** Replace state locally (the Edit-state drawer) and flash, like the design. */
-  applyLocal: (next: HarnessState) => void;
+  applyLocal: (next: ArtaState) => void;
 }
 
 // The client half of the live loop: fetch the initial state, then listen for
-// `harness:update` events the Vite plugin fires whenever .arta/state.json
+// `arta:update` events the Vite plugin fires whenever .arta/state.json
 // changes on disk (i.e. whenever the AI writes to it). Each update flashes the
 // canvas cyan — the visible "the agent just wrote in" signal.
-export function useHarness(): HarnessLive {
-  const [data, setData] = useState<HarnessState | null>(null);
+export function useArta(): ArtaLive {
+  const [data, setData] = useState<ArtaState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [updatedAt, setUpdatedAt] = useState<string>(nowLabel());
   const [flashing, setFlashing] = useState(false);
@@ -41,7 +41,7 @@ export function useHarness(): HarnessLive {
   const ingest = useCallback(
     (raw: string) => {
       try {
-        const parsed = JSON.parse(raw) as HarnessState;
+        const parsed = JSON.parse(raw) as ArtaState;
         if (!parsed || !parsed.meta) throw new Error('missing "meta"');
         setData(parsed);
         setError(null);
@@ -58,7 +58,7 @@ export function useHarness(): HarnessLive {
     let alive = true;
     fetch("/__harness/state")
       .then((r) => r.json())
-      .then((res: { ok: boolean; state: HarnessState | null; error?: string }) => {
+      .then((res: { ok: boolean; state: ArtaState | null; error?: string }) => {
         if (!alive) return;
         if (res.ok && res.state) {
           setData(res.state);
@@ -70,8 +70,8 @@ export function useHarness(): HarnessLive {
       .catch(() => alive && setError("dev server unreachable"));
 
     if (import.meta.hot) {
-      import.meta.hot.on("harness:update", (raw: string) => ingest(raw));
-      import.meta.hot.on("harness:change", (c: Omit<ChangeEntry, "at">) =>
+      import.meta.hot.on("arta:update", (raw: string) => ingest(raw));
+      import.meta.hot.on("arta:change", (c: Omit<ChangeEntry, "at">) =>
         setChanges((prev) => [{ ...c, at: nowLabel() }, ...prev].slice(0, 30))
       );
     }
@@ -82,7 +82,7 @@ export function useHarness(): HarnessLive {
   }, [ingest]);
 
   const applyLocal = useCallback(
-    (next: HarnessState) => {
+    (next: ArtaState) => {
       setData(next);
       setError(null);
       setUpdatedAt(nowLabel());

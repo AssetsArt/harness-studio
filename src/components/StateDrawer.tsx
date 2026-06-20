@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Braces, Check, X } from "lucide-react";
-import type { HarnessState } from "../lib/types";
+import type { ArtaState } from "../lib/types";
 import { TAB_ORDER } from "../lib/types";
 import { MONO, useTheme } from "../lib/theme";
 import { alpha } from "../lib/utils";
@@ -13,16 +13,16 @@ export function StateDrawer({
   onClose,
   onApply,
 }: {
-  initial: HarnessState | null;
+  initial: ArtaState | null;
   onClose: () => void;
-  onApply: (next: HarnessState) => void;
+  onApply: (next: ArtaState) => void;
 }) {
   const { c } = useTheme();
   const [draft, setDraft] = useState(() => (initial ? JSON.stringify(initial, null, 2) : "{\n  \n}"));
   const [err, setErr] = useState("");
 
   const apply = () => {
-    let parsed: HarnessState;
+    let parsed: ArtaState;
     try {
       parsed = JSON.parse(draft);
     } catch (e) {

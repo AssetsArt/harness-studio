@@ -46,12 +46,12 @@ function envDir(name) {
 
 // Resolve .arta against the USER'S project, not this file's location, so the
 // same server works whether it's run locally or installed as a global plugin:
-//   HARNESS_DIR (explicit) → CLAUDE_PROJECT_DIR/.arta (plugin) → cwd/.arta
-const HARNESS_DIR =
-  envPath("HARNESS_DIR") || path.join(envDir("CLAUDE_PROJECT_DIR") || process.cwd(), ".arta");
-const STATE_FILE = path.join(HARNESS_DIR, "state.json");
-const RUNTIME_FILE = path.join(HARNESS_DIR, "runtime.json");
-const FEEDBACK_FILE = path.join(HARNESS_DIR, "feedback.json");
+//   ARTA_DIR (explicit) → CLAUDE_PROJECT_DIR/.arta (plugin) → cwd/.arta
+const ARTA_DIR =
+  envPath("ARTA_DIR") || path.join(envDir("CLAUDE_PROJECT_DIR") || process.cwd(), ".arta");
+const STATE_FILE = path.join(ARTA_DIR, "state.json");
+const RUNTIME_FILE = path.join(ARTA_DIR, "runtime.json");
+const FEEDBACK_FILE = path.join(ARTA_DIR, "feedback.json");
 
 // The viewer launcher (bin/arta.mjs) ships inside the plugin alongside this
 // server. This file sits at <plugin-root>/mcp/server[.bundle].mjs, so dirname/..
@@ -62,10 +62,10 @@ const FEEDBACK_FILE = path.join(HARNESS_DIR, "feedback.json");
 const SELF_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PLUGIN_ROOT = envDir("CLAUDE_PLUGIN_ROOT") || SELF_ROOT;
 // The viewer wants the PROJECT dir (it appends /.arta itself).
-const PROJECT_DIR = envDir("CLAUDE_PROJECT_DIR") || path.dirname(HARNESS_DIR);
+const PROJECT_DIR = envDir("CLAUDE_PROJECT_DIR") || path.dirname(ARTA_DIR);
 
 // Split-file prototype layout — edit one piece without touching the rest.
-const PROTO_DIR = path.join(HARNESS_DIR, "prototype");
+const PROTO_DIR = path.join(ARTA_DIR, "prototype");
 const CSS_FILE = path.join(PROTO_DIR, "design-system.css");
 const COMP_DIR = path.join(PROTO_DIR, "components");
 const SCREEN_DIR = path.join(PROTO_DIR, "screens");
@@ -74,7 +74,7 @@ const PHASES = ["prototype", "data", "flow", "architecture", "plan"];
 const sanitize = (s) => String(s).replace(/[^a-z0-9_-]/gi, "");
 
 function ensureDir() {
-  fs.mkdirSync(HARNESS_DIR, { recursive: true });
+  fs.mkdirSync(ARTA_DIR, { recursive: true });
 }
 function readJson(file, fallback = null) {
   try {
@@ -177,7 +177,7 @@ function spawnViewer(p) {
   const launcher = path.join(PLUGIN_ROOT, "bin", "harness.mjs");
   if (!fs.existsSync(launcher)) return { ok: false, launcher };
   ensureDir();
-  const logFile = path.join(HARNESS_DIR, "viewer.log");
+  const logFile = path.join(ARTA_DIR, "viewer.log");
   let out = "ignore";
   try {
     out = fs.openSync(logFile, "a");
@@ -838,7 +838,7 @@ server.registerTool(
     inputSchema: { screen: zod.string().describe("Screen id.") },
   },
   async ({ screen }) => {
-    const file = path.join(HARNESS_DIR, "snapshots", sanitize(screen) + ".png");
+    const file = path.join(ARTA_DIR, "snapshots", sanitize(screen) + ".png");
     let buf;
     try {
       buf = fs.readFileSync(file);

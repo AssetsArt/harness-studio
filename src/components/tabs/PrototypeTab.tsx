@@ -5,7 +5,7 @@ import type { FrameKind, Prototype, Spec, StoreState } from "../../lib/types";
 import { LIGHT, MONO, useTheme } from "../../lib/theme";
 import { alpha, cn } from "../../lib/utils";
 import { designSheet, resolveScreenHtml } from "../../lib/prototype";
-import { sendFeedback } from "../../lib/useHarness";
+import { sendFeedback } from "../../lib/useArta";
 import { ComponentRenderer } from "../proto/ComponentRenderer";
 import { DeviceFrame } from "../proto/DeviceFrame";
 import { FreeformDevice } from "../proto/FreeformDevice";

@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 // Deterministic grader for the arta eval. Given a built .arta/ dir and
-// a brief id, it assembles the prototype EXACTLY like the viewer (vite/harness-watch
+// a brief id, it assembles the prototype EXACTLY like the viewer (vite/arta-watch
 // assembleState), then scores five verifiable assertions:
 //
 //   A1 tokens-set     — a real design system exists and screens use it (not raw hex)
@@ -45,7 +45,7 @@ const BLANK_ICONS = new Set([
 const readRaw = (f) => { try { return fs.readFileSync(f, "utf8"); } catch { return null; } };
 const listHtml = (d) => { try { return fs.readdirSync(d).filter((f) => f.endsWith(".html")); } catch { return []; } };
 
-// Mirror of vite/harness-watch.ts assembleState: inline the split files (css /
+// Mirror of vite/arta-watch.ts assembleState: inline the split files (css /
 // components / screen bodies) into state.prototype, inline values winning over files
 // EXCEPT blank inline values, which fall back to the file on disk.
 function assemble(dir) {

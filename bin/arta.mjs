@@ -20,12 +20,12 @@ const opt = (name, def) => {
 };
 const projectDir = path.resolve(opt("--project", process.cwd()));
 const port = Number(opt("--port", "7317"));
-const harnessDir = path.join(projectDir, ".arta");
+const artaDir = path.join(projectDir, ".arta");
 
 // Seed a minimal canvas so the viewer has something to render on first run.
-if (!fs.existsSync(path.join(harnessDir, "state.json"))) {
-  fs.mkdirSync(path.join(harnessDir, "prototype", "screens"), { recursive: true });
-  fs.mkdirSync(path.join(harnessDir, "prototype", "components"), { recursive: true });
+if (!fs.existsSync(path.join(artaDir, "state.json"))) {
+  fs.mkdirSync(path.join(artaDir, "prototype", "screens"), { recursive: true });
+  fs.mkdirSync(path.join(artaDir, "prototype", "components"), { recursive: true });
   const starter = {
     meta: { name: "Untitled", phase: "prototype" },
     spec: { goal: "", users: [], userStories: [], scope: { in: [], out: [] }, constraints: [] },
@@ -37,18 +37,18 @@ if (!fs.existsSync(path.join(harnessDir, "state.json"))) {
       screens: [{ id: "home", title: "Home", url: "app.local" }],
     },
   };
-  fs.writeFileSync(path.join(harnessDir, "state.json"), JSON.stringify(starter, null, 2) + "\n");
+  fs.writeFileSync(path.join(artaDir, "state.json"), JSON.stringify(starter, null, 2) + "\n");
   fs.writeFileSync(
-    path.join(harnessDir, "prototype", "screens", "home.html"),
+    path.join(artaDir, "prototype", "screens", "home.html"),
     '<div style="display:grid;place-items:center;min-height:60vh;font-family:system-ui;color:#71717a">Ask Claude Code to design here — it writes into .arta/</div>\n'
   );
-  console.log(`[harness] seeded a starter canvas at ${harnessDir}`);
+  console.log(`[arta] seeded a starter canvas at ${artaDir}`);
 }
 
 // Point the Vite plugin at this project's canvas, then start Vite via its JS API
 // (resolves vite by module resolution — works whether deps are nested or hoisted,
 // e.g. under bunx).
-process.env.HARNESS_DIR = harnessDir;
+process.env.ARTA_DIR = artaDir;
 
 async function startVite() {
   const { createServer } = await import("vite");
@@ -68,19 +68,19 @@ try {
   // Most commonly: deps aren't installed yet. This is the normal first-run state
   // when the viewer is launched from the installed plugin dir (which ships source
   // but no node_modules). Install once, then retry — so it "just works" anywhere.
-  console.log("[harness] installing viewer dependencies (first run / after update)…");
+  console.log("[arta] installing viewer dependencies (first run / after update)…");
   const r = spawnSync("bun", ["install"], { cwd: pkgRoot, stdio: "inherit" });
   if (r.error || r.status !== 0) {
-    console.error("[harness] couldn't start the viewer.");
-    console.error("[harness] reason:", (e && e.message) || e);
-    console.error("[harness] `bun install` failed — install Bun (https://bun.sh) and retry,");
-    console.error(`[harness] or run \`bun install\` yourself in ${pkgRoot}.`);
+    console.error("[arta] couldn't start the viewer.");
+    console.error("[arta] reason:", (e && e.message) || e);
+    console.error("[arta] `bun install` failed — install Bun (https://bun.sh) and retry,");
+    console.error(`[arta] or run \`bun install\` yourself in ${pkgRoot}.`);
     process.exit(1);
   }
   try {
     server = await startVite();
   } catch (e2) {
-    console.error("[harness] failed to start the viewer after installing deps:", (e2 && e2.message) || e2);
+    console.error("[arta] failed to start the viewer after installing deps:", (e2 && e2.message) || e2);
     process.exit(1);
   }
 }
@@ -88,5 +88,5 @@ try {
 // strictPort is off, so Vite bumps to the next free port on a collision —
 // print the port it actually bound to, not the one we asked for.
 const actualPort = server.httpServer?.address()?.port ?? port;
-console.log(`\n[harness] viewer → http://localhost:${actualPort}`);
-console.log(`[harness] watching ${harnessDir}\n`);
+console.log(`\n[arta] viewer → http://localhost:${actualPort}`);
+console.log(`[arta] watching ${artaDir}\n`);

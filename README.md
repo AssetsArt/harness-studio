@@ -274,7 +274,7 @@ commands/hns.md               # the /hns command (design · update)
 mcp/server.mjs                # MCP server source — the agent's eyes & hands
 mcp/server.bundle.mjs         # self-contained bundle the plugin ships (no dep install)
 bin/arta.mjs               # viewer launcher — `harness` in any project
-vite/harness-watch.ts         # Vite plugin: assembles split files, watch → WebSocket push, endpoints
+vite/arta-watch.ts         # Vite plugin: assembles split files, watch → WebSocket push, endpoints
 scripts/validate-plugin.mjs   # plugin-layout check (CI gate + local)
 .github/workflows/pack.yml    # build · validate · re-bundle on push
 src/                          # the viewer (React + Tailwind + shadcn-style + lucide)

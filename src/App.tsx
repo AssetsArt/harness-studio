@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import type { Phase, StoreState } from "./lib/types";
 import { TAB_ORDER } from "./lib/types";
-import { useHarness, reportRuntime } from "./lib/useHarness";
+import { useArta, reportRuntime } from "./lib/useArta";
 import { nowLabel } from "./lib/utils";
 import { useTheme } from "./lib/theme";
 import { Topbar } from "./components/Topbar";
@@ -35,7 +35,7 @@ export default function App() {
 
 function AppInner() {
   const { c } = useTheme();
-  const { data, error, updatedAt, flashing, changes, applyLocal } = useHarness();
+  const { data, error, updatedAt, flashing, changes, applyLocal } = useArta();
   const navigate = useNavigate();
   const location = useLocation();
 
