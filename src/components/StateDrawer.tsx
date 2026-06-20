@@ -62,7 +62,7 @@ export function StateDrawer({
           </button>
         </div>
         <div className="px-[18px] pt-[13px] text-[12px] leading-[1.5]" style={{ color: c.faint }}>
-          Paste a new state object and Apply — simulates the agent writing to .harness/state.json.
+          Paste a new state object and Apply — simulates the agent writing to .arta/state.json.
         </div>
         <div className="flex min-h-0 flex-1 px-[18px] py-3">
           <textarea

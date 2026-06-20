@@ -1,13 +1,13 @@
 #!/usr/bin/env bun
 // Regression gate for the arta eval. ONE deterministic command:
-// grades the COMMITTED artifacts (the shipping .harness/ demo + a deliberately-bad
+// grades the COMMITTED artifacts (the shipping .arta/ demo + a deliberately-bad
 // fixture) against evals/thresholds.json and exits non-zero on any regression.
 // No LLM, no network — safe to run in CI on every push that touches the skill/MCP.
 //
 //   bun evals/gate.mjs                       # gate the committed targets (CI core)
 //   bun evals/gate.mjs --json                # same, machine-readable
 //   bun evals/gate.mjs --suite <built-dir>   # grade an LLM-built brief tree (loop arm):
-//                                            #   <built-dir>/<briefId>/.harness per brief
+//                                            #   <built-dir>/<briefId>/.arta per brief
 //
 // A5 (impeccable detect) is enforced only when the detector exists on this machine;
 // on a CI runner without ~/.claude/skills/impeccable it is reported as skipped (–),
@@ -126,13 +126,13 @@ function runGate(json) {
   return !regressed;
 }
 
-// ── Loop arm: grade an LLM-built brief tree (<dir>/<briefId>/.harness) ───────
+// ── Loop arm: grade an LLM-built brief tree (<dir>/<briefId>/.arta) ───────
 function runSuite(dir, json) {
   const base = path.resolve(dir);
   const rows = [];
   for (const b of BRIEFS) {
     if (b.split === "ship") continue;
-    const hdir = path.join(base, b.id, ".harness");
+    const hdir = path.join(base, b.id, ".arta");
     if (!fs.existsSync(path.join(hdir, "state.json"))) { rows.push({ id: b.id, split: b.split, missing: true }); continue; }
     const r = grade(b.id, hdir);
     rows.push({ id: b.id, split: b.split, score: r.score, checks: r.checks, detector: a5Up(r), kit: b.designKit || null });
@@ -172,7 +172,7 @@ function runParity(dir, json) {
   const rows = [];
   for (const b of BRIEFS) {
     if (b.split !== "parity") continue;
-    const hdir = path.join(base, b.id, ".harness");
+    const hdir = path.join(base, b.id, ".arta");
     if (!fs.existsSync(path.join(hdir, "state.json"))) { rows.push({ id: b.id, kit: b.designKit, missing: true }); continue; }
     const r = grade(b.id, hdir);
     if (r.fatal) { rows.push({ id: b.id, kit: b.designKit, fatal: r.fatal, score: 0, checks: {}, detector: false, serious: [] }); continue; }

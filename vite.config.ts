@@ -5,7 +5,7 @@ import { harnessWatch } from "./vite/harness-watch";
 
 // Harness Studio dev server.
 // The `harnessWatch` plugin is the core of the whole concept: it watches the
-// shared canvas file (.harness/state.json) that the AI writes into, and pushes
+// shared canvas file (.arta/state.json) that the AI writes into, and pushes
 // every change to the running viewer over Vite's WebSocket — no MCP, no manual
 // reload. The AI just uses its normal Write tool; the screen updates instantly.
 export default defineConfig({

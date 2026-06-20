@@ -13,7 +13,7 @@ design/quality/structure decisions. This file only covers harness mechanics.
 ## Harness mechanics for this eval (the only deviations from the skill)
 
 - **The arta MCP server is NOT connected here.** You cannot call `arta_*`
-  tools. The skill says you may `Write` the `.harness/` files directly and the watcher
+  tools. The skill says you may `Write` the `.arta/` files directly and the watcher
   picks them up — do that. Produce the same artifacts the MCP tools would.
 - **The direction is already approved** (it's in your task). Do NOT brainstorm or ask
   questions — go straight to building the hi-fi prototype.
@@ -21,9 +21,9 @@ design/quality/structure decisions. This file only covers harness mechanics.
   visually check your work — so rely on the skill's craft guidance and get it right the
   first time.
 
-## Where to write — `<DIR>/.harness/`
+## Where to write — `<DIR>/.arta/`
 
-A single `<DIR>/.harness/state.json` with everything inline is fine (the viewer/grader
+A single `<DIR>/.arta/state.json` with everything inline is fine (the viewer/grader
 assembles split files and inline identically). The `state.json` shape — `meta`,
 `prototype` (`start`, `frame`, `store`, `tokens`, `designSystem`, `layout`, `components`,
 `screens[]` with `id`/`title`/`html`) — is documented in SKILL.md's "state.json shape"
@@ -31,5 +31,5 @@ reference and the freeform-screen section. Keep `meta` valid (`name` + `phase`).
 
 ## When done
 
-Return ONE line: `BUILT <DIR>/.harness/state.json — N screens: id1,id2,...` (no prose).
+Return ONE line: `BUILT <DIR>/.arta/state.json — N screens: id1,id2,...` (no prose).
 Your final message is read by a machine, not a human.

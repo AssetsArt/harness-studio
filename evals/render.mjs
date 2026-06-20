@@ -6,7 +6,7 @@
 // the dev sees. A browser (playwright) then loads these to capture console errors and a
 // screenshot — the live-render + screenshot graders, headless.
 //
-//   bun evals/render.mjs --brief <id> --dir <.harness dir>
+//   bun evals/render.mjs --brief <id> --dir <.arta dir>
 //   -> writes <dir>/_render/<screenId>.html and prints a JSON manifest (screens + viewport)
 import fs from "node:fs";
 import path from "node:path";
@@ -70,7 +70,7 @@ function buildDoc(proto, screen) {
 const args = process.argv.slice(2);
 const get = (f) => { const i = args.indexOf(f); return i >= 0 ? args[i + 1] : null; };
 const briefId = get("--brief"); const dir = get("--dir");
-if (!briefId || !dir) { console.error("usage: bun evals/render.mjs --brief <id> --dir <.harness dir>"); process.exit(2); }
+if (!briefId || !dir) { console.error("usage: bun evals/render.mjs --brief <id> --dir <.arta dir>"); process.exit(2); }
 const brief = BRIEFS.briefs.find((b) => b.id === briefId);
 const state = assemble(path.resolve(dir));
 const proto = state?.prototype || {};

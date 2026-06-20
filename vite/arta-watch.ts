@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Plugin, ViteDevServer } from "vite";
 
-// ── Shared canvas layout (.harness/) ───────────────────────────────────────
+// ── Shared canvas layout (.arta/) ───────────────────────────────────────
 // state.json                       meta/spec/plan/dataModel/flow + prototype MANIFEST
 // prototype/design-system.css      shared CSS (or inline prototype.designSystem)
 // prototype/components/<name>.html shared HTML fragments (or inline prototype.components)
@@ -13,7 +13,7 @@ import type { Plugin, ViteDevServer } from "vite";
 // agent reads/writes one screen or component file at a time instead of the whole
 // design. This plugin re-assembles them into a single state object for the viewer,
 // so the client stays unaware of the split.
-const HARNESS_DIR = ".harness";
+const HARNESS_DIR = ".arta";
 const STATE_FILE = "state.json";
 const RUNTIME_FILE = "runtime.json";
 const FEEDBACK_FILE = "feedback.json";
@@ -134,7 +134,7 @@ export function harnessWatch(): Plugin {
   return {
     name: "harness-watch",
 
-    // Suppress Vite's default full-page reload for any .harness source change —
+    // Suppress Vite's default full-page reload for any .arta source change —
     // we push an in-place update over the WebSocket instead (keeps the dev's
     // current tab/screen). The actual push happens in the watcher handler below.
     handleHotUpdate(ctx) {
@@ -144,7 +144,7 @@ export function harnessWatch(): Plugin {
 
     configureServer(srv: ViteDevServer) {
       // HARNESS_DIR lets one viewer watch any project's canvas (the launcher sets
-      // it to the user's project); otherwise default to <root>/.harness.
+      // it to the user's project); otherwise default to <root>/.arta.
       dir = process.env.HARNESS_DIR
         ? path.resolve(process.env.HARNESS_DIR)
         : path.resolve(srv.config.root, HARNESS_DIR);

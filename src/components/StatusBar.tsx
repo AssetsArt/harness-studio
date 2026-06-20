@@ -23,7 +23,7 @@ export function StatusBar({ meta, updatedAt, tab, screen, changes, onEditState, 
     >
       <span className="flex items-center gap-[7px]" style={{ fontFamily: MONO, color: c.dim }}>
         <span className="h-1.5 w-1.5 rounded-full" style={{ background: c.accent }} />
-        .harness/state.json
+        .arta/state.json
       </span>
       <span style={{ color: c.faint }}>·</span>
       <span style={{ color: c.faint }}>phase: {meta.phase}</span>

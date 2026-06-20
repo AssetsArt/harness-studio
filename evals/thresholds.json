@@ -1,5 +1,5 @@
 {
-  "_doc": "Regression-gate baseline for evals/gate.mjs. These are the COMMITTED, deterministic targets — graded with no LLM, so they can run in CI on every push that touches the skill/MCP. Thresholds were set from the measured baseline on 2026-06-20 (the live .harness/ demo graded 6/6 after the #eef2f0 tokenization fix; the bad fixture graded 1/6). A5 (impeccable detect) is enforced only when the detector is available (local); on a CI runner without ~/.claude/skills/impeccable it is reported as skipped, never a failure — so A1-A4 are the deterministic CI floor. The builder-loop briefs (train/heldout) are graded separately via `bun evals/gate.mjs --suite <built-dir>`; they need an LLM to build, so they are NOT part of the per-push CI gate.",
+  "_doc": "Regression-gate baseline for evals/gate.mjs. These are the COMMITTED, deterministic targets — graded with no LLM, so they can run in CI on every push that touches the skill/MCP. Thresholds were set from the measured baseline on 2026-06-20 (the live .arta/ demo graded 6/6 after the #eef2f0 tokenization fix; the bad fixture graded 1/6). A5 (impeccable detect) is enforced only when the detector is available (local); on a CI runner without ~/.claude/skills/impeccable it is reported as skipped, never a failure — so A1-A4 are the deterministic CI floor. The builder-loop briefs (train/heldout) are graded separately via `bun evals/gate.mjs --suite <built-dir>`; they need an LLM to build, so they are NOT part of the per-push CI gate.",
   "version": 1,
   "baselineDate": "2026-06-20",
   "targets": [
@@ -7,7 +7,7 @@
       "id": "demo",
       "kind": "ship",
       "brief": "demo",
-      "dir": ".harness",
+      "dir": ".arta",
       "note": "The seeded Helix demo users receive on install — the real shipping artifact. Must stay a clean pass.",
       "require": {
         "A1a_tokens_defined": true,

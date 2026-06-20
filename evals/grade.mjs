@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-// Deterministic grader for the arta eval. Given a built .harness/ dir and
+// Deterministic grader for the arta eval. Given a built .arta/ dir and
 // a brief id, it assembles the prototype EXACTLY like the viewer (vite/harness-watch
 // assembleState), then scores five verifiable assertions:
 //
@@ -10,7 +10,7 @@
 //   A5 design-review  — impeccable detect finds zero SERIOUS anti-slop findings
 //
 // No LLM: every check is computed from the artifacts. Output is JSON on stdout.
-//   bun evals/grade.mjs --brief checkout --dir /path/to/.harness [--json]
+//   bun evals/grade.mjs --brief checkout --dir /path/to/.arta [--json]
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
@@ -294,7 +294,7 @@ if (import.meta.main) {
   const briefId = get("--brief");
   const dir = get("--dir");
   if (!briefId || !dir) {
-    console.error("usage: bun evals/grade.mjs --brief <id> --dir <.harness dir>");
+    console.error("usage: bun evals/grade.mjs --brief <id> --dir <.arta dir>");
     process.exit(2);
   }
   const result = grade(briefId, path.resolve(dir));

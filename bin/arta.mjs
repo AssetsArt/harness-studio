@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Harness Studio viewer launcher.
 // Run from any project: starts the viewer (Vite) pointed at THAT project's
-// .harness/ folder, seeding a starter canvas if there isn't one.
+// .arta/ folder, seeding a starter canvas if there isn't one.
 //
 //   bunx github:AssetsArt/arta          # zero-install, from anywhere
 //   harness                                        # if linked globally
@@ -20,7 +20,7 @@ const opt = (name, def) => {
 };
 const projectDir = path.resolve(opt("--project", process.cwd()));
 const port = Number(opt("--port", "7317"));
-const harnessDir = path.join(projectDir, ".harness");
+const harnessDir = path.join(projectDir, ".arta");
 
 // Seed a minimal canvas so the viewer has something to render on first run.
 if (!fs.existsSync(path.join(harnessDir, "state.json"))) {
@@ -40,7 +40,7 @@ if (!fs.existsSync(path.join(harnessDir, "state.json"))) {
   fs.writeFileSync(path.join(harnessDir, "state.json"), JSON.stringify(starter, null, 2) + "\n");
   fs.writeFileSync(
     path.join(harnessDir, "prototype", "screens", "home.html"),
-    '<div style="display:grid;place-items:center;min-height:60vh;font-family:system-ui;color:#71717a">Ask Claude Code to design here — it writes into .harness/</div>\n'
+    '<div style="display:grid;place-items:center;min-height:60vh;font-family:system-ui;color:#71717a">Ask Claude Code to design here — it writes into .arta/</div>\n'
   );
   console.log(`[harness] seeded a starter canvas at ${harnessDir}`);
 }

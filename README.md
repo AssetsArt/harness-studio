@@ -10,11 +10,11 @@ Three layers, one loop:
 | Layer | What it is |
 |---|---|
 | **Viewer (the screen)** | A React + Vite + Tailwind + shadcn-style app showing five tabs — **Prototype + Spec · Data model · Flow (API) · Architecture · Plan** — rendered from the canvas. The prototype is **freeform**: the AI writes real HTML + a shared CSS design system per screen, in a real device frame, wired up with a few attributes. |
-| **Canvas** | A `.harness/` folder in your project. The AI writes it with its normal tools (or the MCP); the viewer watches it and live-reloads in place with a cyan flash. |
+| **Canvas** | A `.arta/` folder in your project. The AI writes it with its normal tools (or the MCP); the viewer watches it and live-reloads in place with a cyan flash. |
 | **Skill + MCP** | A Claude Code skill drives the phases; an MCP server is the agent's eyes & hands — it edits the canvas, *sees* its own render (screenshots) and errors, and reads your feedback. |
 
 ```
- ┌─ AI writes .harness/ (skill + MCP) ──▶ viewer repaints; you click, switch frames ─┐
+ ┌─ AI writes .arta/ (skill + MCP) ──▶ viewer repaints; you click, switch frames ─┐
  │                                                                                    │
  └─ AI reads screenshots · errors · feedback ◀── you comment on an element, leave notes┘
 ```
@@ -23,7 +23,7 @@ Three layers, one loop:
 
 Below is the **Harness Studio viewer** with its seeded demo loaded — **Helix**, a
 landing site for a "unified runtime for AI agents." The dark app chrome is the studio;
-the prototype lives inside the device frame. The same `.harness/` canvas drives all five
+the prototype lives inside the device frame. The same `.arta/` canvas drives all five
 tabs.
 
 [![Harness Studio — the Helix prototype in a device frame](docs/demo_01_B1.png)](docs/demo_01_B1.png)
@@ -56,14 +56,14 @@ Install the **plugin** once — it brings the skill, the MCP, **and** the viewer
 ```
 
 The `arta` skill and its MCP tools are now available in any project, and
-the MCP reads/writes that project's `.harness/` folder.
+the MCP reads/writes that project's `.arta/` folder.
 
 **2. The viewer starts itself.** You don't run anything — when you `/hns`, the skill
 calls the `arta_start_viewer` MCP tool, which launches the viewer **from the
 installed plugin** (so it always matches your installed version — no stale cache) on
-`http://localhost:7317`, watching this project's `./.harness/`. The first launch
+`http://localhost:7317`, watching this project's `./.arta/`. The first launch
 installs the viewer's deps (a few seconds, needs [Bun](https://bun.sh)); it seeds a
-starter `.harness/` if there isn't one. Leave the tab open; it repaints as the AI
+starter `.arta/` if there isn't one. Leave the tab open; it repaints as the AI
 edits the canvas. **To update later, just `/hns update`** — that updates the viewer
 too, since it ships in the plugin.
 
@@ -125,7 +125,7 @@ start the viewer yourself — `/hns` does it via the `arta_start_viewer` tool, a
 | Command | What it does |
 |---|---|
 | `bun install` | Install deps |
-| `bun run dev` | Viewer on `:7317`, watching this repo's `.harness/` |
+| `bun run dev` | Viewer on `:7317`, watching this repo's `.arta/` |
 | `bun run build` | Typecheck + build viewer + bundle the MCP |
 | `bun run build:mcp` | Re-bundle the MCP after editing `mcp/server.mjs` |
 | `node scripts/validate-plugin.mjs` | Check the plugin layout (the CI gate) |
@@ -204,7 +204,7 @@ the viewer. Inline values in `state.json` still work and win over files, for qui
 lo-fi screens.
 
 ```
-.harness/
+.arta/
   state.json                  # meta/spec/plan/dataModel/flow + prototype MANIFEST (no HTML)
   prototype/design-system.css # shared CSS
   prototype/components/*.html # shared fragments ({{>name}})
@@ -214,7 +214,7 @@ lo-fi screens.
 ## How the AI plugs in
 
 The plugin registers a self-contained MCP server (no extra install) that operates
-on the current project's `.harness/`:
+on the current project's `.arta/`:
 
 - `arta_get_state` / `arta_set_state` / `arta_patch_state` — read & write the structured canvas + prototype manifest. `get_state` takes `{ outline: true }` (a cheap index of sections + counts + sizes) or `{ sections: [...] }` (only the keys you want) so large projects don't pay for the whole blob each time. In `patch_state`, top-level keys replace, but `meta` and `prototype` **deep-merge** — a partial `{ prototype: … }` patch keeps the tokens / components / screens it omits instead of wiping them
 - `arta_get_spec` / `arta_get_data_model` — read just the `spec` or `dataModel` section on its own (token-cheap grounding); write them via `arta_patch_state`
@@ -234,14 +234,14 @@ on the current project's `.harness/`:
 - `arta_get_feedback` — notes you left, including the element you clicked to comment on
 
 The skill (`skills/arta/`) tells the agent how to run the prototype-based
-loop. The agent can also just `Write` files under `.harness/` — the watcher catches
+loop. The agent can also just `Write` files under `.arta/` — the watcher catches
 them either way; the MCP tools add validation, manifest upkeep, screenshots, and the
 feedback channel.
 
 **Design → build.** When the design is approved, the agent hands off to implementation
 with [`superpowers:subagent-driven-development`](https://github.com/obra/superpowers/blob/main/skills/subagent-driven-development/SKILL.md):
 the **Plan** Kanban is the task list (one implementer subagent per card), and the
-`.harness/` artifacts (spec, prototype HTML, data model, API) are the source of truth
+`.arta/` artifacts (spec, prototype HTML, data model, API) are the source of truth
 each subagent reads. The agent moves cards (`arta_set_task`) as work lands, so the
 dev watches the build advance on the same board they designed.
 
@@ -278,7 +278,7 @@ vite/harness-watch.ts         # Vite plugin: assembles split files, watch → We
 scripts/validate-plugin.mjs   # plugin-layout check (CI gate + local)
 .github/workflows/pack.yml    # build · validate · re-bundle on push
 src/                          # the viewer (React + Tailwind + shadcn-style + lucide)
-.harness/                     # the canvas (seeded with the Helix demo)
+.arta/                     # the canvas (seeded with the Helix demo)
 ```
 
 ## Stack

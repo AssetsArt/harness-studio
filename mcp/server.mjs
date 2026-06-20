@@ -15,7 +15,7 @@
 //   • arta_start_viewer  — launch the viewer FROM THE INSTALLED PLUGIN (always
 //                             matches the installed version; no stale npx cache)
 //
-// State lives in <project>/.harness/. The server resolves that relative to its
+// State lives in <project>/.arta/. The server resolves that relative to its
 // own location, so it works no matter what cwd Claude Code launches it from.
 // Writing state.json is all it takes — the Vite dev server is watching and the
 // viewer repaints with a cyan flash.
@@ -44,11 +44,11 @@ function envDir(name) {
   return p && fs.existsSync(p) ? p : null;
 }
 
-// Resolve .harness against the USER'S project, not this file's location, so the
+// Resolve .arta against the USER'S project, not this file's location, so the
 // same server works whether it's run locally or installed as a global plugin:
-//   HARNESS_DIR (explicit) → CLAUDE_PROJECT_DIR/.harness (plugin) → cwd/.harness
+//   HARNESS_DIR (explicit) → CLAUDE_PROJECT_DIR/.arta (plugin) → cwd/.arta
 const HARNESS_DIR =
-  envPath("HARNESS_DIR") || path.join(envDir("CLAUDE_PROJECT_DIR") || process.cwd(), ".harness");
+  envPath("HARNESS_DIR") || path.join(envDir("CLAUDE_PROJECT_DIR") || process.cwd(), ".arta");
 const STATE_FILE = path.join(HARNESS_DIR, "state.json");
 const RUNTIME_FILE = path.join(HARNESS_DIR, "runtime.json");
 const FEEDBACK_FILE = path.join(HARNESS_DIR, "feedback.json");
@@ -61,7 +61,7 @@ const FEEDBACK_FILE = path.join(HARNESS_DIR, "feedback.json");
 // otherwise use our own location.
 const SELF_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PLUGIN_ROOT = envDir("CLAUDE_PLUGIN_ROOT") || SELF_ROOT;
-// The viewer wants the PROJECT dir (it appends /.harness itself).
+// The viewer wants the PROJECT dir (it appends /.arta itself).
 const PROJECT_DIR = envDir("CLAUDE_PROJECT_DIR") || path.dirname(HARNESS_DIR);
 
 // Split-file prototype layout — edit one piece without touching the rest.
@@ -172,7 +172,7 @@ async function waitPortFree(port, ms = 4000) {
 
 // Spawn the viewer launcher that ships with the installed plugin, detached so it
 // outlives this server. Shared by start/restart. Output (incl. first-run
-// `bun install`) is appended to .harness/viewer.log for inspection.
+// `bun install`) is appended to .arta/viewer.log for inspection.
 function spawnViewer(p) {
   const launcher = path.join(PLUGIN_ROOT, "bin", "harness.mjs");
   if (!fs.existsSync(launcher)) return { ok: false, launcher };
@@ -247,7 +247,7 @@ server.registerTool(
   "arta_get_state",
   {
     description:
-      "Read .harness/state.json — meta/spec/plan/dataModel/api/architecture plus the prototype MANIFEST (screen ids, titles, frames; NOT the screen HTML). Defaults to the whole state. In a LARGE project that blob gets expensive, so narrow it: `outline:true` returns just an index (which sections exist, their item counts and byte sizes, plus the screen manifest); `sections:['spec','dataModel']` returns only those top-level keys (meta is always included). Then pull screen markup with arta_get_screen / arta_get_component / arta_get_design_system so you only spend tokens on what you need.",
+      "Read .arta/state.json — meta/spec/plan/dataModel/api/architecture plus the prototype MANIFEST (screen ids, titles, frames; NOT the screen HTML). Defaults to the whole state. In a LARGE project that blob gets expensive, so narrow it: `outline:true` returns just an index (which sections exist, their item counts and byte sizes, plus the screen manifest); `sections:['spec','dataModel']` returns only those top-level keys (meta is always included). Then pull screen markup with arta_get_screen / arta_get_component / arta_get_design_system so you only spend tokens on what you need.",
     inputSchema: {
       sections: zod
         .array(zod.string())
@@ -287,7 +287,7 @@ server.registerTool(
   "arta_set_state",
   {
     description:
-      "Replace .harness/state.json with a full state object. The running viewer repaints instantly (cyan flash). Use for the first write or a wholesale rewrite; prefer arta_patch_state for incremental edits.",
+      "Replace .arta/state.json with a full state object. The running viewer repaints instantly (cyan flash). Use for the first write or a wholesale rewrite; prefer arta_patch_state for incremental edits.",
     inputSchema: {
       state: zod
         .record(zod.any())
@@ -524,7 +524,7 @@ server.registerTool(
   "arta_get_screen",
   {
     description:
-      "Read one prototype screen's HTML body (.harness/prototype/screens/<id>.html). Use this instead of pulling the whole state when you only need to look at or edit one screen.",
+      "Read one prototype screen's HTML body (.arta/prototype/screens/<id>.html). Use this instead of pulling the whole state when you only need to look at or edit one screen.",
     inputSchema: { id: zod.string().describe("Screen id from the manifest.") },
   },
   async ({ id }) => {
@@ -538,7 +538,7 @@ server.registerTool(
   "arta_set_screen",
   {
     description:
-      "Create or replace one screen: writes only .harness/prototype/screens/<id>.html and upserts the screen's entry in the manifest (title/url/frame/safeArea). Other screens and the rest of the design are untouched. This is how you edit a screen cheaply. For an ios/android/ipad screen, pass `safeArea` so the status-bar + home-indicator bands take the screen's edge colour instead of staying white — or `chrome:false` for a Full / full-bleed screen with no safe area at all (content fills the whole screen). STYLE WITH TAILWIND UTILITY CLASSES (injected live) — not inline style=; use lucide icons (<i data-lucide=\"…\">), never emoji.",
+      "Create or replace one screen: writes only .arta/prototype/screens/<id>.html and upserts the screen's entry in the manifest (title/url/frame/safeArea). Other screens and the rest of the design are untouched. This is how you edit a screen cheaply. For an ios/android/ipad screen, pass `safeArea` so the status-bar + home-indicator bands take the screen's edge colour instead of staying white — or `chrome:false` for a Full / full-bleed screen with no safe area at all (content fills the whole screen). STYLE WITH TAILWIND UTILITY CLASSES (injected live) — not inline style=; use lucide icons (<i data-lucide=\"…\">), never emoji.",
     inputSchema: {
       id: zod.string(),
       html: zod
@@ -593,7 +593,7 @@ server.registerTool(
   "arta_delete_screen",
   {
     description:
-      "Remove one screen: drops its manifest entry AND deletes .harness/prototype/screens/<id>.html. If it was the prototype `start`, start is repointed to the first remaining screen. Use this to clean up a stray / leftover screen — e.g. the seed `home` placeholder (\"Ask Claude Code to design here\") once you've built the real screens, or a lo-fi sketch you no longer need. Leaving an empty placeholder in the manifest shows the dev a blank screen, so delete it.",
+      "Remove one screen: drops its manifest entry AND deletes .arta/prototype/screens/<id>.html. If it was the prototype `start`, start is repointed to the first remaining screen. Use this to clean up a stray / leftover screen — e.g. the seed `home` placeholder (\"Ask Claude Code to design here\") once you've built the real screens, or a lo-fi sketch you no longer need. Leaving an empty placeholder in the manifest shows the dev a blank screen, so delete it.",
     inputSchema: { id: zod.string().describe("Screen id to remove.") },
   },
   async ({ id }) => {
@@ -616,7 +616,7 @@ server.registerTool(
 server.registerTool(
   "arta_get_component",
   {
-    description: "Read a shared component's HTML (.harness/prototype/components/<name>.html).",
+    description: "Read a shared component's HTML (.arta/prototype/components/<name>.html).",
     inputSchema: { name: zod.string() },
   },
   async ({ name }) => {
@@ -630,7 +630,7 @@ server.registerTool(
   "arta_set_component",
   {
     description:
-      "Create or replace a shared component (.harness/prototype/components/<name>.html), referenced as {{>name}} from the layout or screens. Edit it once and every screen that uses it updates — no per-screen edits. The file is the source of truth: this also clears any stale inline `prototype.components[name]` override in state.json, so a slim patch can't blank the component out. Style with Tailwind utility classes (injected live), not inline style=; lucide icons, not emoji.",
+      "Create or replace a shared component (.arta/prototype/components/<name>.html), referenced as {{>name}} from the layout or screens. Edit it once and every screen that uses it updates — no per-screen edits. The file is the source of truth: this also clears any stale inline `prototype.components[name]` override in state.json, so a slim patch can't blank the component out. Style with Tailwind utility classes (injected live), not inline style=; lucide icons, not emoji.",
     inputSchema: { name: zod.string(), html: zod.string().describe("Component HTML. Tailwind utility classes for styling (not inline style=); lucide icons, not emoji.") },
   },
   async ({ name, html }) => {
@@ -650,7 +650,7 @@ server.registerTool(
 server.registerTool(
   "arta_get_design_system",
   {
-    description: "Read the shared prototype CSS (.harness/prototype/design-system.css).",
+    description: "Read the shared prototype CSS (.arta/prototype/design-system.css).",
     inputSchema: {},
   },
   async () => {
@@ -663,7 +663,7 @@ server.registerTool(
 server.registerTool(
   "arta_set_design_system",
   {
-    description: "Replace the shared prototype CSS (.harness/prototype/design-system.css), injected into every freeform screen.",
+    description: "Replace the shared prototype CSS (.arta/prototype/design-system.css), injected into every freeform screen.",
     inputSchema: { css: zod.string() },
   },
   async ({ css }) => {
@@ -877,7 +877,7 @@ server.registerTool(
   "arta_start_viewer",
   {
     description:
-      "Start the Harness Studio viewer FROM THE INSTALLED PLUGIN, pointed at this project's .harness/. Because it runs the launcher that ships with the plugin, the viewer always matches the installed plugin version — no stale npx/bunx cache. First run installs the viewer's deps (a few seconds). Idempotent: if a viewer is already on the port, it just returns the URL (it does NOT restart it — use arta_restart_viewer to pick up a new build after an update). Call this once at the start of a design session so the dev has the canvas open, then keep using the other tools as normal.",
+      "Start the Harness Studio viewer FROM THE INSTALLED PLUGIN, pointed at this project's .arta/. Because it runs the launcher that ships with the plugin, the viewer always matches the installed plugin version — no stale npx/bunx cache. First run installs the viewer's deps (a few seconds). Idempotent: if a viewer is already on the port, it just returns the URL (it does NOT restart it — use arta_restart_viewer to pick up a new build after an update). Call this once at the start of a design session so the dev has the canvas open, then keep using the other tools as normal.",
     inputSchema: {
       port: zod.number().int().optional().describe("Port for the viewer (default 7317)."),
     },
@@ -900,7 +900,7 @@ server.registerTool(
       ok: true,
       started: true,
       url: `http://localhost:${p}`,
-      watching: path.join(PROJECT_DIR, ".harness"),
+      watching: path.join(PROJECT_DIR, ".arta"),
       from: PLUGIN_ROOT,
       note: `Viewer starting from the installed plugin. First run installs its deps (a few seconds) — open ${`http://localhost:${p}`} in a moment. Logs: ${r.logFile}`,
     });
@@ -940,7 +940,7 @@ server.registerTool(
       wasRunning,
       stoppedPids: killed,
       url: `http://localhost:${p}`,
-      watching: path.join(PROJECT_DIR, ".harness"),
+      watching: path.join(PROJECT_DIR, ".arta"),
       from: PLUGIN_ROOT,
       note: `Viewer relaunched from the installed plugin — now matching the installed version. Reload ${`http://localhost:${p}`} in a moment (hard-refresh if your browser cached the old assets). Logs: ${r.logFile}`,
     });

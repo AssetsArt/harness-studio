@@ -21,7 +21,7 @@ interface HarnessLive {
 }
 
 // The client half of the live loop: fetch the initial state, then listen for
-// `harness:update` events the Vite plugin fires whenever .harness/state.json
+// `harness:update` events the Vite plugin fires whenever .arta/state.json
 // changes on disk (i.e. whenever the AI writes to it). Each update flashes the
 // canvas cyan — the visible "the agent just wrote in" signal.
 export function useHarness(): HarnessLive {

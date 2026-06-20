@@ -12,7 +12,7 @@ harness is split into what can be gated for free and what needs a model:
 
 | Layer | What | Deterministic? | Where it runs |
 |---|---|---|---|
-| **A — regression gate** | grade the **committed** artifacts (the shipping `.harness/` demo + a bad fixture) against a baseline | yes, no LLM, no network | CI on every push that touches the skill/MCP (`gate.mjs`) |
+| **A — regression gate** | grade the **committed** artifacts (the shipping `.arta/` demo + a bad fixture) against a baseline | yes, no LLM, no network | CI on every push that touches the skill/MCP (`gate.mjs`) |
 | **B — builder loop** | builder subagents follow the skill on each brief → grade → diagnose → fix one cause → re-measure + blind A/B | no (LLM builds) | locally / on demand (`gate.mjs --suite`) |
 
 Layer A catches **code** regressions (the assembler in `src/lib/prototype.ts`, token
@@ -21,7 +21,7 @@ regressions and drives quality up. Same grader underneath both.
 
 ## Files
 
-- `grade.mjs` — the deterministic grader. Assembles a `.harness/` exactly like the viewer,
+- `grade.mjs` — the deterministic grader. Assembles a `.arta/` exactly like the viewer,
   then scores six verifiable assertions (no LLM):
 
   | id | assertion | passes when |
@@ -38,7 +38,7 @@ regressions and drives quality up. Same grader underneath both.
 - `thresholds.json` — the committed baseline (set 2026-06-20). Which targets are gated and
   which checks must hold.
 - `briefs.json` — the brief set: `train` (5, diagnose+fix), `heldout` (3, stop-condition
-  only — never fit to them), and `ship` (the `demo`, i.e. the live `.harness/`).
+  only — never fit to them), and `ship` (the `demo`, i.e. the live `.arta/`).
 - `fixtures/bad/` — a deliberately-bad build. The gate asserts it **stays failing**, which
   guards the grader against silently going permissive.
 - `builder-brief.md` — the builder contract for Layer B. Must NOT leak the grader rubric
@@ -51,8 +51,8 @@ regressions and drives quality up. Same grader underneath both.
 ```bash
 bun run eval:gate                      # the gate — committed targets vs baseline (CI core)
 bun evals/gate.mjs --json              # machine-readable
-bun evals/grade.mjs --brief demo --dir .harness   # grade one .harness/ against one brief
-bun evals/gate.mjs --suite <built-dir> # Layer B: grade <dir>/<briefId>/.harness for every brief
+bun evals/grade.mjs --brief demo --dir .arta   # grade one .arta/ against one brief
+bun evals/gate.mjs --suite <built-dir> # Layer B: grade <dir>/<briefId>/.arta for every brief
 ```
 
 ### A5 and CI
@@ -65,7 +65,7 @@ different detector with `IMPECCABLE_DETECT=/path/to/detect.mjs`.
 ## Wiring into CI
 
 `.github/workflows/eval-gate.yml` (draft) runs `bun evals/gate.mjs` on pushes/PRs that
-touch `skills/`, `mcp/`, `src/lib/prototype.ts`, `evals/`, or `.harness/`. It runs
+touch `skills/`, `mcp/`, `src/lib/prototype.ts`, `evals/`, or `.arta/`. It runs
 alongside `pack.yml`. To make a regression actually **block a release**, either:
 
 1. mark `eval-gate` a required status check (branch protection on `main`), or

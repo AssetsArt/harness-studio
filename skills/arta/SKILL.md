@@ -1,12 +1,12 @@
 ---
 name: arta
-description: Use during the DESIGN phase of building a new app/feature, instead of dumping a wall of text. ALWAYS brainstorm the idea into an agreed direction first (questions one at a time, like superpowers:brainstorming) — never jump straight to a spec or prototype. Then drive Claude Code to build a shared, live design canvas (.harness/state.json) that the dev watches in the Harness Studio viewer — spec, prototype, data model, flow, plan — iterating from the dev's clicks and feedback. Trigger when the user wants to "design", "wireframe", "prototype", "sketch the data model/flow", "plan a feature visually", or says "open the harness / let's design this in the studio".
+description: Use during the DESIGN phase of building a new app/feature, instead of dumping a wall of text. ALWAYS brainstorm the idea into an agreed direction first (questions one at a time, like superpowers:brainstorming) — never jump straight to a spec or prototype. Then drive Claude Code to build a shared, live design canvas (.arta/state.json) that the dev watches in the Harness Studio viewer — spec, prototype, data model, flow, plan — iterating from the dev's clicks and feedback. Trigger when the user wants to "design", "wireframe", "prototype", "sketch the data model/flow", "plan a feature visually", or says "open the harness / let's design this in the studio".
 ---
 
 # Harness Studio — prototype-based design loop
 
 You are designing **with a picture, not a wall of text.** The dev has the Harness
-Studio viewer open (`bun run dev`). Everything you write to `.harness/state.json`
+Studio viewer open (`bun run dev`). Everything you write to `.arta/state.json`
 appears on their screen instantly with a cyan flash. You see what they're looking
 at and read their feedback through the MCP server. Design is one tight loop.
 
@@ -26,7 +26,7 @@ Never describe a screen in prose when you could render it. Show, ask, adjust.
 - `arta_start_viewer` — **call this once at the very start of a session** to open
   the viewer for the dev. It launches the viewer that ships **inside the installed
   plugin** (so it always matches the plugin version — no stale `npx`/`bunx` cache),
-  pointed at this project's `.harness/`. It's idempotent (re-running just returns the
+  pointed at this project's `.arta/`. It's idempotent (re-running just returns the
   URL) and installs the viewer's deps on first run. Tell the dev the URL it returns
   (default `http://localhost:7317`).
 - `arta_restart_viewer` — stop the running viewer and relaunch it from the
@@ -104,15 +104,15 @@ you keep big prototypes cheap to edit):
   white bands (contents auto-contrast); `chrome:false` is **Full** — drops those bands
   entirely so the design fills the whole screen.
 
-## Storage layout (.harness/)
+## Storage layout (.arta/)
 
 The canvas is split so each piece stays small:
 
 ```
-.harness/state.json                     meta/spec/plan/dataModel/api + prototype MANIFEST (no HTML)
-.harness/prototype/design-system.css    shared CSS
-.harness/prototype/components/<name>.html   shared fragments ({{>name}})
-.harness/prototype/screens/<id>.html        each screen body
+.arta/state.json                     meta/spec/plan/dataModel/api + prototype MANIFEST (no HTML)
+.arta/prototype/design-system.css    shared CSS
+.arta/prototype/components/<name>.html   shared fragments ({{>name}})
+.arta/prototype/screens/<id>.html        each screen body
 ```
 
 `arta_get_state` returns the small manifest (screen ids/titles/frames, not the
@@ -122,8 +122,8 @@ call `arta_set_screen` (one file); to change something shared, edit the componen
 or design system (one file) — never rewrite every screen. The dev server re-assembles
 the files into one state for the viewer automatically.
 
-You can also `Write` files directly (`.harness/prototype/screens/<id>.html`,
-`.harness/state.json`) — the watcher picks any of them up. The MCP tools add
+You can also `Write` files directly (`.arta/prototype/screens/<id>.html`,
+`.arta/state.json`) — the watcher picks any of them up. The MCP tools add
 validation, manifest upkeep, and the feedback channel, so prefer them.
 
 ## Start with a brainstorm — don't build on the first message
@@ -593,7 +593,7 @@ board is filled in, stop designing and build the real thing — and build it wit
 - The **Plan** Kanban *is* the implementation plan: each card is a task. Work them
   in order (respect the swimlane/milestone grouping and status), **one implementer
   subagent per task** — never parallel implementers.
-- The `.harness/` artifacts are the **source of truth** each subagent reads — point
+- The `.arta/` artifacts are the **source of truth** each subagent reads — point
   subagents at them instead of re-describing the work:
   - `spec` — intent, users, scope, constraints
   - the prototype HTML + `designSystem` — the exact UI to build (it's real HTML/CSS)

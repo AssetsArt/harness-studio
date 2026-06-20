@@ -184,11 +184,11 @@
     {
       "id": "demo",
       "split": "ship",
-      "title": "Helix — the .harness/ demo that ships in the repo",
+      "title": "Helix — the .arta/ demo that ships in the repo",
       "domain": "saas",
       "frame": "web",
-      "prompt": "The seeded .harness/ demo users receive on install: Helix, a terminal-native landing site for a 'unified runtime for AI agents'.",
-      "approvedDirection": "The committed .harness/ demo (skills handoff showcase): home/platform/pricing/customers, terminal-native, run/trace/policy command tabs.",
+      "prompt": "The seeded .arta/ demo users receive on install: Helix, a terminal-native landing site for a 'unified runtime for AI agents'.",
+      "approvedDirection": "The committed .arta/ demo (skills handoff showcase): home/platform/pricing/customers, terminal-native, run/trace/policy command tabs.",
       "minScreens": 4,
       "store": { "billing": "monthly", "view": "run" },
       "expectInteractivity": ["data-to", "data-set", "data-show"]

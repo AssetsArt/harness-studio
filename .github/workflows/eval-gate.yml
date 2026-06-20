@@ -2,7 +2,7 @@ name: eval-gate
 
 # DRAFT — regression gate for the design skill/MCP. Awaiting maintainer review
 # before it goes live (see evals/README.md "Wiring into CI"). It grades the COMMITTED
-# artifacts (the shipping .harness/ demo + a deliberately-bad fixture) with the
+# artifacts (the shipping .arta/ demo + a deliberately-bad fixture) with the
 # deterministic grader and fails the run if any A1-A4 check regresses from the
 # baseline in evals/thresholds.json. No LLM, no network.
 #
@@ -24,14 +24,14 @@ on:
       - "mcp/**"
       - "src/lib/prototype.ts"
       - "evals/**"
-      - ".harness/**"
+      - ".arta/**"
   pull_request:
     paths:
       - "skills/**"
       - "mcp/**"
       - "src/lib/prototype.ts"
       - "evals/**"
-      - ".harness/**"
+      - ".arta/**"
   workflow_dispatch:
 
 jobs:

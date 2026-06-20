@@ -1,4 +1,4 @@
-// The shape of .harness/state.json — the single object every view renders from.
+// The shape of .arta/state.json — the single object every view renders from.
 // Kept permissive on purpose: the AI writes this file freely, and the viewer
 // degrades gracefully when sections are missing or partial.
 

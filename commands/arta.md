@@ -51,7 +51,7 @@ wake you on its own, so this is the chat-side trigger that closes the comment lo
    **element** the dev clicked. Draining marks them read.
 2. If nothing is unread, say so and stop — don't invent work.
 3. Otherwise handle each note in turn: ground yourself on the screen it points at
-   (`arta_get_view` / `arta_get_screen`), make the change in `.harness/` with the
+   (`arta_get_view` / `arta_get_screen`), make the change in `.arta/` with the
    `arta_*` tools (edit one piece at a time so the viewer repaints cleanly), and use
    `arta_get_screenshot` to confirm visually when it helps.
 4. Briefly summarize what you addressed per note so the dev can follow along.
@@ -75,7 +75,7 @@ Run a design-quality pass on the prototype — catch AI-slop before the dev does
    gray-on-color, low contrast, identical card grids, over-rounded cards, …).
    - **No findings** → say it's clean and stop.
    - **Findings** → group them by screen/severity, then fix the clear ones in
-     `.harness/` (Tailwind classes + design-system tokens, not inline styles),
+     `.arta/` (Tailwind classes + design-system tokens, not inline styles),
      re-running `arta_design_review` to confirm they cleared. Flag any that are
      deliberate so the dev can decide.
    - **Tool unavailable** (impeccable not installed / offline) → relay its note;
@@ -95,14 +95,14 @@ Run a design-quality pass on the prototype — catch AI-slop before the dev does
    the viewer as your visual companion.)
 2. **Open the viewer** with the `arta_start_viewer` MCP tool — it launches the
    viewer **from the installed plugin** (always the current version, no stale
-   `bunx` cache) on http://localhost:7317, watching this project's `./.harness/`.
+   `bunx` cache) on http://localhost:7317, watching this project's `./.arta/`.
    It's idempotent (safe to call every run); tell the user the URL it returns. First
    run installs the viewer's deps, so it may take a few seconds to come up. (If the
    tool isn't available, fall back: have them run `bunx github:AssetsArt/arta`
    in this project.)
 3. **Once the direction is approved, run the prototype-based loop:**
    Prototype + Spec → Data model → Flow → Plan. `arta_set_phase` to `prototype`,
-   then write to `.harness/` with the `arta_*` MCP tools (`arta_set_screen`,
+   then write to `.arta/` with the `arta_*` MCP tools (`arta_set_screen`,
    `arta_set_component`, `arta_patch_state`, …), editing one piece at a time.
 4. **Close the loop:** after meaningful changes, check `arta_get_view` (what the
    dev is looking at, plus any errors), `arta_get_screenshot` (see your own
@@ -111,7 +111,7 @@ Run a design-quality pass on the prototype — catch AI-slop before the dev does
 5. **When the design is approved, implement with subagents.** Don't hand-code the
    whole thing in one context — use `superpowers:subagent-driven-development`. The
    **Plan** Kanban is the task list (one implementer subagent per card), and the
-   `.harness/` artifacts (spec, prototype HTML, dataModel, api) are the source of
+   `.arta/` artifacts (spec, prototype HTML, dataModel, api) are the source of
    truth each subagent reads. Move cards with `arta_set_task` as they land so the
    dev watches progress on the board.
 

@@ -98,7 +98,7 @@ function AppInner() {
     return (
       <div className="flex h-full items-center justify-center" style={{ background: c.bg, color: c.faint }}>
         <div className="text-center font-mono text-[13px]">
-          {error ? <span style={{ color: c.red }}>{error}</span> : "waiting for .harness/state.json …"}
+          {error ? <span style={{ color: c.red }}>{error}</span> : "waiting for .arta/state.json …"}
         </div>
       </div>
     );
