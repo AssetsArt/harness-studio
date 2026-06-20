@@ -20,7 +20,11 @@ the prototype's foundation, then build every screen from its tokens.
    `font-[var(--font-display)]` / the `.display` class — never ad-hoc values.
 4. **Fonts are preloaded** — Geist, Geist Mono, Instrument Serif, Fraunces, Space
    Grotesk are available in every screen. Use the kit's pairing; if you want another
-   family, it must be one of these (the iframe only loads these).
+   family, it must be one of these (the iframe only loads these). **These five are
+   Latin-only** — for Thai (or other non-Latin) UI text, add the preloaded `'Noto Sans
+   Thai'` / `'Noto Serif Thai'` to the font-family chain (e.g. the kit's display
+   `'Fraunces', 'Noto Serif Thai', serif`) so headings don't fall back to a broken system
+   face. See SKILL.md's non-Latin note.
 5. **Then check craft** with `harness_design_review` and fix what it flags.
 
 The tokens compile to CSS custom properties (`--color-<slug>`, `--font-<slug>`,

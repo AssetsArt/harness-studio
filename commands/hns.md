@@ -60,6 +60,12 @@ Stay scoped to what the notes ask — don't redesign beyond them.
 
 ## If the argument is `review` (or begins with "review")
 
+A **manual re-run** of the self-review you already do after every build (see the skill's
+"Self-review — before you hand a screen back"). The dev should never *need* this to find
+your mistakes — by the time they look, you've already screenshotted, design-reviewed, and
+fixed. Treat `/hns review` as a deeper on-demand pass, then run the same checklist (stray /
+empty screens, repeated chrome that should be a component, dead-band layout, craft).
+
 Run a design-quality pass on the prototype — catch AI-slop before the dev does:
 
 1. Call the `harness_design_review` MCP tool. If a screen id follows (e.g.

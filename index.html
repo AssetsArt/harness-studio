@@ -6,8 +6,13 @@
     <title>Harness Studio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- All five prototype font families (kept in sync with FONT_LINK in src/lib/prototype.ts).
+         The viewer shell needs them too so device-frame SNAPSHOTS embed the right fonts:
+         modern-screenshot embeds @font-face from the PARENT document's stylesheets, so a
+         prototype using Fraunces / Instrument Serif / Space Grotesk would otherwise snapshot
+         with a fallback. -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&family=Noto+Serif+Thai:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
   </head>

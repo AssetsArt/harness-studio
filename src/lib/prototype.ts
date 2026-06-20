@@ -3,12 +3,15 @@ import type { DesignTokens, Prototype, Screen, TemplateVars } from "./types";
 // The web-font families preloaded into every freeform screen (and the design-system
 // gallery), so the AI can compose brand-grade type pairings — not just one sans.
 // A neutral sans + mono (Geist), an elegant display serif (Instrument Serif), a warm
-// variable serif (Fraunces), and a geometric display (Space Grotesk). Kept in sync
-// across the screen iframe and the component-preview iframe via this one constant.
+// variable serif (Fraunces), and a geometric display (Space Grotesk). The Latin faces
+// above are Latin-only, so Noto Sans/Serif Thai are loaded too — put them in a font-family
+// fallback chain (`'Fraunces', 'Noto Serif Thai', serif`) so non-Latin text renders in a
+// real designed face instead of a broken system fallback. Kept in sync across the screen
+// iframe, the render harness, and the component-preview iframe via this one constant.
 export const FONT_LINK =
   `<link rel="preconnect" href="https://fonts.googleapis.com">` +
   `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>` +
-  `<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">`;
+  `<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&family=Noto+Serif+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">`;
 
 // Minimal, mustache-flavoured templating for the prototype layer so the AI can
 // share a layout and components instead of repeating markup on every screen:

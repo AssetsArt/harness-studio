@@ -43,7 +43,7 @@ function assemble(dir) {
 }
 
 // Mirrors FreeformDevice.tsx BASE_CSS.
-const BASE_CSS = `*{box-sizing:border-box}html,body{margin:0;padding:0}body{font-family:'Geist',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;color:#18181b;background:#fff;-webkit-font-smoothing:antialiased}img{max-width:100%;display:block}a{color:inherit;text-decoration:none}button{font-family:inherit;cursor:pointer}`;
+const BASE_CSS = `*{box-sizing:border-box}html,body{margin:0;padding:0}body{font-family:'Geist','Noto Sans Thai',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;color:#18181b;background:#fff;-webkit-font-smoothing:antialiased}img{max-width:100%;display:block}a{color:inherit;text-decoration:none}button{font-family:inherit;cursor:pointer}`;
 const HEAD_LIBS =
   `<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4" defer></script>` +
   `<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" defer></script>`;

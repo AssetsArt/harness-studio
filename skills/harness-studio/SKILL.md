@@ -87,6 +87,10 @@ you keep big prototypes cheap to edit):
 
 - `harness_get_screen` / `harness_set_screen` — read/write ONE screen body. `set`
   writes `prototype/screens/<id>.html` and upserts its manifest entry (title/url/frame).
+- `harness_delete_screen` — remove ONE screen (manifest entry + its file), repointing
+  `start` if needed. Use it to clear a stray / leftover screen — above all the seed
+  `home` placeholder once the real screens exist (a leftover blank screen is what the
+  dev sees if you don't).
 - `harness_get_component` / `harness_set_component` — read/write ONE shared fragment.
 - `harness_get_design_system` / `harness_set_design_system` — the shared CSS.
 - `harness_get_design_tokens` / `harness_set_design_tokens` — the structured design
@@ -199,13 +203,55 @@ the dev react at each step.
    approved before building. Skip this only when the dev is clearly mid-loop already.
 2. `harness_get_state` and `harness_get_view` to ground yourself.
 3. Make the smallest change that answers the current question. Patch one section.
-   Then check your work before showing the dev — `harness_get_screenshot` (pixels)
-   and, for prototype screens, `harness_design_review` (craft / anti-slop) — and fix
-   what they surface.
-4. Tell the dev in one line what changed and what you want them to react to
+4. **Self-review and fix it (below) BEFORE you show the dev.** This is a hard gate, not
+   an optional polish — every time.
+5. Tell the dev in one line what changed and what you want them to react to
    ("Click *Add walk-in* — does that field set feel right?").
-5. `harness_get_feedback`; fold their notes in; repeat.
-6. When a phase is solid, `harness_set_phase` to the next.
+6. `harness_get_feedback`; fold their notes in; repeat.
+7. When a phase is solid, `harness_set_phase` to the next.
+
+## Self-review — before you hand a screen back (every time)
+
+> **HARD-GATE:** the moment you finish building or changing screens, **review your own
+> work and fix what you find — BEFORE you tell the dev to look.** Reviewing the prototype
+> is *your* job, not the dev's: never hand back a screen you haven't looked at and expect
+> them to run `/hns review` to find your mistakes. (`/hns review` is a manual re-run of
+> exactly this — you do it proactively, every time.) The #1 way this tool disappoints is
+> handing over a blank placeholder screen, a header copy-pasted onto five screens, or a
+> screen with a dead white band — all of which one look would have caught.
+
+Do this for every screen you touched:
+
+1. **Look at the pixels** — `harness_get_screenshot` for each screen, and actually read
+   the image. The snapshot is the full framed device (chrome + safe area), i.e. exactly
+   what the dev sees. Also check `harness_get_view`'s `errors` for runtime/icon problems.
+2. **Run the craft check** — `harness_design_review` on the screen(s); fix every finding
+   (gradient text, side-stripe borders, low contrast, identical card grids, blank icons…).
+   It's a static reader, so it has blind spots: it can't resolve a Tailwind colour utility
+   (`text-white`) on a `background:linear-gradient`, so it flags **false low-contrast**, and
+   it can't read padding utilities on a classed element (`.card px-4`), so it flags **false
+   cramped-padding**. When a finding looks wrong, confirm against the **screenshot** (step 1)
+   before chasing it — fix what the pixels show, not what the static reader guesses.
+3. **Run this checklist — fix anything that fails, then re-check:**
+   - **No stray or empty screens.** Every screen in the manifest has real content. The
+     viewer seeds a `home` placeholder ("Ask Claude Code to design here"); once the real
+     screens exist, fill it or `harness_delete_screen` it, and make sure `start` points at
+     a real, built screen. A leftover placeholder = the dev clicks it and sees a blank.
+   - **Shared chrome is factored, never repeated.** If a header / nav / tab-bar / footer
+     shows on 2+ screens, it lives in `prototype.layout` + `prototype.components`
+     (`{{>header}}`), NOT pasted into each body. Caught yourself copying it? Move it into a
+     component now — `data-nav` gives the active state for free, so one shared bar fits all.
+   - **The screen fills its frame — no dead band.** A short / confirmation / empty-state
+     screen **centers** its content (don't top-align it and leave a white gap below); a
+     list / feed fills top-down. On ios/android/ipad the `safeArea` colour matches the
+     screen's top/bottom edge so it reads edge-to-edge, not floating in white.
+   - **Non-Latin text renders in a real font.** Thai / CJK headings set in a Latin display
+     face (Instrument Serif / Fraunces / Space Grotesk) fall back to a broken system face —
+     collided tone-marks, wrong line-height. Add the `'Noto Sans/Serif Thai'` fallback (or
+     use a sans). The screenshot tells you instantly: garbled diacritics = wrong font.
+   - **Craft reads** — contrast ≥4.5:1, real images (no gray boxes), the accent actually
+     shows up in 3+ places, a real type-scale jump, no AI-slop.
+4. **Only once it's clean** do you hand it back — one line on what to react to.
 
 ## state.json shape (reference)
 
@@ -361,6 +407,17 @@ Use them; do not hand-roll what they give you, and **never use emoji as icons.**
   radius / shadow / motion consistent across screens. Use **real content** (real copy,
   real names, real prices) — never lorem ipsum or "Card title". Generous whitespace and
   one confident accent beat many timid ones.
+- **Non-Latin text (Thai, CJK, Arabic…) needs a font that covers the script.** The five
+  display/sans faces above are **Latin-only** — set a Thai heading in `'Instrument Serif'`
+  or `'Fraunces'` and the Thai glyphs fall back to a system serif: tone-marks and vowels
+  collide, line-height goes wrong, and it reads broken. Two Thai faces are also preloaded —
+  **`'Noto Sans Thai'`** and **`'Noto Serif Thai'`** — so build a fallback chain that lets
+  Latin and Thai each use a real face: `font-family: 'Fraunces', 'Noto Serif Thai', serif`
+  (display) and `'Geist', 'Noto Sans Thai', sans-serif` (body). Body text already gets
+  `'Noto Sans Thai'` by default, but **any element where you override the family for a Latin
+  display face must add the matching Noto Thai fallback** — or reserve the Latin display
+  face for genuinely Latin runs (a brand name, a queue number `A14`) and set the Thai
+  heading in a sans. Always confirm in the screenshot that non-Latin headings render clean.
 - **Commit — timidity is the #1 reason solid structure still reads "AI-generic".** Two
   places agents play it too safe, and both flatten a design into "competent but generic":
   - *Colour:* the accent has to actually show up — on the primary action **and** the

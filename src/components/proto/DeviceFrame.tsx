@@ -12,6 +12,9 @@ interface Props {
   /** Show the device chrome (status bar + home indicator) on phone frames.
    *  Default true; false renders Full / full-bleed with no safe area. */
   chrome?: boolean;
+  /** Ref onto the device's outer element so the snapshot can capture the WHOLE
+   *  framed device (bezel + chrome + content), not just the iframe body. */
+  rootRef?: React.Ref<HTMLDivElement>;
   children: React.ReactNode;
 }
 
@@ -50,27 +53,27 @@ function isDarkColor(color: string): boolean {
 
 // Wraps the freeform iframe in a believable device frame so the same HTML can be
 // previewed as desktop web, a native desktop app, or an iOS / Android phone.
-export function DeviceFrame({ frame, url, title, safeArea, chrome = true, children }: Props) {
+export function DeviceFrame({ frame, url, title, safeArea, chrome = true, rootRef, children }: Props) {
   if (frame === "ios")
     return (
-      <IosFrame title={title} safeArea={safeArea} chrome={chrome}>
+      <IosFrame title={title} safeArea={safeArea} chrome={chrome} rootRef={rootRef}>
         {children}
       </IosFrame>
     );
   if (frame === "android")
     return (
-      <AndroidFrame title={title} safeArea={safeArea} chrome={chrome}>
+      <AndroidFrame title={title} safeArea={safeArea} chrome={chrome} rootRef={rootRef}>
         {children}
       </AndroidFrame>
     );
   if (frame === "ipad")
     return (
-      <IpadFrame title={title} safeArea={safeArea} chrome={chrome}>
+      <IpadFrame title={title} safeArea={safeArea} chrome={chrome} rootRef={rootRef}>
         {children}
       </IpadFrame>
     );
-  if (frame === "desktop") return <DesktopFrame title={title}>{children}</DesktopFrame>;
-  return <WebFrame url={url}>{children}</WebFrame>;
+  if (frame === "desktop") return <DesktopFrame title={title} rootRef={rootRef}>{children}</DesktopFrame>;
+  return <WebFrame url={url} rootRef={rootRef}>{children}</WebFrame>;
 }
 
 function TrafficLights() {
@@ -83,10 +86,11 @@ function TrafficLights() {
   );
 }
 
-function WebFrame({ url, children }: { url: string; children: React.ReactNode }) {
+function WebFrame({ url, rootRef, children }: { url: string; rootRef?: React.Ref<HTMLDivElement>; children: React.ReactNode }) {
   const { c } = useTheme();
   return (
     <div
+      ref={rootRef}
       className="flex h-full w-full max-w-[1180px] flex-col overflow-hidden rounded-[12px]"
       style={{ background: LIGHT.bg, border: `1px solid ${c.border}`, boxShadow: "0 24px 64px rgba(0,0,0,.5)" }}
     >
@@ -107,10 +111,11 @@ function WebFrame({ url, children }: { url: string; children: React.ReactNode })
   );
 }
 
-function DesktopFrame({ title, children }: { title: string; children: React.ReactNode }) {
+function DesktopFrame({ title, rootRef, children }: { title: string; rootRef?: React.Ref<HTMLDivElement>; children: React.ReactNode }) {
   const { c } = useTheme();
   return (
     <div
+      ref={rootRef}
       className="flex h-full w-full max-w-[1180px] flex-col overflow-hidden rounded-[12px]"
       style={{ background: LIGHT.bg, border: `1px solid ${c.border}`, boxShadow: "0 24px 64px rgba(0,0,0,.5)" }}
     >
@@ -143,6 +148,7 @@ function Phone({
   screenBg,
   statusBar,
   bottom,
+  rootRef,
   children,
 }: {
   radius: number;
@@ -153,10 +159,12 @@ function Phone({
   screenBg: string;
   statusBar: React.ReactNode;
   bottom: React.ReactNode;
+  rootRef?: React.Ref<HTMLDivElement>;
   children: React.ReactNode;
 }) {
   return (
     <div
+      ref={rootRef}
       className="relative flex flex-col"
       style={{
         width,
@@ -194,17 +202,20 @@ function StatusIcons({ color }: { color: string }) {
 function IosFrame({
   safeArea,
   chrome = true,
+  rootRef,
   children,
 }: {
   title: string;
   safeArea?: string;
   chrome?: boolean;
+  rootRef?: React.Ref<HTMLDivElement>;
   children: React.ReactNode;
 }) {
   const dark = safeArea ? isDarkColor(safeArea) : false;
   const fg = dark ? "#f5f5f7" : LIGHT.fg;
   return (
     <Phone
+      rootRef={rootRef}
       width={384}
       radius={52}
       screenRadius={42}
@@ -242,17 +253,20 @@ function IosFrame({
 function AndroidFrame({
   safeArea,
   chrome = true,
+  rootRef,
   children,
 }: {
   title: string;
   safeArea?: string;
   chrome?: boolean;
+  rootRef?: React.Ref<HTMLDivElement>;
   children: React.ReactNode;
 }) {
   const dark = safeArea ? isDarkColor(safeArea) : false;
   const fg = dark ? "#f5f5f7" : LIGHT.fg;
   return (
     <Phone
+      rootRef={rootRef}
       width={392}
       radius={40}
       screenRadius={30}
@@ -297,17 +311,20 @@ function AndroidFrame({
 function IpadFrame({
   safeArea,
   chrome = true,
+  rootRef,
   children,
 }: {
   title: string;
   safeArea?: string;
   chrome?: boolean;
+  rootRef?: React.Ref<HTMLDivElement>;
   children: React.ReactNode;
 }) {
   const dark = safeArea ? isDarkColor(safeArea) : false;
   const fg = dark ? "#f5f5f7" : LIGHT.fg;
   return (
     <Phone
+      rootRef={rootRef}
       width={810}
       maxH={1120}
       radius={30}

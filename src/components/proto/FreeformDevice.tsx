@@ -18,6 +18,10 @@ interface Props {
   designSystem: string | undefined;
   store: StoreState;
   storeVersion: number;
+  /** The device-frame outer node to snapshot (bezel + chrome + content). When set, the
+   *  snapshot captures the whole framed device — what the dev sees — instead of just the
+   *  iframe body. Falls back to the iframe body if absent. */
+  captureNodeRef?: React.RefObject<HTMLElement | null>;
   annotate: boolean;
   go: (to?: string) => void;
   onStore: (next: StoreState) => void;
@@ -139,7 +143,7 @@ const RUNTIME = `
 const BASE_CSS = `
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{font-family:'Geist',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;color:#18181b;background:#fff;-webkit-font-smoothing:antialiased}
+body{font-family:'Geist','Noto Sans Thai',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;color:#18181b;background:#fff;-webkit-font-smoothing:antialiased}
 img{max-width:100%;display:block}
 a{color:inherit;text-decoration:none}
 button{font-family:inherit;cursor:pointer}
@@ -166,6 +170,7 @@ export function FreeformDevice({
   designSystem,
   store,
   storeVersion,
+  captureNodeRef,
   annotate,
   go,
   onStore,
@@ -217,26 +222,34 @@ export function FreeformDevice({
   // so we capture its own <html> in its own context for a faithful picture.
   const capture = useCallback(() => {
     const doc = frameRef.current?.contentDocument;
-    const node = doc?.body;
-    if (!doc || !node) return;
-    // modern-screenshot resolves the owner window from node.ownerDocument, so the
-    // iframe's own styles / fonts / media queries paint exactly as displayed.
+    if (!doc) return;
+    // Prefer the device-frame outer node (bezel + status bar + home indicator + content)
+    // so the snapshot is the SAME framed device the dev sees — not a bare content card.
+    // modern-screenshot clones the same-origin iframe's content into it, and embeds the
+    // @font-face from the PARENT document (the viewer loads all five families, see
+    // index.html), so the fonts paint right. Falls back to the iframe body if the device
+    // node isn't wired up.
+    const node = captureNodeRef?.current ?? doc.body;
+    if (!node) return;
     const shoot = () =>
       domToPng(node, {
         scale: 2, // crisp text for the agent to read back
         height: Math.min(node.scrollHeight, 2400),
-        // No forced background — capture the screen's real bg (dark screens stay dark).
+        // No forced background — capture the device's real bg (dark bezel stays dark).
       })
         .then((dataUrl) => reportSnapshot(screenId, dataUrl))
         .catch(() => {});
-    // Wait for the screen's web fonts to finish loading before capturing — otherwise the
-    // snapshot can freeze a system fallback (e.g. Fraunces → Georgia/Times) and
-    // misrepresent the type the dev/agent actually sees. `fonts.ready` resolves right away
-    // if they're already loaded; we shoot on either settle so it can't hang.
-    const fonts = doc.fonts;
-    if (fonts && typeof fonts.ready?.then === "function") fonts.ready.then(shoot, shoot);
+    // Wait for web fonts before capturing — otherwise the snapshot can freeze a system
+    // fallback (e.g. Fraunces → Georgia/Times). Both the iframe's fonts (the content) and
+    // the parent's (the embedded @font-face the capture relies on, + the chrome text) must
+    // be ready; `fonts.ready` resolves immediately if already loaded. Shoot on settle so
+    // it can't hang.
+    const waits = [doc.fonts?.ready, node.ownerDocument?.fonts?.ready].filter(
+      (p): p is Promise<FontFaceSet> => typeof (p as Promise<unknown>)?.then === "function"
+    );
+    if (waits.length) Promise.all(waits).then(shoot, shoot);
     else shoot();
-  }, [screenId]);
+  }, [screenId, captureNodeRef]);
 
   useEffect(() => {
     const t = window.setTimeout(capture, 700);

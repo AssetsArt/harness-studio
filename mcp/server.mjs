@@ -590,6 +590,30 @@ server.registerTool(
 );
 
 server.registerTool(
+  "harness_delete_screen",
+  {
+    description:
+      "Remove one screen: drops its manifest entry AND deletes .harness/prototype/screens/<id>.html. If it was the prototype `start`, start is repointed to the first remaining screen. Use this to clean up a stray / leftover screen — e.g. the seed `home` placeholder (\"Ask Claude Code to design here\") once you've built the real screens, or a lo-fi sketch you no longer need. Leaving an empty placeholder in the manifest shows the dev a blank screen, so delete it.",
+    inputSchema: { id: zod.string().describe("Screen id to remove.") },
+  },
+  async ({ id }) => {
+    const state = readJson(STATE_FILE);
+    if (state == null) return err("No state.json yet.");
+    const proto = state.prototype || {};
+    const screens = proto.screens || [];
+    const before = screens.length;
+    proto.screens = screens.filter((s) => s.id !== id);
+    if (proto.screens.length === before)
+      return err(`No screen "${id}" in the manifest. Existing: ${screens.map((s) => s.id).join(", ") || "(none)"}`);
+    if (proto.start === id) proto.start = proto.screens[0]?.id; // repoint start off the deleted screen
+    state.prototype = proto;
+    writeState(state);
+    try { fs.unlinkSync(screenFile(id)); } catch {}
+    return text({ ok: true, deleted: id, start: proto.start ?? null, remaining: proto.screens.map((s) => s.id) });
+  }
+);
+
+server.registerTool(
   "harness_get_component",
   {
     description: "Read a shared component's HTML (.harness/prototype/components/<name>.html).",

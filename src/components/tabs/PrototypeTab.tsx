@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppWindow, Maximize, Monitor, MessageSquarePlus, Send, Smartphone, Tablet, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { FrameKind, Prototype, Spec, StoreState } from "../../lib/types";
@@ -65,6 +65,10 @@ export function PrototypeTab({
   const [chromeOverride, setChromeOverride] = useState<boolean | null>(null);
   useEffect(() => setChromeOverride(null), [stateChrome]);
   const chrome = chromeOverride ?? stateChrome;
+
+  // The device-frame outer node — the snapshot captures THIS (bezel + chrome + content),
+  // so the agent sees the same framed device the dev sees, not a bare content card.
+  const frameNodeRef = useRef<HTMLDivElement>(null);
 
   // Comment-on-element mode: click an element in the prototype to attach feedback.
   const [annotate, setAnnotate] = useState(false);
@@ -221,6 +225,7 @@ export function PrototypeTab({
             title={cur.title}
             safeArea={cur.safeArea ?? prototype.safeArea}
             chrome={chrome}
+            rootRef={frameNodeRef}
           >
             <FreeformDevice
               screenId={cur.id}
@@ -230,6 +235,7 @@ export function PrototypeTab({
               designSystem={designSheet(prototype)}
               store={store}
               storeVersion={storeVersion}
+              captureNodeRef={frameNodeRef}
               annotate={annotate}
               go={go}
               onStore={onStore}
