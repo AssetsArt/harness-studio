@@ -27,6 +27,13 @@ export function Topbar({
         <span className="text-[14px] font-semibold tracking-[-0.2px]" style={{ color: c.text }}>
           Arta
         </span>
+        <span
+          className="text-[10px] leading-none"
+          style={{ fontFamily: MONO, color: c.faint }}
+          title="Arta plugin version"
+        >
+          v{__ARTA_VERSION__}
+        </span>
         <span style={{ color: c.borderStrong }}>/</span>
         {projects.length > 1 ? (
           <ProjectSwitcher
