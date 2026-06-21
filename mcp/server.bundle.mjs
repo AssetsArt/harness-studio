@@ -19716,6 +19716,32 @@ function killPort(port) {
   } catch {}
   return killed;
 }
+function killAllViewers(signal = "SIGTERM") {
+  const killed = [];
+  try {
+    const out = spawnSync("ps", ["-axo", "pid=,command="], { encoding: "utf8" }).stdout || "";
+    for (const line of out.split(`
+`)) {
+      const t = line.trim();
+      const sp = t.indexOf(" ");
+      if (sp < 1)
+        continue;
+      const pid = Number(t.slice(0, sp));
+      if (!pid || pid === process.pid)
+        continue;
+      const cmd = t.slice(sp + 1);
+      const isViewer = /[/\\]bin[/\\]arta\.mjs(\s|$)/.test(cmd);
+      const isArtaEsbuild = cmd.includes("esbuild") && /[/\\]arta[/\\]arta[/\\]/.test(cmd);
+      if (isViewer || isArtaEsbuild) {
+        try {
+          process.kill(pid, signal);
+          killed.push(pid);
+        } catch {}
+      }
+    }
+  } catch {}
+  return killed;
+}
 async function waitPortFree(port, ms = 4000) {
   const start = Date.now();
   while (Date.now() - start < ms) {
@@ -20266,6 +20292,7 @@ server.registerTool("arta_start_viewer", {
       project: readJson(STATE_FILE)?.meta?.name || path.basename(path.resolve(PROJECT_DIR)),
       note: `A viewer is already running on this port — reuse it. It can host several projects: if it's showing a different one, pick this project from the switcher in the top bar. (Serving an old build after an update? use arta_restart_viewer.)`
     });
+  killAllViewers();
   const r = spawnViewer(p);
   if (!r.ok)
     return err(`Launcher not found at ${r.launcher}. The plugin may be installed incompletely; the dev can also run \`bunx github:AssetsArt/arta\` manually.`);
@@ -20290,8 +20317,13 @@ server.registerTool("arta_restart_viewer", {
   if (!fs.existsSync(launcher))
     return err(`Launcher not found at ${launcher}. The plugin may be installed incompletely; the dev can also run \`bunx github:AssetsArt/arta\` manually.`);
   const wasRunning = await portInUse(p);
-  const killed = wasRunning ? killPort(p) : [];
-  const freed = await waitPortFree(p);
+  const killed = [...new Set([...killAllViewers(), ...killPort(p)])];
+  let freed = await waitPortFree(p);
+  if (!freed) {
+    killAllViewers("SIGKILL");
+    killPort(p);
+    freed = await waitPortFree(p, 2500);
+  }
   if (!freed)
     return err(`Port ${p} is still in use after trying to stop the old viewer${killed.length ? ` (signalled PID ${killed.join(", ")})` : ""}. Another process may be holding it — free it and retry, or pass a different port.`);
   const r = spawnViewer(p);
@@ -20305,7 +20337,7 @@ server.registerTool("arta_restart_viewer", {
     url: `http://localhost:${p}`,
     watching: path.join(PROJECT_DIR, ".arta"),
     from: PLUGIN_ROOT,
-    note: `Viewer relaunched from the installed plugin — now matching the installed version. Reload ${`http://localhost:${p}`} in a moment (hard-refresh if your browser cached the old assets). Logs: ${r.logFile}`
+    note: `Stopped ${killed.length} stale Arta process(es) and relaunched from the installed plugin — now matching the installed version. Reload ${`http://localhost:${p}`} in a moment (hard-refresh if your browser cached the old assets). Logs: ${r.logFile}`
   });
 });
 var transport = new StdioServerTransport;
