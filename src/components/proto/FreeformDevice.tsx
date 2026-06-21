@@ -314,29 +314,46 @@ export function FreeformDevice({
         const root = doc.documentElement;
         const win = doc.defaultView;
         if (!win) return;
+        // One walk: find real scroll regions (overflowing auto/scroll) AND viewport-anchored
+        // bars (position:fixed) — both need handling for a faithful full-length shot.
         const scrollers: HTMLElement[] = [];
+        const fixedBars: HTMLElement[] = [];
         root.querySelectorAll<HTMLElement>("*").forEach((el) => {
-          const oy = win.getComputedStyle(el).overflowY;
-          if ((oy === "auto" || oy === "scroll") && el.scrollHeight > el.clientHeight + 4) scrollers.push(el);
+          const cs = win.getComputedStyle(el);
+          if ((cs.overflowY === "auto" || cs.overflowY === "scroll") && el.scrollHeight > el.clientHeight + 4) scrollers.push(el);
+          if (cs.position === "fixed") fixedBars.push(el);
         });
         const docScrolls = root.scrollHeight > root.clientHeight + 8;
         if (!scrollers.length && !docScrolls) return; // genuinely fits — the framed shot is complete
 
-        // Unclamp to natural height: height:auto overrides a fixed/flex/max-height, and
-        // bottom:auto frees an `inset-0` absolute fill. Overflow is left ALONE so a
-        // horizontal rail keeps its peek. Each node is touched once; its prior inline
-        // styles are remembered so the live view is restored byte-for-byte.
-        const saved: Array<[HTMLElement, Record<string, string>]> = [];
-        const seen = new Set<HTMLElement>();
-        const unclamp = (el: HTMLElement | null) => {
-          if (!el || seen.has(el)) return;
-          seen.add(el);
-          saved.push([el, { flex: el.style.flex, height: el.style.height, maxHeight: el.style.maxHeight, minHeight: el.style.minHeight, bottom: el.style.bottom }]);
-          el.style.flex = "none"; el.style.height = "auto"; el.style.maxHeight = "none"; el.style.minHeight = "0"; el.style.bottom = "auto";
+        // Build the temporary style overrides per element (a Map dedups, so a node reached
+        // twice — e.g. <body> via two scrollers — is saved once and restores cleanly), then
+        // apply, capture, and restore byte-for-byte.
+        const want = new Map<HTMLElement, Record<string, string>>();
+        const set = (el: HTMLElement | null, styles: Record<string, string>) => {
+          if (el) want.set(el, Object.assign(want.get(el) || {}, styles));
         };
-        unclamp(root);
-        unclamp(doc.body);
-        scrollers.forEach((sc) => { let n: HTMLElement | null = sc; while (n && n !== root) { unclamp(n); n = n.parentElement; } });
+        // (a) Unclamp scroll regions + their ancestor chains to natural height so the whole
+        // content lays out (height:auto beats a fixed/flex/max-height; bottom:auto frees an
+        // inset-0 fill). Overflow is left ALONE so horizontal rails keep their peek.
+        const UNCLAMP: Record<string, string> = { flex: "none", height: "auto", maxHeight: "none", minHeight: "0", bottom: "auto" };
+        set(doc.body, UNCLAMP);
+        scrollers.forEach((sc) => { let n: HTMLElement | null = sc; while (n && n !== root) { set(n, UNCLAMP); n = n.parentElement; } });
+        // (b) Make the root a FULL-HEIGHT containing block and re-root viewport-anchored bars
+        // to it. A screen's own bottom tabbar / sticky header is usually `absolute bottom-0`
+        // (or `fixed`) with no positioned ancestor, so it resolves against the 760px VIEWPORT
+        // — in a tall full shot that lands it mid-image, its translucent fill whiting-out the
+        // content behind it (the "collapsed cards + floating tabbar" bug). position:relative
+        // on <html> re-roots every such bar to the full document, dropping it to the true bottom.
+        set(root, Object.assign({ position: "relative" }, UNCLAMP));
+        fixedBars.forEach((el) => set(el, { position: "absolute" }));
+
+        const saved: Array<[HTMLElement, Record<string, string>]> = [];
+        for (const [el, styles] of want) {
+          const prev: Record<string, string> = {};
+          for (const k of Object.keys(styles)) { prev[k] = (el.style as unknown as Record<string, string>)[k]; (el.style as unknown as Record<string, string>)[k] = styles[k]; }
+          saved.push([el, prev]);
+        }
 
         const fullH = Math.max(root.scrollHeight, doc.body?.scrollHeight || 0); // reading it forces the reflow
         const bg = win.getComputedStyle(doc.body).backgroundColor || "#fff";
@@ -344,7 +361,7 @@ export function FreeformDevice({
           const dataUrl = await domToPng(root, { scale: 2, height: Math.min(fullH, 12000), backgroundColor: bg });
           reportSnapshot(screenId, dataUrl, true);
         } finally {
-          for (const [el, prev] of saved) { el.style.flex = prev.flex; el.style.height = prev.height; el.style.maxHeight = prev.maxHeight; el.style.minHeight = prev.minHeight; el.style.bottom = prev.bottom; }
+          for (const [el, prev] of saved) for (const k of Object.keys(prev)) (el.style as unknown as Record<string, string>)[k] = prev[k];
         }
       } finally {
         capturingRef.current = false;

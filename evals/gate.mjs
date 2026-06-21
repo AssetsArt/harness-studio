@@ -118,7 +118,11 @@ function runFrameSpecs() {
   // didn't scroll). The capture finds real scroll regions and unclamps them to natural
   // height, then restores — lock that mechanism in (whitespace-insensitive).
   spec("full snapshot detects inner scroll regions", src.includes("el.scrollHeight>el.clientHeight+4"), "scroll-region detection");
-  spec("full snapshot unclamps to natural height then restores", src.includes('style.height="auto"') && src.includes("saved.push"), "unclamp + restore");
+  spec("full snapshot unclamps to natural height then restores", src.includes('height:"auto"') && src.includes("saved.push"), "unclamp + restore");
+  // A screen's own `absolute/fixed bottom-0` tabbar must re-root to the full document, not
+  // the viewport — else it lands mid-image and whites out content. The capture makes <html>
+  // a position:relative containing block and converts fixed bars to absolute.
+  spec("full snapshot re-roots viewport-anchored bars to full doc", src.includes('position:"relative"') && src.includes('position:"absolute"'), "fixed/absolute bar re-root");
   // The rich-screen kit must stay shipped in BASE_CSS: a horizontal rail (peek/snap, no
   // scrollbar) and a gradient cover (so an image slot is never a bare gray box).
   spec("BASE_CSS ships the horizontal rail primitive (.hs-rail)", src.includes(".hs-rail{"), ".hs-rail");
