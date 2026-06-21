@@ -75,7 +75,9 @@ Never describe a screen in prose when you could render it. Show, ask, adjust.
   the HTML — after building or changing a screen, look at it. Pass **`full: true`**
   to capture the WHOLE screen at its content length (the entire scroll in one tall
   image, not just the device viewport) — use it to review a long / scrolling screen
-  end to end.
+  end to end. This works even when the screen scrolls inside an **inner region**
+  (the usual header + scroll-body + tabbar shell), not just document-level scroll;
+  `full` only falls back to the framed shot when **nothing** scrolls anywhere.
 - `arta_get_view` also returns `errors`: console/runtime errors from the
   prototype. If something you wrote is broken, you'll see it here — fix it without
   waiting for the dev.
@@ -567,6 +569,55 @@ Default to mode 1 for normal app screens (pad for the overlay), and switch to
 
 Example button: `<button class="btn" data-inc="cart">Add to cart</button>` and a
 header badge `<span data-bind="cart">0</span>`.
+
+### Common content patterns — rails & cards
+
+Content screens (a marketplace, a course list, a feed) lean on the same two
+primitives over and over, and they're the ones agents most often get *almost*
+right (gray cover boxes, a card grid that won't scroll, no peek). The frame ships
+both as **opt-in classes** so you compose instead of re-deriving fiddly CSS — pair
+Tailwind on top for everything else.
+
+- **Horizontal rail** — `class="hs-rail"`: a sideways-scrolling row that snaps, hides
+  its scrollbar, and lets the next item **peek** past the edge (the affordance that
+  says "there's more"). Use it for a category strip and for a "recommended" card row.
+  Children keep their own width — give each a fixed width (`w-64`, `w-40`).
+- **Cover placeholder** — `class="hs-cover"`: a brand-tinted gradient surface for an
+  image slot, **never a flat gray box** (the loudest slop tell). Lay a real `<img>`
+  over it when you have one; otherwise it's a deliberate surface, not an empty rectangle.
+  (It reads `--color-primary` / `--color-brand` / `--color-accent` from your tokens.)
+
+A recommended-courses rail, end to end (mirrors the marketplace home above):
+
+```html
+<section class="px-5">
+  <div class="mb-3 flex items-center justify-between">
+    <h2 class="text-lg font-semibold">คอร์สแนะนำ</h2>
+    <a data-to="courses" class="text-sm font-medium text-[var(--color-primary)]">ดูเพิ่ม</a>
+  </div>
+  <div class="hs-rail -mx-5 px-5">
+    <article data-to="courseDetail" class="w-64 overflow-hidden rounded-2xl bg-white shadow-sm">
+      <div class="hs-cover relative h-32">
+        <span class="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-[var(--color-primary)] px-2 py-0.5 text-xs font-medium text-white"><i data-lucide="play" class="h-3 w-3"></i>ออนไลน์</span>
+        <span class="absolute right-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-xs font-medium text-white">-40%</span>
+      </div>
+      <div class="p-3">
+        <h3 class="font-semibold">แต่งหน้าออกงานมือโปร</h3>
+        <p class="mt-0.5 text-xs text-zinc-500">โดย ครูพิม · 12 บทเรียน</p>
+        <div class="mt-2 flex items-center gap-1 text-xs"><i data-lucide="star" class="h-3.5 w-3.5 fill-amber-400 text-amber-400"></i><span class="font-medium">4.9</span><span class="text-zinc-400">(320)</span></div>
+        <p class="mt-1"><span class="font-bold text-[var(--color-primary)]">฿1,490</span> <span class="text-xs text-zinc-400 line-through">฿2,490</span></p>
+      </div>
+    </article>
+    <!-- more <article> cards … -->
+  </div>
+</section>
+```
+
+`-mx-5 px-5` lets the rail bleed to the device edges while its content keeps the page
+gutter — so the next card peeks at the *screen* edge, not at a margin. **Vary the
+cards** (real titles, prices, ratings — never the same card cloned); an identical card
+grid is its own slop tell. Review a long stack of these end to end with
+`arta_get_screenshot { full: true }`.
 
 ### Share a layout & components — DO NOT repeat markup
 

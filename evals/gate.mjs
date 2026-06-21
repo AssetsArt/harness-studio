@@ -112,6 +112,17 @@ function runFrameSpecs() {
   // the runtime must intercept href clicks and inject the screen list to recover them.
   spec("runtime intercepts raw <a href> navigation", src.includes("closest('a[href]')") && src.includes("functionwarnHref"), "a[href] interceptor + warnHref");
   spec("screen list injected so href can resolve to a real screen", src.includes("window.__SCREENS__"), "__SCREENS__");
+  // Full-length snapshot must capture screens that scroll inside an INNER overflow region
+  // (the fixed-height shell: header + scroll-body + tabbar), not just document-level
+  // scroll. Before the fix, `full` fell back to the framed shot for those (documentElement
+  // didn't scroll). The capture finds real scroll regions and unclamps them to natural
+  // height, then restores — lock that mechanism in (whitespace-insensitive).
+  spec("full snapshot detects inner scroll regions", src.includes("el.scrollHeight>el.clientHeight+4"), "scroll-region detection");
+  spec("full snapshot unclamps to natural height then restores", src.includes('style.height="auto"') && src.includes("saved.push"), "unclamp + restore");
+  // The rich-screen kit must stay shipped in BASE_CSS: a horizontal rail (peek/snap, no
+  // scrollbar) and a gradient cover (so an image slot is never a bare gray box).
+  spec("BASE_CSS ships the horizontal rail primitive (.hs-rail)", src.includes(".hs-rail{"), ".hs-rail");
+  spec("BASE_CSS ships a gradient cover, not a gray box (.hs-cover)", src.includes(".hs-cover{") && src.includes("linear-gradient"), ".hs-cover gradient");
   return { ok: rows.every((r) => r.ok), rows };
 }
 
@@ -204,8 +215,8 @@ function runGate(json) {
   console.log("\n  RENDER-LAYER SPECS — spec rail tolerates object-shaped data\n");
   for (const s of railSpecs.rows) console.log("  " + (s.ok ? GLYPH.pass : GLYPH.fail) + " " + pad(s.name, 44) + (s.detail ? "  " + s.detail : ""));
 
-  console.log("\n  RENDER-LAYER SPECS — device frame: fills to bottom + blocks stray <a href> nav\n");
-  for (const s of frameSpecs.rows) console.log("  " + (s.ok ? GLYPH.pass : GLYPH.fail) + " " + pad(s.name, 52) + (s.detail ? "  " + s.detail : ""));
+  console.log("\n  RENDER-LAYER SPECS — device frame: fills, blocks stray <a href> nav, full snapshot + rich-screen kit\n");
+  for (const s of frameSpecs.rows) console.log("  " + (s.ok ? GLYPH.pass : GLYPH.fail) + " " + pad(s.name, 60) + (s.detail ? "  " + s.detail : ""));
 
   console.log("\n  RENDER-LAYER SPECS — multi-project: which canvas the viewer shows\n");
   for (const s of projectSpecs.rows) console.log("  " + (s.ok ? GLYPH.pass : GLYPH.fail) + " " + pad(s.name, 52) + (s.detail ? "  " + s.detail : ""));

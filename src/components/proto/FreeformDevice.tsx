@@ -188,6 +188,19 @@ button{font-family:inherit;cursor:pointer}
 [data-to],[data-inc],[data-dec],[data-set]{cursor:pointer}
 body.arta-annotate *{cursor:crosshair !important}
 body.arta-annotate *:hover{outline:2px solid #38bdf8 !important;outline-offset:-1px}
+/* ---- Rich-screen kit — primitives the recurring content patterns (category/card
+   rails, image covers) need and that are fiddly in raw utilities. Opt-in via class;
+   compose Tailwind on top (a single utility wins the cascade, so gap-*/rounded-*/h-*
+   still override these defaults). ---- */
+/* Horizontal rail: scrolls sideways, snaps, hides its bar, lets the next item PEEK
+   past the edge (the "there's more" affordance). Children keep their own width. */
+.hs-rail{display:flex;gap:.75rem;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.hs-rail::-webkit-scrollbar{display:none}
+.hs-rail>*{flex:0 0 auto;scroll-snap-align:start}
+/* Cover placeholder — a brand-tinted gradient surface for an image slot, NEVER a flat
+   gray box (the loudest slop tell). Falls through the common brand token names, then a
+   hex; lay a real <img> over it when there is one. */
+.hs-cover{background-image:linear-gradient(135deg,color-mix(in oklab,var(--color-primary,var(--color-brand,#6366f1)) 26%,#fff),color-mix(in oklab,var(--color-accent,var(--color-primary,var(--color-brand,#ec4899))) 32%,#fff))}
 `;
 
 // Real Tailwind + lucide in every freeform screen, so the AI writes utility
@@ -217,6 +230,9 @@ export function FreeformDevice({
   onAnnotate,
 }: Props) {
   const frameRef = useRef<HTMLIFrameElement>(null);
+  // A capture mutates the iframe DOM (unclamping scroll regions for the full shot), so
+  // a second capture must not start while one is in flight — guard re-entry.
+  const capturingRef = useRef(false);
   const storeRef = useRef<StoreState>(store);
   storeRef.current = store;
   const screenIdsRef = useRef(screenIds);
@@ -267,6 +283,7 @@ export function FreeformDevice({
   const capture = useCallback(() => {
     const doc = frameRef.current?.contentDocument;
     if (!doc) return;
+    if (capturingRef.current) return; // a capture is in flight; it mutates the shared DOM
     // Prefer the device-frame outer node (bezel + status bar + home indicator + content)
     // so the snapshot is the SAME framed device the dev sees — not a bare content card.
     // modern-screenshot clones the same-origin iframe's content into it, and embeds the
@@ -275,27 +292,62 @@ export function FreeformDevice({
     // node isn't wired up.
     const node = captureNodeRef?.current ?? doc.body;
     if (!node) return;
-    const shoot = () => {
-      // 1) Framed device — the SAME viewport the dev sees (bezel + chrome + content).
-      domToPng(node, {
-        scale: 2, // crisp text for the agent to read back
-        height: Math.min(node.scrollHeight, 2400),
-        // No forced background — capture the device's real bg (dark bezel stays dark).
-      })
-        .then((dataUrl) => reportSnapshot(screenId, dataUrl))
-        .catch(() => {});
-      // 2) Full content — the WHOLE screen at its content length (not clipped to the
-      // device viewport), so a long/scrolling screen can be reviewed end to end. Only
-      // when it actually scrolls; otherwise the framed shot already shows everything
-      // (arta_get_screenshot{full} falls back to it).
-      const root = doc.documentElement;
-      const viewportH = root.clientHeight || 0;
-      const fullH = Math.max(root.scrollHeight, doc.body?.scrollHeight || 0);
-      if (fullH > viewportH + 8) {
-        const bg = doc.defaultView?.getComputedStyle(doc.body).backgroundColor || "#fff";
-        domToPng(root, { scale: 2, height: Math.min(fullH, 8000), backgroundColor: bg })
-          .then((dataUrl) => reportSnapshot(screenId, dataUrl, true))
-          .catch(() => {});
+    capturingRef.current = true;
+    // The framed shot and the full shot SHARE this one iframe DOM, and the full shot
+    // temporarily MUTATES it (unclamping scroll regions) — so they run in sequence,
+    // framed first, never overlapping.
+    const shoot = async () => {
+      try {
+        // 1) Framed device — the SAME viewport the dev sees (bezel + chrome + content).
+        try {
+          const dataUrl = await domToPng(node, { scale: 2, height: Math.min(node.scrollHeight, 2400) });
+          reportSnapshot(screenId, dataUrl);
+        } catch { /* leave the previous framed shot in place */ }
+
+        // 2) Full content — the WHOLE screen at content length, in one tall image. The
+        // catch a modern app screen scrolls inside an INNER overflow region (a fixed-
+        // height shell of header + scroll-body + tabbar), so the DOCUMENT itself doesn't
+        // scroll and documentElement.scrollHeight only reports the viewport — which made
+        // `full` silently fall back to the framed shot. So find every real scroll region,
+        // unclamp it (+ its ancestor chain) to natural height, capture, then restore the
+        // inline styles exactly. Plain document-level scroll is covered by the same path.
+        const root = doc.documentElement;
+        const win = doc.defaultView;
+        if (!win) return;
+        const scrollers: HTMLElement[] = [];
+        root.querySelectorAll<HTMLElement>("*").forEach((el) => {
+          const oy = win.getComputedStyle(el).overflowY;
+          if ((oy === "auto" || oy === "scroll") && el.scrollHeight > el.clientHeight + 4) scrollers.push(el);
+        });
+        const docScrolls = root.scrollHeight > root.clientHeight + 8;
+        if (!scrollers.length && !docScrolls) return; // genuinely fits — the framed shot is complete
+
+        // Unclamp to natural height: height:auto overrides a fixed/flex/max-height, and
+        // bottom:auto frees an `inset-0` absolute fill. Overflow is left ALONE so a
+        // horizontal rail keeps its peek. Each node is touched once; its prior inline
+        // styles are remembered so the live view is restored byte-for-byte.
+        const saved: Array<[HTMLElement, Record<string, string>]> = [];
+        const seen = new Set<HTMLElement>();
+        const unclamp = (el: HTMLElement | null) => {
+          if (!el || seen.has(el)) return;
+          seen.add(el);
+          saved.push([el, { flex: el.style.flex, height: el.style.height, maxHeight: el.style.maxHeight, minHeight: el.style.minHeight, bottom: el.style.bottom }]);
+          el.style.flex = "none"; el.style.height = "auto"; el.style.maxHeight = "none"; el.style.minHeight = "0"; el.style.bottom = "auto";
+        };
+        unclamp(root);
+        unclamp(doc.body);
+        scrollers.forEach((sc) => { let n: HTMLElement | null = sc; while (n && n !== root) { unclamp(n); n = n.parentElement; } });
+
+        const fullH = Math.max(root.scrollHeight, doc.body?.scrollHeight || 0); // reading it forces the reflow
+        const bg = win.getComputedStyle(doc.body).backgroundColor || "#fff";
+        try {
+          const dataUrl = await domToPng(root, { scale: 2, height: Math.min(fullH, 12000), backgroundColor: bg });
+          reportSnapshot(screenId, dataUrl, true);
+        } finally {
+          for (const [el, prev] of saved) { el.style.flex = prev.flex; el.style.height = prev.height; el.style.maxHeight = prev.maxHeight; el.style.minHeight = prev.minHeight; el.style.bottom = prev.bottom; }
+        }
+      } finally {
+        capturingRef.current = false;
       }
     };
     // Wait for web fonts before capturing — otherwise the snapshot can freeze a system

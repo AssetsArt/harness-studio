@@ -917,7 +917,7 @@ server.registerTool(
   "arta_get_screenshot",
   {
     description:
-      "Get a PNG of how a prototype screen actually renders — the same pixels the dev sees, captured by the viewer. Use this to check your work visually instead of reasoning only from the HTML. Returns an image; if none exists yet, the screen may not have been viewed in the browser. Pass `full: true` for the WHOLE screen at its full content length (the entire scroll captured in one tall image, not just the device viewport) — best for reviewing a long / scrolling screen end to end. When the screen fits the viewport (nothing to scroll) `full` falls back to the framed shot.",
+      "Get a PNG of how a prototype screen actually renders — the same pixels the dev sees, captured by the viewer. Use this to check your work visually instead of reasoning only from the HTML. Returns an image; if none exists yet, the screen may not have been viewed in the browser. Pass `full: true` for the WHOLE screen at its full content length (the entire scroll captured in one tall image, not just the device viewport) — best for reviewing a long / scrolling screen end to end. This captures screens that scroll inside an INNER region too (the usual header + scroll-body + tabbar shell), not just document-level scroll; `full` falls back to the framed shot only when NOTHING scrolls anywhere.",
     inputSchema: {
       screen: zod.string().describe("Screen id."),
       full: zod.boolean().optional().describe("Capture the entire content length (the whole scrollable screen) instead of just the visible device viewport."),
