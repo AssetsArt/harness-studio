@@ -275,7 +275,8 @@ export function FreeformDevice({
     // node isn't wired up.
     const node = captureNodeRef?.current ?? doc.body;
     if (!node) return;
-    const shoot = () =>
+    const shoot = () => {
+      // 1) Framed device — the SAME viewport the dev sees (bezel + chrome + content).
       domToPng(node, {
         scale: 2, // crisp text for the agent to read back
         height: Math.min(node.scrollHeight, 2400),
@@ -283,6 +284,20 @@ export function FreeformDevice({
       })
         .then((dataUrl) => reportSnapshot(screenId, dataUrl))
         .catch(() => {});
+      // 2) Full content — the WHOLE screen at its content length (not clipped to the
+      // device viewport), so a long/scrolling screen can be reviewed end to end. Only
+      // when it actually scrolls; otherwise the framed shot already shows everything
+      // (arta_get_screenshot{full} falls back to it).
+      const root = doc.documentElement;
+      const viewportH = root.clientHeight || 0;
+      const fullH = Math.max(root.scrollHeight, doc.body?.scrollHeight || 0);
+      if (fullH > viewportH + 8) {
+        const bg = doc.defaultView?.getComputedStyle(doc.body).backgroundColor || "#fff";
+        domToPng(root, { scale: 2, height: Math.min(fullH, 8000), backgroundColor: bg })
+          .then((dataUrl) => reportSnapshot(screenId, dataUrl, true))
+          .catch(() => {});
+      }
+    };
     // Wait for web fonts before capturing — otherwise the snapshot can freeze a system
     // fallback (e.g. Fraunces → Georgia/Times). Both the iframe's fonts (the content) and
     // the parent's (the embedded @font-face the capture relies on, + the chrome text) must

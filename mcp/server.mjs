@@ -917,18 +917,26 @@ server.registerTool(
   "arta_get_screenshot",
   {
     description:
-      "Get a PNG of how a prototype screen actually renders — the same pixels the dev sees, captured by the viewer. Use this to check your work visually instead of reasoning only from the HTML. Returns an image; if none exists yet, the screen may not have been viewed in the browser.",
-    inputSchema: { screen: zod.string().describe("Screen id.") },
+      "Get a PNG of how a prototype screen actually renders — the same pixels the dev sees, captured by the viewer. Use this to check your work visually instead of reasoning only from the HTML. Returns an image; if none exists yet, the screen may not have been viewed in the browser. Pass `full: true` for the WHOLE screen at its full content length (the entire scroll captured in one tall image, not just the device viewport) — best for reviewing a long / scrolling screen end to end. When the screen fits the viewport (nothing to scroll) `full` falls back to the framed shot.",
+    inputSchema: {
+      screen: zod.string().describe("Screen id."),
+      full: zod.boolean().optional().describe("Capture the entire content length (the whole scrollable screen) instead of just the visible device viewport."),
+    },
   },
-  async ({ screen }) => {
-    const file = path.join(ARTA_DIR, "snapshots", sanitize(screen) + ".png");
-    let buf;
-    try {
-      buf = fs.readFileSync(file);
-    } catch {
-      return text({ exists: false, screen, note: "No snapshot yet — open the viewer and visit this screen." });
+  async ({ screen, full }) => {
+    const dir = path.join(ARTA_DIR, "snapshots");
+    const candidates = full
+      ? [sanitize(screen) + ".full.png", sanitize(screen) + ".png"] // full, then fall back to framed
+      : [sanitize(screen) + ".png"];
+    for (const name of candidates) {
+      try {
+        const buf = fs.readFileSync(path.join(dir, name));
+        return { content: [{ type: "image", data: buf.toString("base64"), mimeType: "image/png" }] };
+      } catch {
+        /* try next candidate */
+      }
     }
-    return { content: [{ type: "image", data: buf.toString("base64"), mimeType: "image/png" }] };
+    return text({ exists: false, screen, note: "No snapshot yet — open the viewer and visit this screen." });
   }
 );
 

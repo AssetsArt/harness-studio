@@ -72,7 +72,10 @@ Never describe a screen in prose when you could render it. Show, ask, adjust.
   use it to target the exact thing they mean.
 - `arta_get_screenshot` — get a PNG of how a screen actually renders (the same
   pixels the dev sees). Use it to **check your own work visually**, not just from
-  the HTML — after building or changing a screen, look at it.
+  the HTML — after building or changing a screen, look at it. Pass **`full: true`**
+  to capture the WHOLE screen at its content length (the entire scroll in one tall
+  image, not just the device viewport) — use it to review a long / scrolling screen
+  end to end.
 - `arta_get_view` also returns `errors`: console/runtime errors from the
   prototype. If something you wrote is broken, you'll see it here — fix it without
   waiting for the dev.

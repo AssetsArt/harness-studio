@@ -356,7 +356,8 @@ export function artaWatch(): Plugin {
             if (!id || !m) return send(res, 400, { ok: false, error: "expected screen + png dataUrl" });
             const snapDir = path.join(dirFor(req), "snapshots");
             fs.mkdirSync(snapDir, { recursive: true });
-            fs.writeFileSync(path.join(snapDir, id + ".png"), Buffer.from(m[1], "base64"));
+            // `.full.png` = the whole screen at content length; `.png` = the framed viewport.
+            fs.writeFileSync(path.join(snapDir, id + (body.full ? ".full.png" : ".png")), Buffer.from(m[1], "base64"));
             return send(res, 200, { ok: true });
           } catch (e) {
             return send(res, 400, { ok: false, error: String(e) });

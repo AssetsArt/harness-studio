@@ -222,10 +222,10 @@ export function sendFeedback(body: Record<string, unknown>): Promise<boolean> {
     .catch(() => false);
 }
 
-export function reportSnapshot(screen: string, dataUrl: string): void {
+export function reportSnapshot(screen: string, dataUrl: string, full = false): void {
   fetch(tag("/__arta/snapshot"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ screen, dataUrl }),
+    body: JSON.stringify({ screen, dataUrl, full }),
   }).catch(() => {});
 }
