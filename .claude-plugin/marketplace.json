@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "Arta — live AI↔dev design canvas",
-    "version": "0.1.55"
+    "version": "0.1.56"
   },
   "plugins": [
     {
       "name": "arta",
       "source": "./",
       "description": "A live design canvas the AI writes into and the dev watches — spec, freeform prototype, data model, flow, and plan.",
-      "version": "0.1.55",
+      "version": "0.1.56",
       "author": {
         "name": "AssetsArt"
       },
