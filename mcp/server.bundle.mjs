@@ -6605,6 +6605,7 @@ var require_dist = __commonJS((exports, module) => {
 
 // mcp/server.mjs
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import net from "node:net";
 import { spawn, spawnSync } from "node:child_process";
@@ -19612,6 +19613,34 @@ var COMP_DIR = path.join(PROTO_DIR, "components");
 var SCREEN_DIR = path.join(PROTO_DIR, "screens");
 var PHASES = ["prototype", "data", "flow", "architecture", "plan"];
 var sanitize = (s) => String(s).replace(/[^a-z0-9_-]/gi, "");
+var REGISTRY_FILE = path.join(os.homedir(), ".arta", "registry.json");
+function idForDir(dir) {
+  const s = path.resolve(dir);
+  let h = 2166136261 >>> 0;
+  for (let i = 0;i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h.toString(36);
+}
+var didRegister = false;
+function registerProject() {
+  if (didRegister)
+    return;
+  try {
+    const dir = path.resolve(ARTA_DIR);
+    const id = idForDir(dir);
+    const name = readJson(STATE_FILE)?.meta?.name || path.basename(path.dirname(dir));
+    let list = readJson(REGISTRY_FILE);
+    if (!Array.isArray(list))
+      list = [];
+    list = list.filter((e) => e && typeof e.dir === "string" && e.id !== id && fs.existsSync(path.join(e.dir, "state.json")));
+    list.push({ id, name, dir, at: new Date().toISOString() });
+    fs.mkdirSync(path.dirname(REGISTRY_FILE), { recursive: true });
+    fs.writeFileSync(REGISTRY_FILE, JSON.stringify(list, null, 2));
+    didRegister = true;
+  } catch {}
+}
 function ensureDir() {
   fs.mkdirSync(ARTA_DIR, { recursive: true });
 }
@@ -19633,6 +19662,7 @@ function writeState(state) {
   ensureDir();
   fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2) + `
 `);
+  registerProject();
 }
 function isPlainObject3(v) {
   return v != null && typeof v === "object" && !Array.isArray(v);
@@ -20227,12 +20257,14 @@ server.registerTool("arta_start_viewer", {
   }
 }, async ({ port }) => {
   const p = Number(port) || 7317;
+  registerProject();
   if (await portInUse(p))
     return text({
       ok: true,
       alreadyRunning: true,
       url: `http://localhost:${p}`,
-      note: "A viewer is already responding on this port — reuse it. (If it's serving an old build after an update, use arta_restart_viewer.)"
+      project: readJson(STATE_FILE)?.meta?.name || path.basename(path.resolve(PROJECT_DIR)),
+      note: `A viewer is already running on this port — reuse it. It can host several projects: if it's showing a different one, pick this project from the switcher in the top bar. (Serving an old build after an update? use arta_restart_viewer.)`
     });
   const r = spawnViewer(p);
   if (!r.ok)
@@ -20253,6 +20285,7 @@ server.registerTool("arta_restart_viewer", {
   }
 }, async ({ port }) => {
   const p = Number(port) || 7317;
+  registerProject();
   const launcher = path.join(PLUGIN_ROOT, "bin", "arta.mjs");
   if (!fs.existsSync(launcher))
     return err(`Launcher not found at ${launcher}. The plugin may be installed incompletely; the dev can also run \`bunx github:AssetsArt/arta\` manually.`);
