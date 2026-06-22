@@ -91,23 +91,29 @@ const IFRAME_RUNTIME = `
 })();
 `;
 
-// Chrome for the preview shell: a neutral stage, the device centred, a slim screen switcher.
+// Chrome for the preview shell: an airy light stage, the device lifted in the centre, a slim
+// screen switcher along the bottom. Mirrors the viewer's light/airy tokens (lib/theme LIGHTC)
+// so a shared export feels like the same product — bg #f7f8f8, white surfaces, #ececec hairlines,
+// #1f2328 ink, and the emerald accent (accent2 #0b6b3f on accentSoft) on the active screen pill.
 const PREVIEW_CSS = `
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{background:#0b0b0c;color:#e7e7ea;font-family:'Geist','Noto Sans Thai',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
-.pv-stage{position:fixed;inset:0;bottom:52px;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto}
-.pv-device{background:#fff;box-shadow:0 24px 64px rgba(0,0,0,.5);overflow:hidden;flex:0 0 auto;max-width:100%}
-.pv-device--phone{border-radius:44px;border:1px solid #2a2a2e}
-.pv-device--flat{border-radius:12px;border:1px solid #2a2a2e}
+body{background:#f7f8f8;color:#1f2328;font-family:'Geist','Noto Sans Thai',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+.pv-stage{position:fixed;inset:0;bottom:56px;display:flex;align-items:center;justify-content:center;padding:32px;overflow:auto}
+/* The device is a real white screen, lifted off the light canvas with a soft shadow (not a hard
+   dark one) — the way Figma/Linear float a device preview. The hairline border defines the bezel. */
+.pv-device{background:#fff;overflow:hidden;flex:0 0 auto;max-width:100%;box-shadow:0 1px 2px rgba(15,17,21,.04),0 18px 48px -16px rgba(15,17,21,.18)}
+.pv-device--phone{border-radius:44px;border:1px solid #ececec}
+.pv-device--flat{border-radius:14px;border:1px solid #ececec}
 #pv{display:block;border:0;width:100%;height:100%;background:#fff}
-.pv-bar{position:fixed;left:0;right:0;bottom:0;height:52px;display:flex;align-items:center;gap:6px;padding:0 12px;background:#151517;border-top:1px solid #2a2a2e;overflow-x:auto;scrollbar-width:none}
+.pv-bar{position:fixed;left:0;right:0;bottom:0;height:56px;display:flex;align-items:center;gap:6px;padding:0 14px;background:#ffffff;border-top:1px solid #ececec;overflow-x:auto;scrollbar-width:none}
 .pv-bar::-webkit-scrollbar{display:none}
-.pv-title{font-size:12px;color:#8a8a90;margin-right:8px;white-space:nowrap;font-weight:600}
-.pv-tab{flex:0 0 auto;font:inherit;font-size:12px;color:#a8a8ae;background:transparent;border:1px solid transparent;border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap}
-.pv-tab:hover{color:#fff;background:#222226}
-.pv-tab.is-active{color:#0b0b0c;background:#e7e7ea}
-.pv-empty{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#8a8a90;font-size:14px}
+.pv-title{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#1f2328;font-weight:600;margin-right:6px;white-space:nowrap}
+.pv-title .pv-dot{width:7px;height:7px;border-radius:50%;background:#10b981;flex:0 0 auto}
+.pv-tab{flex:0 0 auto;font:inherit;font-size:12.5px;font-weight:500;color:#5e6168;background:transparent;border:0;border-radius:8px;padding:6px 11px;cursor:pointer;white-space:nowrap;transition:background .12s,color .12s}
+.pv-tab:hover{color:#1f2328;background:#f3f4f4}
+.pv-tab.is-active{color:#0b6b3f;background:rgba(16,185,129,.10);font-weight:600}
+.pv-empty{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#5e6168;font-size:14px}
 `;
 
 function safeData(value: unknown): string {
@@ -167,7 +173,7 @@ export function buildPrototypePreview(proto: Prototype, opts: { name?: string } 
     var dev = document.getElementById('pv-device');
     var ifr = document.getElementById('pv');
     dev.className = 'pv-device ' + (dim.device ? 'pv-device--phone' : 'pv-device--flat');
-    var availW = window.innerWidth - 48, availH = window.innerHeight - 52 - 48;
+    var availW = window.innerWidth - 64, availH = window.innerHeight - 56 - 64;
     var scale = Math.min(1, availW / dim.w);
     var w = Math.round(dim.w * scale);
     var h = dim.device ? Math.min(dim.h * scale, availH) : availH;
@@ -209,7 +215,7 @@ export function buildPrototypePreview(proto: Prototype, opts: { name?: string } 
 <style>${PREVIEW_CSS}</style>
 </head><body>
 <div class="pv-stage"><div class="pv-device" id="pv-device"><iframe id="pv" title="prototype"></iframe></div></div>
-<div class="pv-bar"><span class="pv-title">${esc(name)}</span>${tabs}</div>
+<div class="pv-bar"><span class="pv-title"><span class="pv-dot"></span>${esc(name)}</span>${tabs}</div>
 <script>${PARENT}</script>
 </body></html>`;
 }
