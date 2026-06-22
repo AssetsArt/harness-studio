@@ -247,13 +247,24 @@ the dev react at each step.
 Do this for every screen you touched:
 
 1. **Look at the pixels** — `arta_get_screenshot` for each screen, and actually read
-   the image. The snapshot is the full framed device (chrome + safe area), i.e. exactly
-   what the dev sees. Also check `arta_get_view`'s `errors` for runtime/icon problems.
-   **No snapshot yet** (the dev hasn't opened that screen — a fresh build has none)? It
-   is *never* a reason to skip review or jump to the next phase. Review your own
-   **markup** instead (read it back with `arta_get_screen`, run the checklist + craft
-   check below — none of those need a snapshot), and **ask the dev to open the screen**
-   so the pixels get captured. Then you both look.
+   the image. By default it's a real headless-Chrome render of the screen **content**,
+   faithful to the browser and captured **on demand** — so a fresh build that nobody has
+   opened still has a shot, and "no snapshot yet" is **no excuse** to skip review. Use it
+   to judge layout, type, contrast, images, spacing, and overlap. Also check
+   `arta_get_view`'s `errors` for runtime/icon problems.
+
+   **Pick the engine by the question you're asking:**
+   - *"Is the CONTENT right?"* (layout, text, fonts, colour, spacing, images, dead-band,
+     craft, AI-slop) → the **default** (`engine` omitted = `"chrome"`). This is almost
+     always what you want.
+   - *"Does it FIT THE DEVICE?"* (does the header / bottom CTA clear the status bar,
+     notch, and home indicator — the safe-area / chrome-mode check) → **`engine:
+     "client"`**, the only shot that includes the device bezel + status-bar overlay. It
+     comes from the viewer's own capture, so the dev must have opened that screen first
+     (else ask them to, then re-shoot); it can also drift on some CSS, so trust it for the
+     device-fit question, not for fine content/contrast.
+
+   In one line: **content → `chrome` (default); device-fit → `client`.**
 2. **Run the craft check** — `arta_design_review` on the screen(s); fix every finding
    (gradient text, side-stripe borders, low contrast, identical card grids, blank icons…).
    It's a static reader, so it has blind spots: it can't resolve a Tailwind colour utility
@@ -278,6 +289,9 @@ Do this for every screen you touched:
      the default chrome, the status bar + notch + home indicator float ON TOP — so the
      top header and bottom bar/CTA must carry the safe-area padding (≈48/28px ios) or
      they hide under the clock and home pill. Full-bleed media/splash → `chrome:false`.
+     **This is the one check that needs `arta_get_screenshot { engine: "client" }`** —
+     only that shot draws the bezel + status-bar overlay, so it's how you actually SEE
+     whether the content collides with them (the default `chrome` shot is content-only).
    - **Non-Latin text renders in a real font.** Thai / CJK headings set in a Latin display
      face (Instrument Serif / Fraunces / Space Grotesk) fall back to a broken system face —
      collided tone-marks, wrong line-height. Add the `'Noto Sans/Serif Thai'` fallback (or
