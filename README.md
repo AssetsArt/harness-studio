@@ -29,6 +29,7 @@ machine.
 ```text
 /plugin marketplace add AssetsArt/arta
 /plugin install arta@arta
+/reload-plugins
 ```
 
 **2. Design** — tell it what to build:
