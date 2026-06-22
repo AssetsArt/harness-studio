@@ -8,7 +8,7 @@ import { resolveScreenHtml, designSheet, FONT_LINK } from "./prototype";
 // BASE_CSS + HEAD_LIBS; the static renders (export, headless) use buildScreenDoc below.
 
 export const BASE_CSS = `
-*{box-sizing:border-box}
+*{box-sizing:border-box;scrollbar-width:none}
 /* Fill the device frame. A screen whose content is shorter than the viewport must
    still paint to the bottom edge — otherwise the area below it shows through as a
    dead WHITE band (the #1 recurring prototype defect). Two guarantees, neither
@@ -24,6 +24,9 @@ html,body{margin:0;padding:0;height:100%}
    unclamp. This is an enforced floor: a screen can't accidentally ship a sideways
    scrollbar regardless of what the AI wrote. (hallmark slop-test gate 34.) */
 html,body{overflow-x:clip}
+/* Hide the scrollbar track inside the device on every frame — content still scrolls
+   (wheel/touch), there is just no visible bar, the way a real phone or app looks. */
+::-webkit-scrollbar{width:0;height:0}
 body{min-height:100%;font-family:'Geist','Noto Sans Thai',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;color:#18181b;background:var(--color-bg,#fff);-webkit-font-smoothing:antialiased}
 /* Long compound words ("AI-generated", uppercase brand names) overflow the viewport
    because their only break point is the hyphen — let the engine break inside the word
