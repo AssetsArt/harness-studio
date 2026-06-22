@@ -19,6 +19,7 @@ import { renderToString } from "react-dom/server";
 import { createElement as h } from "react";
 import { grade } from "./grade.mjs";
 import { compileTokens, tokensFromCss } from "../src/lib/prototype.ts";
+import { buildPrototypePreview } from "../src/lib/previewDoc.ts";
 import { ThemeProvider } from "../src/lib/theme.tsx";
 import { SpecRail } from "../src/components/tabs/SpecRail.tsx";
 import { DesignSystemView } from "../src/components/tabs/DesignSystemView.tsx";
@@ -192,7 +193,10 @@ function runExportSpecs() {
   spec("export reuses captureFullPng (shared with the live shot) with always", exp.includes("captureFullPng") && exp.includes("always: true"), "always:true");
   spec("export renders each screen offscreen at its device width", exp.includes("FRAME_W") && exp.includes("srcdoc"), "offscreen iframe");
   spec("export returns a PDF blob for the in-app modal (no auto-open)", exp.includes("jsPDF") && exp.includes('output("bloburl")') && !exp.includes("window.open"), "blob URL, not auto-opened");
-  spec("Prototype tab wires the Export PDF button + result modal", tab.includes("exportPrototypePdf") && tab.includes("Export PDF") && tab.includes("pdfResult") && tab.includes('target="_blank"'), "button + modal w/ Open");
+  spec("Prototype tab wires the Export PDF button + result modal", tab.includes("exportPrototypePdf") && tab.includes("runExport") && tab.includes("pdfResult") && tab.includes('target="_blank"'), "button + modal w/ Open");
+  // The prototype preview surfaces: an "Open preview" button (live /preview, via previewHref)
+  // and an "Export prototype HTML" download (client-side buildPrototypePreview). Lock the wiring.
+  spec("Prototype tab wires Open preview + Export HTML", tab.includes("openPreview") && tab.includes("previewHref") && tab.includes("buildPrototypePreview") && tab.includes("exportHtml"), "preview buttons");
   return { ok: rows.every((r) => r.ok), rows };
 }
 
@@ -272,6 +276,46 @@ function runCookbookSpecs() {
   return { ok: rows.every((r) => r.ok), rows };
 }
 
+// ── Prototype preview: one self-contained clickable page (live /preview + export) ──
+// buildPrototypePreview embeds every screen body + a runtime into ONE document (iframe
+// swaps srcdoc on data-to nav, store persists in the parent). It backs BOTH the live
+// /preview route and the "Export prototype (HTML)" download, so it must: embed all screens,
+// wire data-to navigation, render a switcher, honour `start`, escape `</script>` in screen
+// bodies (or a screen with inline script breaks the whole file), and degrade to a clear
+// empty page. Lock it — a regression here ships a blank or broken preview.
+function runPreviewSpecs() {
+  const rows = [];
+  const spec = (name, ok, detail) => rows.push({ name, ok, detail });
+  const proto = {
+    start: "alpha",
+    frame: "web",
+    layout: "{{slot}}",
+    screens: [
+      { id: "alpha", title: "Alpha", html: '<h1>Alpha screen</h1><a data-to="beta">go beta</a>' },
+      { id: "beta", title: "Beta", html: '<h1>Beta screen</h1><button data-inc="n">+</button><span data-bind="n"></span>' },
+    ],
+    store: { n: 0 },
+  };
+  const html = buildPrototypePreview(proto, { name: "T" });
+  spec("embeds every screen body", html.includes("Alpha screen") && html.includes("Beta screen"));
+  spec("wires data-to navigation in the in-frame runtime", html.includes("arta-frame") && html.includes("type:'nav'"));
+  spec("renders the parent shell (show + buildDoc)", html.includes("function show(") && html.includes("function buildDoc("));
+  spec("renders a screen switcher for each screen", html.includes('data-goto="alpha"') && html.includes('data-goto="beta"'));
+  spec("honours the start screen", html.includes('var START = "alpha"'));
+
+  // A screen with inline </script> must not close the parent <script>. The body's </script>
+  // is neutralised to <\/script> (harmless inside script data — only a literal </script ends
+  // a script element), so the document has exactly ONE real closing </script> (the parent's).
+  const evil = buildPrototypePreview({ start: "x", frame: "web", layout: "{{slot}}", screens: [{ id: "x", title: "X", html: "<script>var a=1<\/script>ok" }] }, {});
+  const realCloses = (evil.match(/<\/script>/g) || []).length; // the escaped <\/script> is NOT matched
+  spec("escapes </script> in screen bodies (parent script not closed early)", realCloses === 1 && evil.includes("<\\/script"), `real </script>: ${realCloses}`);
+
+  // No screens → a clear empty page, never a broken document.
+  const empty = buildPrototypePreview({ screens: [] }, {});
+  spec("degrades to a clear empty page when there are no screens", empty.includes("No screens to preview"));
+  return { ok: rows.every((r) => r.ok), rows };
+}
+
 // ── Multi-project spec: which canvas the one viewer shows ────────────────────
 // One viewer (one port) can host several projects; the active one is remembered in
 // localStorage. The agreed rule: use the stored project if it still exists, else fall
@@ -310,6 +354,8 @@ function runGate(json) {
   if (!cookbookSpecs.ok) regressed = true;
   const designSystemSpecs = runDesignSystemSpecs();
   if (!designSystemSpecs.ok) regressed = true;
+  const previewSpecs = runPreviewSpecs();
+  if (!previewSpecs.ok) regressed = true;
 
   for (const t of TH.targets) {
     const r = grade(t.brief, path.join(ROOT, t.dir));
@@ -349,7 +395,7 @@ function runGate(json) {
   }
 
   if (json) {
-    console.log(JSON.stringify({ mode: "gate", ok: !regressed, a5Skipped: [...a5Skipped], rows, specs: specs.rows, railSpecs: railSpecs.rows, frameSpecs: frameSpecs.rows, projectSpecs: projectSpecs.rows, exportSpecs: exportSpecs.rows, headlessSpecs: headlessSpecs.rows, slopSpecs: slopSpecs.rows, cookbookSpecs: cookbookSpecs.rows, designSystemSpecs: designSystemSpecs.rows }, null, 2));
+    console.log(JSON.stringify({ mode: "gate", ok: !regressed, a5Skipped: [...a5Skipped], rows, specs: specs.rows, railSpecs: railSpecs.rows, frameSpecs: frameSpecs.rows, projectSpecs: projectSpecs.rows, exportSpecs: exportSpecs.rows, headlessSpecs: headlessSpecs.rows, slopSpecs: slopSpecs.rows, cookbookSpecs: cookbookSpecs.rows, designSystemSpecs: designSystemSpecs.rows, previewSpecs: previewSpecs.rows }, null, 2));
     return !regressed;
   }
 
@@ -391,6 +437,9 @@ function runGate(json) {
 
   console.log("\n  DESIGN-SYSTEM TAB SPECS — reflects a CSS-authored system (no blank tab)\n");
   for (const s of designSystemSpecs.rows) console.log("  " + (s.ok ? GLYPH.pass : GLYPH.fail) + " " + pad(s.name, 58) + (s.detail ? "  " + s.detail : ""));
+
+  console.log("\n  PREVIEW SPECS — one self-contained clickable prototype (/preview + export)\n");
+  for (const s of previewSpecs.rows) console.log("  " + (s.ok ? GLYPH.pass : GLYPH.fail) + " " + pad(s.name, 58) + (s.detail ? "  " + s.detail : ""));
 
   console.log("\n  " + (regressed ? "GATE FAILED — a committed target or render-layer spec regressed." : "GATE PASSED — all committed targets hold the baseline.") + "\n");
   return !regressed;

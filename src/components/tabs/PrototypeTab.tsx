@@ -6,7 +6,8 @@ import { LIGHT, MONO, useTheme } from "../../lib/theme";
 import { alpha, cn } from "../../lib/utils";
 import { designSheet, resolveScreenHtml } from "../../lib/prototype";
 import { exportPrototypePdf } from "../../lib/exportPdf";
-import { sendFeedback } from "../../lib/useArta";
+import { buildPrototypePreview } from "../../lib/previewDoc";
+import { previewHref, sendFeedback } from "../../lib/useArta";
 import { ComponentRenderer } from "../proto/ComponentRenderer";
 import { DeviceFrame } from "../proto/DeviceFrame";
 import { FreeformDevice } from "../proto/FreeformDevice";
@@ -95,6 +96,30 @@ export function PrototypeTab({
     } catch (e) {
       setExporting(null);
       onError(`PDF export failed — ${(e as Error).message}`);
+    }
+  };
+
+  // Open the live, chrome-less preview (the whole prototype, clickable, no editor UI) in a
+  // new tab — the shareable /preview URL, scoped to the active project.
+  const openPreview = () => window.open(previewHref(), "_blank", "noopener");
+
+  // Export the prototype as ONE self-contained, interactive HTML file (all screens +
+  // data-to navigation + mock store) the dev can open anywhere or hand off. Built client-side
+  // from the in-memory prototype — same builder the /preview route serves.
+  const exportHtml = () => {
+    try {
+      const html = buildPrototypePreview(prototype);
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "prototype-preview.html";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch (e) {
+      onError(`Preview export failed — ${(e as Error).message}`);
     }
   };
 
@@ -194,17 +219,40 @@ export function PrototypeTab({
         {freeform && (
           <div className="shrink-0 border-t px-3 py-3" style={{ borderColor: c.border }}>
             <button
-              onClick={runExport}
-              disabled={!!exporting}
-              className="flex w-full items-center justify-center gap-2 rounded-md px-2 py-2 text-[12px] font-semibold transition-colors disabled:cursor-default disabled:opacity-60"
-              style={{ color: c.text, background: c.panel2, border: `1px solid ${c.border2}` }}
-              title="Capture every screen's full-length screenshot into one PDF"
+              onClick={openPreview}
+              className="flex w-full items-center justify-center gap-2 rounded-md px-2 py-2 text-[12px] font-semibold transition-colors"
+              style={{ color: c.text, background: c.panel2, border: `1px solid ${c.accent}` }}
+              title="Open the whole prototype as a clickable, chrome-less page (the shareable /preview URL)"
             >
-              <FileDown size={14} color={c.accent} />
-              {exporting ?? "Export PDF"}
+              <ExternalLink size={14} color={c.accent} />
+              Open preview
             </button>
             <p className="mt-1.5 text-[10.5px] leading-snug" style={{ fontFamily: MONO, color: c.faint }}>
-              All screens, full length → opens a PDF to save.
+              Clickable prototype, no editor — opens the shareable <span style={{ color: c.dim }}>/preview</span> page.
+            </p>
+            <div className="mt-2.5 grid grid-cols-2 gap-2">
+              <button
+                onClick={runExport}
+                disabled={!!exporting}
+                className="flex items-center justify-center gap-1.5 rounded-md px-2 py-2 text-[11.5px] font-semibold transition-colors disabled:cursor-default disabled:opacity-60"
+                style={{ color: c.text, background: c.panel2, border: `1px solid ${c.border2}` }}
+                title="Capture every screen's full-length screenshot into one PDF"
+              >
+                <FileDown size={13} color={c.accent} />
+                {exporting ?? "PDF"}
+              </button>
+              <button
+                onClick={exportHtml}
+                className="flex items-center justify-center gap-1.5 rounded-md px-2 py-2 text-[11.5px] font-semibold transition-colors"
+                style={{ color: c.text, background: c.panel2, border: `1px solid ${c.border2}` }}
+                title="Export the prototype as one self-contained, interactive HTML file — opens anywhere"
+              >
+                <Download size={13} color={c.accent} />
+                HTML
+              </button>
+            </div>
+            <p className="mt-1.5 text-[10.5px] leading-snug" style={{ fontFamily: MONO, color: c.faint }}>
+              Export: <span style={{ color: c.dim }}>PDF</span> (all screens to save) · <span style={{ color: c.dim }}>HTML</span> (one interactive file to share).
             </p>
           </div>
         )}

@@ -204,6 +204,12 @@ export function useArta(): ArtaLive {
 // tagged with the active project so the write lands in that project's .arta/.
 const tag = (path: string) => (activeProjectId ? `${path}?project=${encodeURIComponent(activeProjectId)}` : path);
 
+// Root-relative URL for the live, chrome-less prototype preview page (/preview), scoped to
+// the active project — what "Open preview" opens and the address bar can share.
+export function previewHref(): string {
+  return tag("/preview");
+}
+
 export function reportRuntime(body: Record<string, unknown>): void {
   fetch(tag("/__arta/runtime"), {
     method: "POST",

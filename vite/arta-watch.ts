@@ -4,6 +4,7 @@ import path from "node:path";
 import type { Plugin, ViteDevServer } from "vite";
 import type { Prototype, Screen } from "../src/lib/types";
 import { buildScreenDoc } from "../src/lib/screenDoc";
+import { buildPrototypePreview } from "../src/lib/previewDoc";
 import { snapshotWithChrome } from "./headless-snapshot";
 
 // ── Shared canvas layout (.arta/) ───────────────────────────────────────
@@ -386,6 +387,25 @@ export function artaWatch(): Plugin {
           }
           res.setHeader("Content-Type", "text/html; charset=utf-8");
           res.end(buildScreenDoc(proto, screen));
+          return;
+        }
+
+        // The WHOLE prototype as ONE clickable, chrome-less preview page — no Arta editor UI,
+        // just the device + screens, navigable via data-to (and a slim screen switcher). Served
+        // live so it tracks the canvas; deep-link a screen with /preview#<id>. Same builder the
+        // "Export prototype" download uses, so the shared file and the live page are identical.
+        if (url === "/preview" && req.method === "GET") {
+          const dir = dirFor(req);
+          const state = assembleState(dir) as { prototype?: Prototype } | null;
+          const proto = state?.prototype;
+          if (!proto || !(proto.screens || []).length) {
+            res.statusCode = 404;
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            res.end("<!doctype html><meta charset=utf-8><body style='font:14px system-ui;padding:2rem;color:#555'>No prototype to preview yet.</body>");
+            return;
+          }
+          res.setHeader("Content-Type", "text/html; charset=utf-8");
+          res.end(buildPrototypePreview(proto, { name: displayName(dir) }));
           return;
         }
 
