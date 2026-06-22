@@ -1,6 +1,6 @@
 {
   "name": "arta",
-  "version": "0.1.76",
+  "version": "0.1.77",
   "description": "A live design canvas the AI writes into and the dev watches — spec, freeform prototype, data model, flow, and plan, driven from a single .arta/ folder.",
   "author": {
     "name": "AssetsArt"
