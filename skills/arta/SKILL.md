@@ -658,7 +658,10 @@ fire exactly as they would in a browser at that width (the `web` preview shows t
 desktop nav, not the mobile hamburger, even when the canvas pane is narrow). Write
 responsive CSS accordingly. Choose the frame that matches what you're actually
 building — a mobile app spec should preview in `ios`/`android`, a tablet layout in
-`ipad`, a responsive site in `web`, not a phone.
+`ipad`, a responsive site in `web`, not a phone. A `web`/`desktop` prototype can
+still be previewed at phone/tablet size (the viewer wraps it in a mobile **browser**
+frame — Safari-style chrome, not a native status bar), so make a responsive site work
+all the way down to mobile widths; its `safeArea` colour paints that browser status bar.
 
 **Device frame & safe area (ios / android / ipad).** Content is **always
 full-screen** — it fills the whole device, edge-to-edge. There are **two chrome
