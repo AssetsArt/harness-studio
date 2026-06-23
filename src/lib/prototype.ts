@@ -144,3 +144,18 @@ export function tokensFromCss(css?: string): DesignTokens {
   }
   return out;
 }
+
+// The prototype's dark-theme token overrides: every custom property declared under a `.dark`
+// rule (e.g. `.dark{--color-bg:#0b0b0c}`), keyed by the raw var name (without the `--`). The
+// Design-system tab uses this to show a colour's dark value when previewing the dark theme.
+// Returns {} when the system has no `.dark` block (light-only prototype).
+export function darkVars(css?: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!css || !css.trim()) return out;
+  const body = [...css.matchAll(/\.dark\b[^{]*\{([^}]*)\}/g)].map((m) => m[1]).join(";");
+  for (const m of body.matchAll(/--([\w-]+)\s*:\s*([^;]+)/g)) {
+    const name = m[1].trim();
+    if (!(name in out)) out[name] = m[2].trim();
+  }
+  return out;
+}

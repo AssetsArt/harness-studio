@@ -18,7 +18,7 @@ import { fileURLToPath } from "node:url";
 import { renderToString } from "react-dom/server";
 import { createElement as h } from "react";
 import { grade } from "./grade.mjs";
-import { compileTokens, tokensFromCss } from "../src/lib/prototype.ts";
+import { compileTokens, tokensFromCss, darkVars } from "../src/lib/prototype.ts";
 import { buildPrototypePreview } from "../src/lib/previewDoc.ts";
 import { ThemeProvider } from "../src/lib/theme.tsx";
 import { SpecRail } from "../src/components/tabs/SpecRail.tsx";
@@ -125,6 +125,17 @@ function runDesignSystemSpecs() {
   const nothing = render({ screens: [] });
   spec("truly-empty prototype still shows the empty state", nothing.includes("No design system yet"));
 
+  // Theme support: darkVars recovers the prototype's `.dark{}` token overrides, and the tab
+  // offers a light/dark preview toggle ONLY when the system actually has a dark theme (a
+  // `.dark{}` block or a component using `dark:`) — a light-only system shows no toggle.
+  const dvBasic = darkVars(":root{--color-bg:#fff}.dark{--color-bg:#0b0b0c;--color-fg:#fafafa}");
+  spec("darkVars recovers .dark{} token overrides", dvBasic["color-bg"] === "#0b0b0c" && dvBasic["color-fg"] === "#fafafa");
+  spec("darkVars is empty for a light-only system", Object.keys(darkVars(":root{--color-bg:#fff}")).length === 0);
+  const withDark = render({ designSystem: ":root{--color-accent:#b3321a}.dark{--color-accent:#f0a}", screens: [] });
+  spec("tab shows a theme toggle when the system has a dark theme", withDark.includes(">Theme<"));
+  const lightOnly = render({ designSystem: ":root{--color-accent:#b3321a}", screens: [] });
+  spec("tab hides the theme toggle for a light-only system", !lightOnly.includes(">Theme<"));
+
   return { ok: rows.every((r) => r.ok), rows };
 }
 
@@ -171,6 +182,9 @@ function runFrameSpecs() {
   spec("BASE_CSS clips horizontal overflow (no sideways scroll)", doc.includes("html,body{overflow-x:clip}"), "overflow-x:clip");
   spec("BASE_CSS lets long heading words wrap (no viewport overflow)", doc.includes("h1,h2,h3{overflow-wrap:anywhere}"), "overflow-wrap:anywhere");
   spec("BASE_CSS gives every control a focus-visible ring fallback", doc.includes(":focus-visible{outline"), ":focus-visible ring");
+  // Body text colour is token-driven so a `.dark{--color-fg:…}` block (or any theme) swaps it
+  // along with the bg — not a hardcoded near-black that stays dark on a dark background.
+  spec("BASE_CSS body colour is token-driven (theme/dark can swap it)", doc.includes("color:var(--color-fg,#18181b)"), "color:var(--color-fg)");
   // The shared screen document is built ONE way (live iframe + PDF + headless all use it).
   spec("buildScreenDoc assembles the standalone screen (shared render)", doc.includes("functionbuildScreenDoc"), "buildScreenDoc");
   // modern-screenshot can't render backdrop-filter (frosted glass), so a `bg-white/90
@@ -316,6 +330,12 @@ function runPreviewSpecs() {
   // <svg> (which no rendered icon has either, so it matched every icon and turned whole pages
   // to circles: the v0.1.80 + v0.1.81 bug). Verified live against the lucide UMD build.
   spec("icon net detects blanks by non-svg tag (not nested svg)", html.includes("tagName.toLowerCase()!=='svg'") && !html.includes("!el.querySelector('svg')"));
+  // Theme switching: a toggle the AI marks `data-theme-toggle` must actually work. Needs both
+  // halves shipped in every render: (1) Tailwind's `dark:` made class-based (else it tracks the
+  // OS, not the toggle), and (2) the runtime that flips `.dark` on click + restores the saved
+  // theme. Verified live in Chrome — class-based `dark:` + `.dark{--token}` swap both reacted.
+  spec("ships class-based Tailwind dark variant (toggle, not OS-only)", html.includes("@custom-variant dark") && html.includes("text/tailwindcss"));
+  spec("ships the theme runtime (data-theme-toggle flips .dark + persists)", html.includes("data-theme-toggle") && html.includes("'arta-theme'") && html.includes("classList.toggle('dark'"));
   spec("default preview shows the navigator (floating button + sidebar)", html.includes('class="pv-fab"') && html.includes('class="pv-side"'));
 
   // The static export (chrome:false) is a client demo: SAME screens + data-to navigation,

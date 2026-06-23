@@ -27,7 +27,7 @@ html,body{overflow-x:clip}
 /* Hide the scrollbar track inside the device on every frame — content still scrolls
    (wheel/touch), there is just no visible bar, the way a real phone or app looks. */
 ::-webkit-scrollbar{width:0;height:0}
-body{min-height:100%;font-family:'Geist','Noto Sans Thai',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;color:#18181b;background:var(--color-bg,#fff);-webkit-font-smoothing:antialiased}
+body{min-height:100%;font-family:'Geist','Noto Sans Thai',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;color:var(--color-fg,#18181b);background:var(--color-bg,#fff);-webkit-font-smoothing:antialiased}
 /* Long compound words ("AI-generated", uppercase brand names) overflow the viewport
    because their only break point is the hyphen — let the engine break inside the word
    as a last resort so a display heading never punches past the edge. (gate 51.) */
@@ -82,6 +82,16 @@ export const HEAD_LIBS =
   // in EVERY render (live editor, /preview, static export, PDF, headless), so a real <img>
   // can never sink a screen: the worst case degrades to an intentional skeleton+colour box.
   `<script>(function(){document.addEventListener('error',function(e){var el=e.target;if(!el||el.tagName!=='IMG'||el.getAttribute('data-hs-fallback'))return;el.setAttribute('data-hs-fallback','1');el.removeAttribute('srcset');el.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22/%3E';el.classList.add('hs-img-skeleton');},true);})();</script>` +
+  // Theme switching (light/dark) — platform-enforced so a toggle the AI builds actually
+  // WORKS without any JS of its own. Runs FIRST and synchronously (NOT deferred), in <head>
+  // before the body paints, so the initial theme is applied with no flash-of-wrong-theme.
+  // Two halves: (1) on boot, set the theme from the saved choice (localStorage) or the OS
+  // preference, reflected as a `.dark` class + `data-theme` attr + `color-scheme` on <html>;
+  // (2) one delegated click handler flips the theme for ANY element marked `data-theme-toggle`
+  // (a button, an icon, anything) and persists it. The AI just writes `dark:` Tailwind
+  // utilities (made class-based below) or a `.dark{--color-…}` token block, and adds
+  // `data-theme-toggle` to its switch — light/dark then works in every render and export.
+  `<script>(function(){var K='arta-theme',r=document.documentElement;function g(){try{return localStorage.getItem(K);}catch(_){return null;}}function s(v){try{localStorage.setItem(K,v);}catch(_){}}function set(t){var d=t==='dark';r.classList.toggle('dark',d);r.setAttribute('data-theme',t);r.style.colorScheme=d?'dark':'light';}set(g()||(window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));document.addEventListener('click',function(e){var b=e.target&&e.target.closest&&e.target.closest('[data-theme-toggle]');if(!b)return;e.preventDefault();var n=r.classList.contains('dark')?'light':'dark';set(n);s(n);});})();</script>` +
   // Icon safety net: after lucide renders, ANY <i data-lucide="…"> whose name it couldn't
   // resolve is left untouched (a blank gap) — the classic footer "social row of empty
   // circles" (brand icons like facebook/instagram were dropped from lucide core), or a typo
@@ -94,6 +104,11 @@ export const HEAD_LIBS =
   // (Checking for a nested <svg> instead matches EVERY rendered icon too — that swapped whole
   // pages to circles, v0.1.80/0.1.81.)
   `<script>(function(){var B={facebook:1,instagram:1,twitter:1,x:1,linkedin:1,youtube:1,github:1,gitlab:1,discord:1,slack:1,tiktok:1,dribbble:1,figma:1,twitch:1,whatsapp:1,telegram:1,pinterest:1,snapchat:1,reddit:1,medium:1,behance:1,threads:1};function fix(){if(!(window.lucide&&window.lucide.createIcons))return;try{window.lucide.createIcons();}catch(_){}var left=[].filter.call(document.querySelectorAll('[data-lucide]'),function(el){return el.tagName.toLowerCase()!=='svg';});if(!left.length)return;left.forEach(function(el){var n=(el.getAttribute('data-lucide')||'').toLowerCase();el.setAttribute('data-lucide',B[n]?'globe':'circle');});try{window.lucide.createIcons();}catch(_){}}window.addEventListener('load',function(){fix();setTimeout(fix,350);});})();</script>` +
+  // Make Tailwind's `dark:` variant respond to a `.dark` CLASS (toggled by the theme script
+  // above) instead of v4's default `prefers-color-scheme` media query — otherwise the toggle
+  // flips the class but `dark:` utilities never react. The browser build compiles every
+  // `type="text/tailwindcss"` block, so registering the custom variant here is enough.
+  `<style type="text/tailwindcss">@custom-variant dark (&:where(.dark, .dark *));</style>` +
   `<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4" defer></script>` +
   // The bare `lucide` spec on jsDelivr resolves to the CJS build (no global, throws
   // "exports is not defined"); the UMD build is what exposes window.lucide.

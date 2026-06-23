@@ -1,16 +1,25 @@
-import { Palette } from "lucide-react";
+import { useState } from "react";
+import { Moon, Palette, Sun } from "lucide-react";
 import type { Prototype } from "../../lib/types";
 import { MONO, useTheme, type DarkTokens } from "../../lib/theme";
-import { designSheet, expandFragment, tokensFromCss, FONT_LINK } from "../../lib/prototype";
+import { darkVars, designSheet, expandFragment, tokensFromCss, FONT_LINK } from "../../lib/prototype";
 
 // A lightweight, render-only preview of one component fragment — same Tailwind +
 // lucide + token sheet as the real screens, but none of the store/snapshot wiring.
-function Preview({ html, sheet, h = 132 }: { html: string; sheet: string; h?: number }) {
+// `dark` previews the fragment in the prototype's dark theme: a `.dark` class on <html>
+// (so a `.dark{--token}` block in the sheet + Tailwind `dark:` utilities both apply — the
+// custom variant makes `dark:` class-based, mirroring the screen runtime) and a sensible
+// dark canvas fallback so a fragment that only used `dark:` utilities still sits on a dark
+// surface. Body bg/fg are token-driven so the system's own dark tokens win when set.
+function Preview({ html, sheet, h = 132, dark = false }: { html: string; sheet: string; h?: number; dark?: boolean }) {
+  const bg = dark ? "#0b0b0c" : "#fff";
+  const fg = dark ? "#fafafa" : "#18181b";
   const srcDoc =
-    `<!doctype html><html><head><meta charset="utf-8">` +
+    `<!doctype html><html${dark ? ' class="dark" style="color-scheme:dark"' : ""}><head><meta charset="utf-8">` +
     FONT_LINK +
-    `<style>*{box-sizing:border-box}html,body{margin:0}body{font-family:'Geist',system-ui,-apple-system,sans-serif;color:#18181b;background:#fff;padding:16px}img{max-width:100%}</style>` +
+    `<style>*{box-sizing:border-box}html,body{margin:0}body{font-family:'Geist',system-ui,-apple-system,sans-serif;color:var(--color-fg,${fg});background:var(--color-bg,${bg});padding:16px}img{max-width:100%}</style>` +
     `<style>${sheet}</style>` +
+    `<style type="text/tailwindcss">@custom-variant dark (&:where(.dark, .dark *));</style>` +
     `<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4" defer></script>` +
     `<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" defer></script>` +
     `<script>window.addEventListener('load',function(){try{lucide.createIcons()}catch(e){}})</script>` +
@@ -20,7 +29,7 @@ function Preview({ html, sheet, h = 132 }: { html: string; sheet: string; h?: nu
       title="component"
       srcDoc={srcDoc}
       sandbox="allow-scripts allow-same-origin"
-      style={{ width: "100%", height: h, border: "none", background: "#fff" }}
+      style={{ width: "100%", height: h, border: "none", background: bg }}
     />
   );
 }
@@ -38,9 +47,17 @@ function SectionHead({ title, count, c }: { title: string; count?: number; c: Da
 
 export function DesignSystemView({ prototype }: { prototype: Prototype }) {
   const { c } = useTheme();
+  const [dark, setDark] = useState(false);
   const t = prototype.tokens || {};
   const components = prototype.components || {};
   const sheet = designSheet(prototype);
+  // The prototype's dark-theme token overrides + whether it supports a dark theme at all
+  // (a `.dark{}` block, or any component fragment using Tailwind `dark:` utilities). When it
+  // does, offer a light/dark toggle that re-renders the swatches + component previews in the
+  // chosen theme — so the dark side of the system is inspectable here, not only in a screen.
+  const dv = darkVars(prototype.designSystem);
+  const hasDark = Object.keys(dv).length > 0 || /\.dark\b/.test(prototype.designSystem || "") || /dark:/.test(JSON.stringify(components));
+  const showDark = hasDark && dark;
   // The tab reads structured tokens, but the AI often authors the system as raw CSS
   // (arta_set_design_system) with a `:root` block and never sets structured tokens — which
   // used to leave this tab blank despite a real design system. Fall back to the tokens
@@ -80,20 +97,48 @@ export function DesignSystemView({ prototype }: { prototype: Prototype }) {
   return (
     <div className="min-h-0 flex-1 overflow-y-auto" style={{ background: c.bg }}>
       <div style={{ maxWidth: 1080, margin: "0 auto", padding: "26px 24px", display: "flex", flexDirection: "column", gap: 34 }}>
+        {hasDark && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 10, marginBottom: -18 }}>
+            <span style={{ fontFamily: MONO, fontSize: 11, color: c.faint }}>Theme</span>
+            <div style={{ display: "inline-flex", border: `1px solid ${c.border}`, borderRadius: 8, overflow: "hidden", background: c.panel }}>
+              <button
+                onClick={() => setDark(false)}
+                title="Light"
+                style={{ display: "grid", placeItems: "center", width: 36, height: 28, border: "none", cursor: "pointer", background: !dark ? c.accent : "transparent", color: !dark ? "#fff" : c.faint }}
+              >
+                <Sun size={14} />
+              </button>
+              <button
+                onClick={() => setDark(true)}
+                title="Dark"
+                style={{ display: "grid", placeItems: "center", width: 36, height: 28, border: "none", cursor: "pointer", background: dark ? c.accent : "transparent", color: dark ? "#fff" : c.faint }}
+              >
+                <Moon size={14} />
+              </button>
+            </div>
+          </div>
+        )}
         {colors.length > 0 && (
           <section>
             <SectionHead title="Colors" count={colors.length} c={c} />
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))", gap: 12 }}>
-              {colors.map((col) => (
-                <div key={col.name} style={{ border: `1px solid ${c.border}`, borderRadius: 10, overflow: "hidden", background: c.panel }}>
-                  <div style={{ height: 60, background: col.value, borderBottom: `1px solid ${c.border}` }} />
-                  <div style={{ padding: "8px 10px" }}>
-                    <div style={{ fontFamily: MONO, fontSize: 12, color: c.text }}>{col.name}</div>
-                    <div style={{ fontFamily: MONO, fontSize: 11, color: c.faint }}>{col.value}</div>
-                    {col.description && <div style={{ fontSize: 11, color: c.dim, marginTop: 3, lineHeight: 1.45 }}>{col.description}</div>}
+              {colors.map((col) => {
+                const dvVal = dv["color-" + col.name];
+                const val = showDark && dvVal ? dvVal : col.value;
+                return (
+                  <div key={col.name} style={{ border: `1px solid ${c.border}`, borderRadius: 10, overflow: "hidden", background: c.panel }}>
+                    <div style={{ height: 60, background: val, borderBottom: `1px solid ${c.border}` }} />
+                    <div style={{ padding: "8px 10px" }}>
+                      <div style={{ fontFamily: MONO, fontSize: 12, color: c.text }}>{col.name}</div>
+                      <div style={{ fontFamily: MONO, fontSize: 11, color: c.faint }}>
+                        {val}
+                        {showDark && dvVal && <span style={{ color: c.accent }}> · dark</span>}
+                      </div>
+                      {col.description && <div style={{ fontSize: 11, color: c.dim, marginTop: 3, lineHeight: 1.45 }}>{col.description}</div>}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         )}
@@ -197,7 +242,7 @@ export function DesignSystemView({ prototype }: { prototype: Prototype }) {
                     <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 600, color: c.text, flex: 1 }}>{name}</span>
                     <span style={{ fontFamily: MONO, fontSize: 10, color: c.faint }}>{`{{>${name}}}`}</span>
                   </div>
-                  <Preview html={expandFragment(prototype, frag)} sheet={sheet} />
+                  <Preview html={expandFragment(prototype, frag)} sheet={sheet} dark={showDark} />
                 </div>
               ))}
             </div>

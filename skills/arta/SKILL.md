@@ -590,6 +590,27 @@ Use them; do not hand-roll what they give you, and **never use emoji as icons.**
 - All three (Tailwind, lucide, Iconify) load from a CDN, so the prototype needs network;
   offline, classes go unstyled and icons stay blank.
 
+**Light / dark theme switching — built in, just opt your toggle in.** The runtime applies a
+theme on load (the visitor's saved choice, else their OS preference) and exposes it as a
+`.dark` class + `data-theme="dark|light"` on `<html>`. To add a working theme switch, put
+`data-theme-toggle` on any element (a button, an icon) — clicking it flips the theme and
+persists it. No JS of your own. Then style both themes either way:
+- **Tailwind `dark:` utilities** (made class-based, so they follow the toggle, not just the
+  OS): `<body class="bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">`.
+- **or a `.dark{}` token block** in your design system that swaps the CSS variables:
+  `:root{--color-bg:#fff;--color-fg:#18181b}` + `.dark{--color-bg:#0b0b0c;--color-fg:#fafafa}`
+  — the body bg/text already read `var(--color-bg)`/`var(--color-fg)`, so the whole screen
+  follows. (Combine both freely.)
+- Swap the toggle's own glyph with the same variant — `<i data-lucide="sun" class="dark:hidden"></i><i data-lucide="moon" class="hidden dark:block"></i>` — no script needed.
+- Only build a toggle when the design calls for one; a light-only (or dark-only) prototype
+  just doesn't add `data-theme-toggle`. If you support dark, give EVERY screen dark styling
+  (test it) — a half-themed flow with one white screen reads as a bug.
+- The **Design system** sub-view detects a dark theme (a `.dark{}` block, or any component
+  using `dark:`) and shows a light/dark toggle: it previews the colour swatches (a swatch
+  with a `.dark{}` override shows its dark value) and the component cards in the chosen
+  theme. So put your dark token overrides in a `.dark{}` block in `arta_set_design_system`
+  and they're inspectable there — not only inside a screen.
+
 **Avoid AI-slop — these read as "an AI made this".** Don't ship them; rework the
 element instead. (Run `arta_design_review` to catch them automatically.)
 
