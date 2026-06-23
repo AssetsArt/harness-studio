@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { BatteryFull, Signal, Wifi } from "lucide-react";
+import { AlignLeft, BatteryFull, ChevronLeft, MoreHorizontal, RotateCw, Signal, Wifi } from "lucide-react";
 import type { FrameKind } from "../../lib/types";
 import { LIGHT, MONO, useTheme } from "../../lib/theme";
 
@@ -26,6 +26,12 @@ interface Props {
    *  (edge-to-edge, no safe-area bands); the chrome floats on top with the real time.
    *  Set false to hide it entirely. */
   chrome?: boolean;
+  /** A WEB/desktop-declared prototype previewed at phone/tablet size: render the device
+   *  bezel with a MOBILE BROWSER bar (status strip + URL pill) instead of the native iOS
+   *  status bar, content flowing below it — a website in a mobile browser, not a native
+   *  app whose status bar would overlap the (un-padded) web header. Ignored on real
+   *  native (ios/android) frames. */
+  browser?: boolean;
   /** Ref onto the device's outer element so the snapshot can capture the WHOLE
    *  framed device (bezel + chrome + content), not just the iframe body. */
   rootRef?: React.Ref<HTMLDivElement>;
@@ -67,7 +73,14 @@ function isDarkColor(color: string): boolean {
 
 // Wraps the freeform iframe in a believable device frame so the same HTML can be
 // previewed as desktop web, a native desktop app, or an iOS / Android phone.
-export function DeviceFrame({ frame, url, title, safeArea, chrome = true, rootRef, children }: Props) {
+export function DeviceFrame({ frame, url, title, safeArea, chrome = true, browser = false, rootRef, children }: Props) {
+  // A web/desktop page previewed at phone/tablet size → mobile browser, not a native shell.
+  if (browser && (frame === "ios" || frame === "android" || frame === "ipad"))
+    return (
+      <MobileBrowserFrame frame={frame} url={url} safeArea={safeArea} rootRef={rootRef}>
+        {children}
+      </MobileBrowserFrame>
+    );
   if (frame === "ios")
     return (
       <IosFrame title={title} safeArea={safeArea} chrome={chrome} rootRef={rootRef}>
@@ -247,13 +260,41 @@ function Phone({
   );
 }
 
+// Authentic iOS status-bar glyphs (cellular bars · wifi fan · battery outline), hand-drawn
+// as SVG so they read like a real iPhone — the lucide Signal/Wifi/Battery look obviously
+// different. currentColor lets them auto-contrast against the safe-area colour.
 function StatusIcons({ color }: { color: string }) {
   return (
-    <div className="flex items-center gap-1.5" style={{ color }}>
-      <Signal size={14} />
-      <Wifi size={14} />
-      <BatteryFull size={18} />
+    <div className="flex items-center gap-[5px]" style={{ color }}>
+      {/* cellular — four stepped bars */}
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor" aria-hidden="true">
+        <rect x="0" y="7.5" width="3" height="4.5" rx="1" />
+        <rect x="5" y="5" width="3" height="7" rx="1" />
+        <rect x="10" y="2.5" width="3" height="9.5" rx="1" />
+        <rect x="15" y="0" width="3" height="12" rx="1" />
+      </svg>
+      {/* wifi — two arcs + dot */}
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+        <path d="M1.4 4.1A9.6 9.6 0 0 1 14.6 4.1" />
+        <path d="M4 6.7A6 6 0 0 1 12 6.7" />
+        <circle cx="8" cy="10.2" r="0.7" fill="currentColor" stroke="none" />
+      </svg>
+      {/* battery — rounded casing + fill + terminal nub */}
+      <svg width="27" height="13" viewBox="0 0 27 13" fill="none" aria-hidden="true">
+        <rect x="0.6" y="0.6" width="22" height="11.8" rx="3.2" stroke="currentColor" strokeOpacity="0.4" strokeWidth="1" />
+        <rect x="2.1" y="2.1" width="14.8" height="8.8" rx="1.6" fill="currentColor" />
+        <path d="M24.4 4.3c1 .4 1 4 0 4.4z" fill="currentColor" fillOpacity="0.5" />
+      </svg>
     </div>
+  );
+}
+
+// The iOS location-services arrow that sits beside the clock.
+function LocationArrow({ color }: { color: string }) {
+  return (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill={color} aria-hidden="true">
+      <path d="M2 11.4 22 2l-9.4 20-2.3-8.3L2 11.4Z" />
+    </svg>
   );
 }
 
@@ -414,6 +455,119 @@ function IpadFrame({
       }
     >
       {children}
+    </Phone>
+  );
+}
+
+// iOS-Safari-style chrome for a WEB prototype previewed at phone size — modelled on real
+// mobile Safari: the status bar on TOP, and the address bar + nav controls on the BOTTOM
+// (iOS 15+). Both are IN FLOW (take height), so the page's own header is never overlapped.
+
+// Top status bar — real time, Dynamic Island (iOS only), status icons. Defaults to a white
+// strip so the page sits cleanly below it (like Safari), but honours `safeArea` so the AI
+// can paint it a brand colour (the time/icons auto-contrast), the same as native frames.
+function BrowserStatusBar({ island, safeArea }: { island: boolean; safeArea?: string }) {
+  const time = useClock();
+  const dark = safeArea ? isDarkColor(safeArea) : false;
+  const fg = dark ? "#f5f5f7" : LIGHT.fg;
+  // Real iOS safe-area proportions: a ~50px bar with the clock/icons sitting in its lower
+  // half (the Dynamic Island floats in the top gap), generous side margins.
+  return (
+    <div
+      className="relative flex h-[42px] shrink-0 items-center justify-between px-6"
+      style={{ background: safeArea || LIGHT.bg }}
+    >
+      <div className="flex items-center gap-1.5">
+        <span className="text-[16px] font-semibold tabular-nums tracking-tight" style={{ color: fg }}>
+          {time}
+        </span>
+        <LocationArrow color={fg} />
+      </div>
+      {island && <span className="absolute left-1/2 top-[7px] h-[28px] w-[108px] -translate-x-1/2 rounded-full bg-black" />}
+      <StatusIcons color={fg} />
+    </div>
+  );
+}
+
+// One Apple "liquid glass" surface — strong blurred + vibrant backdrop (saturate/brightness
+// = Apple "vibrancy") plus layered specular highlights. NOTE: backdrop-filter and any SVG
+// `filter:url()` must NOT share an element — Chrome drops the backdrop-filter then, leaving
+// a flat tint. So the blur lives here alone; the shine is the box-shadow + the top sheen.
+const GLASS_STYLE: React.CSSProperties = {
+  color: "#1a1a1a",
+  background: "linear-gradient(to bottom, rgba(255,255,255,.42), rgba(255,255,255,.20))",
+  WebkitBackdropFilter: "blur(16px) saturate(190%) brightness(1.08)",
+  backdropFilter: "blur(16px) saturate(190%) brightness(1.08)",
+  boxShadow:
+    "0 8px 28px rgba(0,0,0,.22), 0 1px 2px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 0 1px rgba(255,255,255,.35), inset 0 -3px 8px rgba(255,255,255,.28)",
+};
+// The curved light catch over the top half that reads as a glass surface.
+function GlassSheen() {
+  return (
+    <div
+      className="pointer-events-none absolute inset-x-0 top-0 h-1/2"
+      style={{ background: "linear-gradient(to bottom, rgba(255,255,255,.4), transparent)" }}
+    />
+  );
+}
+
+// Bottom Safari toolbar — THREE separate floating liquid-glass pieces (iOS 17/18): a back
+// circle, the centre address pill (reader · url · reload), and a more (•••) circle, with
+// gaps between them. Overlay + pointer-events-none so the prototype underneath stays
+// clickable.
+function BrowserToolbar({ url }: { url: string }) {
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-center gap-2.5 px-3 pb-2">
+      <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full" style={GLASS_STYLE}>
+        <GlassSheen />
+        <ChevronLeft size={22} className="relative z-[1]" />
+      </div>
+      <div className="relative flex h-12 min-w-0 flex-1 items-center gap-2.5 overflow-hidden rounded-full px-4" style={GLASS_STYLE}>
+        <GlassSheen />
+        <AlignLeft size={18} className="relative z-[1] shrink-0" style={{ opacity: 0.7 }} />
+        <span className="relative z-[1] min-w-0 flex-1 truncate text-center text-[15px] font-medium">{url}</span>
+        <RotateCw size={17} className="relative z-[1] shrink-0" style={{ opacity: 0.7 }} />
+      </div>
+      <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full" style={GLASS_STYLE}>
+        <GlassSheen />
+        <MoreHorizontal size={22} className="relative z-[1]" />
+      </div>
+    </div>
+  );
+}
+
+// Web/desktop prototype previewed at phone/tablet size: the device bezel of the chosen
+// frame, but the screen holds a mobile browser (status bar on top, page in the middle,
+// Safari toolbar on the bottom) instead of a native shell — so a responsive web header
+// isn't hidden under an iOS status bar.
+function MobileBrowserFrame({
+  frame,
+  url,
+  safeArea,
+  rootRef,
+  children,
+}: {
+  frame: FrameKind;
+  url: string;
+  safeArea?: string;
+  rootRef?: React.Ref<HTMLDivElement>;
+  children: React.ReactNode;
+}) {
+  const dims =
+    frame === "ipad"
+      ? { width: 810, maxH: 1120, radius: 30, screenRadius: 18, pad: 16 }
+      : frame === "android"
+        ? { width: 392, radius: 40, screenRadius: 30, pad: 9 }
+        : { width: 384, radius: 52, screenRadius: 42, pad: 11 };
+  return (
+    <Phone {...dims} screenBg={LIGHT.bg} statusBar={null} bottom={null} rootRef={rootRef}>
+      {/* relative so the floating glass toolbar overlays the content (which fills to the
+          bottom edge, painting the frosted backdrop behind the bar). */}
+      <div className="relative flex h-full flex-col">
+        <BrowserStatusBar island={frame === "ios"} safeArea={safeArea} />
+        <div className="min-h-0 flex-1">{children}</div>
+        <BrowserToolbar url={url} />
+      </div>
     </Phone>
   );
 }

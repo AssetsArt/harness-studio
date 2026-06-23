@@ -60,6 +60,11 @@ export function PrototypeTab({
   const frame = frameOverride ?? stateFrame;
   // Phone / tablet frames — they get the centered canvas layout. iPad included.
   const isMobile = frame === "ios" || frame === "android" || frame === "ipad";
+  // A web/desktop-DECLARED prototype previewed at phone/tablet size is a website viewed in
+  // a mobile browser — render a browser bar (not a native iOS status bar that would overlap
+  // the un-padded web header). Only when the dev overrides the frame; a natively-declared
+  // ios/android prototype keeps its real status bar.
+  const browser = (stateFrame === "web" || stateFrame === "desktop") && isMobile;
 
   // Full-screen with the chrome on top: content is edge-to-edge (no safe-area bands)
   // and the iOS-style status bar (real time) + notch + home indicator float OVER it —
@@ -314,6 +319,7 @@ export function PrototypeTab({
                   title={cur.title}
                   safeArea={cur.safeArea ?? prototype.safeArea}
                   chrome={chrome}
+                  browser={browser}
                   rootRef={frameNodeRef}
                 >
                   <FreeformDevice
