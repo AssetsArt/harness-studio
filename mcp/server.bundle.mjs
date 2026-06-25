@@ -19849,6 +19849,16 @@ function findGrayOnColor(doc2, push) {
       push("gray-on-color", "warn", c.index, "muted gray text on a brand-coloured surface — use white / near-white or a tint of the surface colour");
   }
 }
+function findStatusDotPill(doc2, push) {
+  const re = /<(?:span|div|a|p)\b[^>]*\bclass="[^"]*(?:\b(?:pill|badge|chip)\b|\brounded-full\b)[^"]*"[^>]*>\s*(<(?:span|i|div)\b[^>]*>)/gi;
+  let m;
+  while (m = re.exec(doc2)) {
+    const dot = m[1];
+    const isDot = /\bclass="[^"]*\bdot\b[^"]*"/.test(dot) || /\brounded-full\b/.test(dot) && /\b(?:h|w|size)-(?:1|1\.5|2|2\.5)\b/.test(dot) && /\bbg-/.test(dot);
+    if (isDot)
+      push("status-dot-pill", "warn", m.index, "status-dot pill (● + micro-label badge) — the AI 'liveness' chip; say the status in plain words or drop the dot");
+  }
+}
 var CUSTOM_GATES = [
   findGradientText,
   findSideStripe,
@@ -19870,7 +19880,8 @@ var CUSTOM_GATES = [
   findOversizedH1,
   findBorderAccentRounded,
   findLowContrast,
-  findGrayOnColor
+  findGrayOnColor,
+  findStatusDotPill
 ];
 var TITLES = {
   "gradient-text": "Gradient text headline",
@@ -19900,7 +19911,8 @@ var TITLES = {
   "oversized-h1": "Oversized display hero",
   "border-accent-on-rounded": "Accent border on a rounded card",
   "low-contrast": "Low-contrast text",
-  "gray-on-color": "Gray text on a coloured surface"
+  "gray-on-color": "Gray text on a coloured surface",
+  "status-dot-pill": "Status-dot 'liveness' pill"
 };
 function detectSlop(doc2, opts = {}) {
   const file = opts.file || "";
@@ -20560,6 +20572,26 @@ ${body}`;
     const found = detectSlop(doc2, { file: id }).map((f) => ({ screen: id, ...f }));
     byScreen[id] = { error: found.filter((f) => f.severity === "error").length, warn: found.filter((f) => f.severity === "warn").length, info: found.filter((f) => f.severity === "info").length };
     all.push(...found);
+  }
+  if (!screen) {
+    let compIds = [];
+    try {
+      for (const f of fs.readdirSync(COMP_DIR))
+        if (f.endsWith(".html"))
+          compIds.push(f.replace(/\.html$/, ""));
+    } catch {}
+    for (const name of compIds) {
+      const body = readRaw(componentFile(name)) ?? "";
+      if (!body)
+        continue;
+      const label = `component:${name}`;
+      const doc2 = `<style>${designCss}</style>
+${body}`;
+      const found = detectSlop(doc2, { file: label }).map((f) => ({ screen: label, ...f }));
+      byScreen[label] = { error: found.filter((f) => f.severity === "error").length, warn: found.filter((f) => f.severity === "warn").length, info: found.filter((f) => f.severity === "info").length };
+      all.push(...found);
+      ids.push(label);
+    }
   }
   all.sort((a, b) => RANK[a.severity] - RANK[b.severity] || String(a.screen).localeCompare(String(b.screen)));
   const bySeverity = { error: all.filter((f) => f.severity === "error").length, warn: all.filter((f) => f.severity === "warn").length, info: all.filter((f) => f.severity === "info").length };
