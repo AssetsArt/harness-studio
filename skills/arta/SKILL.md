@@ -157,7 +157,10 @@ When the dev asks to design something, **do NOT immediately write the spec or bu
 the prototype.** First brainstorm the idea into a shape you both agree on. Jumping
 straight to a hi-fi prototype bakes in unexamined assumptions and wastes work — it's
 the #1 complaint about this tool. Brainstorm first, the way `superpowers:brainstorming`
-does, then build.
+does, then build. For the shaping tools — a fast persona, a journey map that becomes your
+screen list, an impact×effort scope cut — load
+[`reference/ux-research.md`](reference/ux-research.md); building *this user's* journey to
+*this* goal (not a generic <category> app) is also the antidote to look-alike output.
 
 > **HARD-GATE:** no committed spec and no hi-fi prototype build until the dev has
 > approved a direction. (Throwaway *lo-fi* sketches **during** the brainstorm are
@@ -178,7 +181,10 @@ The brainstorm, in order:
    per message — never a questionnaire.
 4. **Propose 2–3 approaches** with trade-offs; lead with your recommendation and why.
 5. **Present the direction** — a few sentences: what it is, who it's for, the key
-   screens, what's in / out of scope. Ask if it looks right; revise until it does.
+   screens, what's in / out of scope, **and a one-line visual direction** — a concrete
+   scene sentence (who/where/mood, not "modern and clean") so the look is committed up
+   front, not defaulted to the category template later. Ask if it looks right; revise
+   until it does.
 6. **Get an explicit yes.** Only then `arta_set_phase` to `prototype`, write the
    spec into the rail, and build the first real screens.
 
@@ -268,6 +274,14 @@ pixels — rethink it). This catches "competent but generic" that the detector c
 - **Specificity** — does it look like *this* product, or like a page that could be anyone's?
 - **Restraint** — has everything that isn't earning its place been cut (decoration, redundant chrome, padding-for-padding)?
 - **Variety** — does this screen share a structural fingerprint with another screen in the app? Score by *structural* distance, not colour. (See "Vary the screen shape" below.)
+
+Those six axes are about whether it looks *designed*. Then run a **usability pass** — a pretty
+screen can still be hard to *use*: skim [`reference/ux-heuristics.md`](reference/ux-heuristics.md)
+(Nielsen's 10 — dead `data-to` clicks, ungated destructive actions, recognition over recall)
+and [`reference/accessibility.md`](reference/accessibility.md) (WCAG A/AA — contrast, labels,
+focus, semantics, Thai font-chain), and reach for
+[`reference/cognitive-load.md`](reference/cognitive-load.md) when a form or flow feels heavy.
+The deep, expanded scorecard for all of this is [`reference/critique-rubric.md`](reference/critique-rubric.md).
 
 Do this for every screen you touched:
 
@@ -478,6 +492,57 @@ Use them; do not hand-roll what they give you, and **never use emoji as icons.**
     is the *shape & parts*.** Once the system is set, build each screen from the cookbook's
     app archetypes (navs, page headers, data tables, forms, empty states, …) — token-driven
     and slop-free — instead of re-deriving chrome that drifts into the generic look.
+- **Make it look like *this* project, not its category — the category-reflex check.** A kit
+  is a starting *structure*, never a finished skin. If you set one and only swap the brand
+  name, every app in that category ships the same look — **the #1 reason two different briefs
+  come back looking identical.** Three moves break that:
+  - **Pick the colour strategy on purpose.** *Restrained* (tinted neutrals + one accent ≤10%),
+    *committed* (one saturated colour on 30–60% of the surface), *full palette* (3–4 named
+    roles), or *drenched* (the surface IS the colour). Product/tool UI floors at restrained; a
+    brand / marketing / launch / portfolio surface earns committed-or-louder. Beige-plus-one-
+    accent on a bold brief is a hedge, not a decision.
+  - **Give the project its OWN accent.** The hex in each kit is an *example*, not a default —
+    choose a fresh accent hue per project (nudge the neutral / radius / type-scale too when it
+    helps). Two builds must not share a palette just because they share a register.
+    `arta_design_review` flags a kit's literal accent (and the cream / AI-purple defaults) left
+    unchanged.
+  - **Run the reflex check before you commit the system.** *First-order:* could someone guess
+    the palette + type from the **category alone** ("fintech → navy + gold", "AI tool → cream +
+    purple", "dashboard → dark + indigo")? If yes, it's the training-data reflex — rework it.
+    *Second-order:* could they guess it from the category **plus the obvious anti-move** ("the
+    AI tool that's *not* cream → editorial italic-serif")? Then you only dodged the first
+    reflex; keep going until neither is predictable. Anchor it with one concrete **scene
+    sentence** — who uses this, where, in what light/mood ("a night-shift dispatcher in a dim
+    ops room", never "modern and clean") — and name **2–3 ways this build must look unlike the
+    generic version of its category.**
+- **Load the deep craft reference for what you're working on.** `design-systems.md` and
+  `component-cookbook.md` give you the *kit* and the *parts*; the [`reference/`](reference/)
+  library is the **craft knowledge** — load the one file relevant to the decision in front of
+  you instead of guessing. **First, read the matching register reference — non-optional, it
+  sets opposite defaults that keep two briefs from converging:**
+  - **[`reference/register-brand.md`](reference/register-brand.md)** when *design IS the
+    product* — a marketing / landing / campaign page, a portfolio, an image-led brand. The bar
+    is distinctiveness; committed-or-louder colour; imagery required.
+  - **[`reference/register-product.md`](reference/register-product.md)** when *design SERVES a
+    task* — an app UI, dashboard, admin, settings, tool. The bar is earned familiarity;
+    restrained floor; every control ships all its states.
+
+  Then pull the craft file for the work: [`typography`](reference/typography.md) ·
+  [`color`](reference/color.md) · [`layout`](reference/layout.md) ·
+  [`motion`](reference/motion.md) · [`interaction`](reference/interaction.md) ·
+  [`imagery`](reference/imagery.md) · and [`critique-rubric`](reference/critique-rubric.md)
+  for the deep per-screen self-review (the six axes, expanded). They're Arta-native (the five
+  fonts, tokens, mock state, the detector) — read on demand, not all at once.
+  - **UX & usability** — a pretty screen can still be hard to *use*. These cover what the
+    visual craft doesn't: [`ux-heuristics`](reference/ux-heuristics.md) (Nielsen's 10, +
+    persuasion) and [`accessibility`](reference/accessibility.md) (WCAG 2.1 A/AA — Arta has the
+    real HTML, so focus order / labels / semantics ARE checkable) for the self-review pass;
+    [`cognitive-load`](reference/cognitive-load.md) when a form / flow feels heavy;
+    [`ux-research`](reference/ux-research.md) in the **brainstorm** to shape *whose* journey
+    you're building (the antidote to a generic <category> app); and
+    [`ai-product-patterns`](reference/ai-product-patterns.md) **when the prototype itself is an
+    AI product** (chat, copilot, generator) — input patterns, blank-slate wayfinding, trust
+    signals, human-in-the-loop governors.
 - **Then build every screen from those tokens.** The tokens show as a style guide in the
   Prototype → **Design system** sub-view and compile to CSS custom properties injected
   into every screen. Style screens from the tokens (`var(--color-brand)`,

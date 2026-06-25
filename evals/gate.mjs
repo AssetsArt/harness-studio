@@ -279,6 +279,24 @@ function runSlopDetectorSpecs() {
   spec("a real Unsplash url is NOT flagged (it is the recommended source now)", !has('<img src="https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=700">', "dead-image-host"));
   spec("flags brand lucide icon that renders blank (warn)", has('<i data-lucide="instagram"></i>', "brand-lucide-icon"));
 
+  // Convergence-tier gates (warn) — the "two different briefs come back identical" tells,
+  // ported from impeccable. These catch a design that defaulted to the saturated AI palette
+  // instead of committing to its own identity.
+  spec("flags unmodified kit accent (Mist teal #0e8f86)", has('<style>:root{--color-accent:#0e8f86}</style>', "unmodified-kit-default"));
+  spec("flags cream / warm off-white bg (hex)", has('<style>:root{--color-bg:#f5f0e6}</style>', "cream-palette"));
+  spec("flags cream Tailwind bg (bg-amber-50)", has('<div class="bg-amber-50">x</div>', "cream-palette"));
+  spec("flags generic AI purple palette (#8b5cf6)", has('<style>.x{color:#8b5cf6}</style>', "ai-color-palette"));
+  spec("flags purple/violet gradient", has('<div class="bg-gradient-to-r from-violet-500 to-fuchsia-500">x</div>', "ai-color-palette"));
+  spec("flags marketing buzzword copy", has("<p>Supercharge your workflow today</p>", "marketing-buzzword"));
+  spec("flags em-dash overuse (>=5)", has("<p>a — b — c — d — e — f</p>", "em-dash-overuse"));
+  // Discrimination: the kits' own non-cream off-whites + pure white DON'T trip cream; the kit
+  // indigo is not the AI purple set; CSS custom props (`--`) are not counted as em-dashes.
+  spec("pure white bg is not cream", !has('<style>:root{--color-bg:#ffffff}</style>', "cream-palette"));
+  spec("Ink/Clay barely-warm off-white is not cream", !has('<style>:root{--color-bg:#fbfaf8}</style>', "cream-palette") && !has('<style>:root{--color-bg:#fffefb}</style>', "cream-palette"));
+  spec("kit indigo #6e7bf2 is not the AI purple set", !has('<style>:root{--color-accent:#6e7bf2}</style>', "ai-color-palette"));
+  spec("CSS custom props (--) are not counted as em-dashes", !has('<style>:root{--a:#fff;--b:#000;--c:#111;--d:#222;--e:#333;--f:#444}</style>', "em-dash-overuse"));
+  spec("convergence warns stay out of the serious set (never gate A5)", ["unmodified-kit-default", "cream-palette", "ai-color-palette", "marketing-buzzword", "em-dash-overuse"].every((id) => !SERIOUS.has(id)));
+
   // Discrimination: clean markup is silent, AND emits nothing in the serious set.
   const clean = '<section class="p-6"><h1 class="font-bold text-2xl">Welcome</h1><p class="text-zinc-700">A real, readable sentence.</p><button class="rounded-lg bg-blue-600 text-white px-4 py-2">Continue</button></section>';
   spec("clean markup yields zero findings", detectSlop(clean).length === 0, `${detectSlop(clean).length} findings`);
@@ -304,6 +322,41 @@ function runCookbookSpecs() {
   const findings = blocks.flatMap((b, i) => detectSlop(b, { file: "snippet#" + (i + 1) }));
   const errors = findings.filter((f) => f.severity === "error");
   spec("every cookbook snippet is slop-free (0 error findings)", errors.length === 0, errors.length ? errors.map((f) => f.file + ":" + f.antipattern).join(", ") : "clean");
+  return { ok: rows.every((r) => r.ok), rows };
+}
+
+// ── Reference library integrity: the on-demand craft docs the skill routes to ─────
+// SKILL.md points the agent at skills/arta/reference/*.md for deep craft (the two register
+// refs + typography/color/layout/motion/interaction/imagery/critique-rubric). Lock: every
+// referenced file exists and is substantial, no cross-link dangles, no source leaks
+// (impeccable mentions / {{placeholders}}), and any ```html example is itself slop-free —
+// a reference that taught slop would poison every build that follows it.
+function runReferenceLibrarySpecs() {
+  const rows = [];
+  const spec = (name, ok, detail) => rows.push({ name, ok, detail });
+  const REF_DIR = path.join(ROOT, "skills/arta/reference");
+  const EXPECTED = ["register-brand", "register-product", "typography", "color", "layout", "motion", "interaction", "imagery", "critique-rubric", "ux-heuristics", "accessibility", "cognitive-load", "ai-product-patterns", "ux-research"];
+  const present = EXPECTED.filter((n) => fs.existsSync(path.join(REF_DIR, n + ".md")));
+  spec("all 14 craft + UX references exist", present.length === EXPECTED.length, present.length + "/" + EXPECTED.length + " present");
+  const files = EXPECTED.filter((n) => fs.existsSync(path.join(REF_DIR, n + ".md")));
+  const texts = Object.fromEntries(files.map((n) => [n, fs.readFileSync(path.join(REF_DIR, n + ".md"), "utf8")]));
+  spec("each reference is substantial (≥60 lines)", files.every((n) => texts[n].split("\n").length >= 60), files.map((n) => n + ":" + texts[n].split("\n").length).filter((s) => +s.split(":")[1] < 60).join(", ") || "ok");
+  spec("no reference leaks a {{placeholder}} or an impeccable mention", files.every((n) => !/\{\{|impeccable/i.test(texts[n])), files.filter((n) => /\{\{|impeccable/i.test(texts[n])).join(", ") || "clean");
+  // SKILL.md's reference/ links all resolve.
+  const skill = fs.readFileSync(path.join(ROOT, "skills/arta/SKILL.md"), "utf8");
+  const skillLinks = [...skill.matchAll(/\(reference\/([a-z-]+\.md)\)/g)].map((m) => m[1]);
+  spec("SKILL.md links to the register refs", skillLinks.includes("register-brand.md") && skillLinks.includes("register-product.md"));
+  spec("every reference/ link in SKILL.md resolves", skillLinks.every((f) => fs.existsSync(path.join(REF_DIR, f))), skillLinks.filter((f) => !fs.existsSync(path.join(REF_DIR, f))).join(", ") || "all resolve");
+  // Sibling cross-links inside the refs resolve (relative to REF_DIR, or ../ for parent docs).
+  const dangling = [];
+  for (const n of files) for (const m of texts[n].matchAll(/\]\((\.\.\/)?([a-z-]+\.md)\)/g)) {
+    const rel = (m[1] || "") + m[2];
+    if (!fs.existsSync(path.join(REF_DIR, rel))) dangling.push(n + "→" + rel);
+  }
+  spec("no reference cross-link dangles", dangling.length === 0, dangling.join(", ") || "all resolve");
+  // Any ```html example in a reference must itself be slop-free (error tier) — refs can't teach slop.
+  const refErrors = files.flatMap((n) => [...texts[n].matchAll(/```html\n([\s\S]*?)```/g)].flatMap((b) => detectSlop(b[1], { file: n }).filter((f) => f.severity === "error")));
+  spec("every reference html example is slop-free (0 error findings)", refErrors.length === 0, refErrors.map((f) => f.file + ":" + f.antipattern).join(", ") || "clean");
   return { ok: rows.every((r) => r.ok), rows };
 }
 
@@ -406,6 +459,8 @@ function runGate(json) {
   if (!slopSpecs.ok) regressed = true;
   const cookbookSpecs = runCookbookSpecs();
   if (!cookbookSpecs.ok) regressed = true;
+  const referenceSpecs = runReferenceLibrarySpecs();
+  if (!referenceSpecs.ok) regressed = true;
   const designSystemSpecs = runDesignSystemSpecs();
   if (!designSystemSpecs.ok) regressed = true;
   const previewSpecs = runPreviewSpecs();
@@ -449,7 +504,7 @@ function runGate(json) {
   }
 
   if (json) {
-    console.log(JSON.stringify({ mode: "gate", ok: !regressed, a5Skipped: [...a5Skipped], rows, specs: specs.rows, railSpecs: railSpecs.rows, frameSpecs: frameSpecs.rows, projectSpecs: projectSpecs.rows, exportSpecs: exportSpecs.rows, headlessSpecs: headlessSpecs.rows, slopSpecs: slopSpecs.rows, cookbookSpecs: cookbookSpecs.rows, designSystemSpecs: designSystemSpecs.rows, previewSpecs: previewSpecs.rows }, null, 2));
+    console.log(JSON.stringify({ mode: "gate", ok: !regressed, a5Skipped: [...a5Skipped], rows, specs: specs.rows, railSpecs: railSpecs.rows, frameSpecs: frameSpecs.rows, projectSpecs: projectSpecs.rows, exportSpecs: exportSpecs.rows, headlessSpecs: headlessSpecs.rows, slopSpecs: slopSpecs.rows, cookbookSpecs: cookbookSpecs.rows, referenceSpecs: referenceSpecs.rows, designSystemSpecs: designSystemSpecs.rows, previewSpecs: previewSpecs.rows }, null, 2));
     return !regressed;
   }
 
@@ -488,6 +543,9 @@ function runGate(json) {
 
   console.log("\n  COOKBOOK SPECS — component-cookbook.md practises what it preaches\n");
   for (const s of cookbookSpecs.rows) console.log("  " + (s.ok ? GLYPH.pass : GLYPH.fail) + " " + pad(s.name, 58) + (s.detail ? "  " + s.detail : ""));
+
+  console.log("\n  REFERENCE LIBRARY SPECS — skills/arta/reference/*.md integrity\n");
+  for (const s of referenceSpecs.rows) console.log("  " + (s.ok ? GLYPH.pass : GLYPH.fail) + " " + pad(s.name, 58) + (s.detail ? "  " + s.detail : ""));
 
   console.log("\n  DESIGN-SYSTEM TAB SPECS — reflects a CSS-authored system (no blank tab)\n");
   for (const s of designSystemSpecs.rows) console.log("  " + (s.ok ? GLYPH.pass : GLYPH.fail) + " " + pad(s.name, 58) + (s.detail ? "  " + s.detail : ""));

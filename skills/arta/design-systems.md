@@ -8,12 +8,19 @@ the prototype's foundation, then build every screen from its tokens.
 ## How to use a kit
 
 1. **Pick by the brief, not by reflex.** Match the product's register (see each kit's
-   *Use for*). If two fit, pick the one whose *voice* matches the brand. Don't default
-   to the safe one — a deliberate choice reads as design; a hedge reads as slop.
-2. **Adapt, don't copy.** Keep the kit's *structure* (type pairing, spacing rhythm,
-   radius/shadow/motion language, density) and swap the **accent + brand name** to the
-   project. One kit, infinite brands. Shift the neutral's hue a touch toward the accent
-   if it helps cohesion — don't default-tint warm.
+   *Use for*) — but the *Use for* is a starting point, **not a 1:1 category→kit rule.**
+   If you reach for the same kit every dashboard / every shop, every build in that
+   category ships the same look. Before you commit, run the **category-reflex check**: could
+   someone guess this palette + type from the category alone? If yes, rework it. If two kits
+   fit, pick the one whose *voice* matches the brand; remix two when neither is right. Don't
+   default to the safe one — a deliberate choice reads as design; a hedge reads as slop.
+2. **Adapt, don't copy — and give the project its OWN accent.** Keep the kit's *structure*
+   (type pairing, spacing rhythm, radius/shadow/motion language, density), but the kit's
+   accent hex is an **example, not a default**: choose a *fresh* accent hue per project, and
+   nudge the neutral / radius / type-scale too when it sharpens the identity. One kit, many
+   *distinct* brands — never the same skin twice. (`arta_design_review` warns when a kit's
+   literal accent — or a cream / AI-purple default — is shipped unchanged.) Don't default-tint
+   the neutral warm.
 3. **Set the foundation first** (before any screen): call `arta_set_design_tokens`
    with the kit's token block (edited), and `arta_set_design_system` with its CSS.
    Then style screens from the vars — `var(--color-…)`, `var(--radius-…)`,
