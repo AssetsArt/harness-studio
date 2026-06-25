@@ -501,6 +501,12 @@ Use them; do not hand-roll what they give you, and **never use emoji as icons.**
     roles), or *drenched* (the surface IS the colour). Product/tool UI floors at restrained; a
     brand / marketing / launch / portfolio surface earns committed-or-louder. Beige-plus-one-
     accent on a bold brief is a hedge, not a decision.
+  - **Warmth comes from the accent, not the page.** "Premium / editorial / roaster / artisan"
+    pulls every build toward a warm-beige paper background — and *that is the cream tell*
+    (`arta_design_review` reds it as `cream-palette`). Keep the surface a true off-white
+    (near-zero chroma — red and blue channels within ~4, e.g. `#fbfaf8`, not `#f4f1ea`) or
+    commit to a deep / drenched brand surface; carry the warmth in the **accent, type, and
+    imagery** instead. A warm page background is the convergence default, not a design decision.
   - **Give the project its OWN accent.** The hex in each kit is an *example*, not a default —
     choose a fresh accent hue per project (nudge the neutral / radius / type-scale too when it
     helps). Two builds must not share a palette just because they share a register.

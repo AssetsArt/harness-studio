@@ -31,7 +31,12 @@ const CHECKS = ["A1a_tokens_defined", "A1b_tokens_used", "A2_shared", "A3_intera
 const SHORT = { A1a_tokens_defined: "A1a", A1b_tokens_used: "A1b", A2_shared: "A2", A3_interactivity: "A3", A4_render: "A4", A5_design: "A5" };
 const GLYPH = { pass: "✓", fail: "✗", skip: "–", off: "·" };
 const TH = JSON.parse(fs.readFileSync(path.join(ROOT, "evals/thresholds.json"), "utf8"));
-const BRIEFS = JSON.parse(fs.readFileSync(path.join(ROOT, "evals/briefs.json"), "utf8")).briefs;
+const BRIEFS_DOC = JSON.parse(fs.readFileSync(path.join(ROOT, "evals/briefs.json"), "utf8"));
+const BRIEFS = BRIEFS_DOC.briefs;
+// The serious-tier ids live on the document, NOT the briefs array — reading them off
+// BRIEFS (the array) silently yields `undefined`, which made `SERIOUS` an EMPTY set and
+// quietly defanged every slop-spec that consults it (they passed vacuously). Pin to the doc.
+const SERIOUS_IDS = BRIEFS_DOC.serious_antipatterns;
 
 const a5Up = (r) => r?.metrics?.designReview?.available === true;
 const pad = (s, n) => String(s).padEnd(n);
@@ -257,7 +262,7 @@ function runHeadlessSpecs() {
 function runSlopDetectorSpecs() {
   const rows = [];
   const spec = (name, ok, detail) => rows.push({ name, ok, detail });
-  const SERIOUS = new Set(BRIEFS.serious_antipatterns);
+  const SERIOUS = new Set(SERIOUS_IDS);
   const ids = (doc) => detectSlop(doc).map((f) => f.antipattern);
   const has = (doc, id) => ids(doc).includes(id);
 
@@ -295,7 +300,11 @@ function runSlopDetectorSpecs() {
   spec("Ink/Clay barely-warm off-white is not cream", !has('<style>:root{--color-bg:#fbfaf8}</style>', "cream-palette") && !has('<style>:root{--color-bg:#fffefb}</style>', "cream-palette"));
   spec("kit indigo #6e7bf2 is not the AI purple set", !has('<style>:root{--color-accent:#6e7bf2}</style>', "ai-color-palette"));
   spec("CSS custom props (--) are not counted as em-dashes", !has('<style>:root{--a:#fff;--b:#000;--c:#111;--d:#222;--e:#333;--f:#444}</style>', "em-dash-overuse"));
-  spec("convergence warns stay out of the serious set (never gate A5)", ["unmodified-kit-default", "cream-palette", "ai-color-palette", "marketing-buzzword", "em-dash-overuse"].every((id) => !SERIOUS.has(id)));
+  // The genuinely-soft convergence nudges (judgment, not a hard error) never gate A5; but
+  // cream-palette + ai-color-palette ARE the saturated AI-default tells we DO gate on (they
+  // sit in the serious set), so a build that defaults its surface/accent reds A5 — by design.
+  spec("soft convergence nudges stay out of the serious set (never gate A5)", ["unmodified-kit-default", "marketing-buzzword", "em-dash-overuse"].every((id) => !SERIOUS.has(id)));
+  spec("cream-palette + ai-color-palette DO gate A5 (in the serious set)", SERIOUS.has("cream-palette") && SERIOUS.has("ai-color-palette"));
 
   // Discrimination: clean markup is silent, AND emits nothing in the serious set.
   const clean = '<section class="p-6"><h1 class="font-bold text-2xl">Welcome</h1><p class="text-zinc-700">A real, readable sentence.</p><button class="rounded-lg bg-blue-600 text-white px-4 py-2">Continue</button></section>';
