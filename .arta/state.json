@@ -31,6 +31,7 @@
         { "name": "border", "value": "#222a30", "description": "hairline / box rules" },
         { "name": "text", "value": "#d4dadf", "description": "soft phosphor white" },
         { "name": "heading", "value": "#eef2f0", "description": "bright ink — headings / emphasis on dark" },
+        { "name": "lede", "value": "#aab4bb", "description": "secondary body — lede / descriptions on dark" },
         { "name": "dim", "value": "#7d8893", "description": "comments / secondary — ≥4.5:1" },
         { "name": "accent", "value": "#3ee08a", "description": "phosphor green — prompt, primary, success" },
         { "name": "accent-ink", "value": "#04140b", "description": "text on green" },

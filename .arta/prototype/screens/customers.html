@@ -1,9 +1,9 @@
 <!-- HERO -->
-<section class="hero border-b" style="border-color:var(--color-border)">
+<section class="hero border-b bd">
   <div class="hero-glow" style="opacity:.4"></div>
-  <div class="wrap relative" style="padding-top:60px;padding-bottom:40px">
+  <div class="wrap relative pt-[60px] pb-10">
     <div class="cmt">// customers</div>
-    <h1 class="display mt-4 max-w-2xl" style="font-size:clamp(1.7rem,3vw,2.4rem)">Teams ship agents faster on Helix.</h1>
+    <h1 class="display mt-4 max-w-2xl text-[clamp(1.7rem,3vw,2.4rem)]">Teams ship agents faster on Helix.</h1>
     <p class="lede mt-4 max-w-xl">From seed-stage startups to platform teams running millions of runs a day — they replaced a pile of SDKs with one runtime.</p>
     <div class="flex flex-wrap items-center gap-x-7 gap-y-3 mt-8">
       <span class="logo">cortex</span>
@@ -27,16 +27,16 @@
           <p class="quote"><span class="t-prompt">&gt;</span> "We ripped out three provider SDKs and a homegrown router. Helix gave us failover, cost caps and a trace for every run in an afternoon — and our agents finally stopped silently burning budget."</p>
           <div class="flex items-center gap-3 mt-6">
             <span class="avatar">MR</span>
-            <div><div class="mono text-sm" style="color:var(--color-heading)">Maya Rosen</div><div class="cmt">staff engineer · cortex</div></div>
+            <div><div class="mono text-sm text-head">Maya Rosen</div><div class="cmt">staff engineer · cortex</div></div>
           </div>
         </div>
       </div>
       <div class="term">
         <div class="term-bar"><span class="t-prompt">▸</span> helix status --team cortex</div>
-        <div class="term-body flex flex-col justify-center gap-5" style="padding:24px;height:100%">
-          <div><div class="num t-ok" style="font-size:1.9rem">3×</div><div class="cmt mt-1">faster agent iteration</div></div>
-          <div><div class="num" style="font-size:1.9rem;color:var(--color-heading)">62%</div><div class="cmt mt-1">lower token spend</div></div>
-          <div><div class="num" style="font-size:1.9rem;color:var(--color-heading)">0</div><div class="cmt mt-1">budget incidents since</div></div>
+        <div class="term-body flex flex-col justify-center gap-5 h-full" style="padding:24px">
+          <div><div class="num t-ok text-[1.9rem]">3×</div><div class="cmt mt-1">faster agent iteration</div></div>
+          <div><div class="num text-[1.9rem] text-head">62%</div><div class="cmt mt-1">lower token spend</div></div>
+          <div><div class="num text-[1.9rem] text-head">0</div><div class="cmt mt-1">budget incidents since</div></div>
         </div>
       </div>
     </div>
@@ -48,16 +48,16 @@
   <div class="wrap">
     <div class="grid md:grid-cols-3 gap-4">
       <div class="panel p-5 flex flex-col">
-        <p class="quote" style="font-size:0.95rem"><span class="t-prompt">&gt;</span> One endpoint for Claude, GPT and our fine-tuned Llama. The router moved us off a provider during an outage and we didn't even page.</p>
-        <div class="flex items-center gap-3 mt-5 pt-4 border-t" style="border-color:var(--color-border)"><span class="avatar">JL</span><div><div class="mono text-sm" style="color:var(--color-heading)">Jordan Lee</div><div class="cmt">cto · vega</div></div></div>
+        <p class="quote text-[0.95rem]"><span class="t-prompt">&gt;</span> One endpoint for Claude, GPT and our fine-tuned Llama. The router moved us off a provider during an outage and we didn't even page.</p>
+        <div class="flex items-center gap-3 mt-5 pt-4 border-t bd"><span class="avatar">JL</span><div><div class="mono text-sm text-head">Jordan Lee</div><div class="cmt">cto · vega</div></div></div>
       </div>
       <div class="panel p-5 flex flex-col">
-        <p class="quote" style="font-size:0.95rem"><span class="t-prompt">&gt;</span> Run replay is the feature I didn't know I needed. Reproducing a bad run used to take a day; now it's one command from the trace.</p>
-        <div class="flex items-center gap-3 mt-5 pt-4 border-t" style="border-color:var(--color-border)"><span class="avatar">PA</span><div><div class="mono text-sm" style="color:var(--color-heading)">Priya Anand</div><div class="cmt">ml lead · foundry</div></div></div>
+        <p class="quote text-[0.95rem]"><span class="t-prompt">&gt;</span> Run replay is the feature I didn't know I needed. Reproducing a bad run used to take a day; now it's one command from the trace.</p>
+        <div class="flex items-center gap-3 mt-5 pt-4 border-t bd"><span class="avatar">PA</span><div><div class="mono text-sm text-head">Priya Anand</div><div class="cmt">ml lead · foundry</div></div></div>
       </div>
       <div class="panel p-5 flex flex-col">
-        <p class="quote" style="font-size:0.95rem"><span class="t-prompt">&gt;</span> Spend caps let us hand agents to every team without finance breathing down our necks. The audit log closed our SOC 2 gap.</p>
-        <div class="flex items-center gap-3 mt-5 pt-4 border-t" style="border-color:var(--color-border)"><span class="avatar">DK</span><div><div class="mono text-sm" style="color:var(--color-heading)">Daniel Kim</div><div class="cmt">head of platform · hearth</div></div></div>
+        <p class="quote text-[0.95rem]"><span class="t-prompt">&gt;</span> Spend caps let us hand agents to every team without finance breathing down our necks. The audit log closed our SOC 2 gap.</p>
+        <div class="flex items-center gap-3 mt-5 pt-4 border-t bd"><span class="avatar">DK</span><div><div class="mono text-sm text-head">Daniel Kim</div><div class="cmt">head of platform · hearth</div></div></div>
       </div>
     </div>
   </div>
@@ -66,7 +66,7 @@
 <!-- FLEET STATUS -->
 <section class="section-tight">
   <div class="wrap">
-    <div class="term" style="max-width:620px">
+    <div class="term max-w-[620px]">
       <div class="term-bar"><span class="t-prompt">▸</span> helix status --fleet</div>
       <div class="term-body" style="padding-top:0.7rem;padding-bottom:1rem">
         <div class="kv"><span class="k">teams</span><span class="v num">2,400+</span></div>
@@ -85,7 +85,7 @@
       <div class="hero-glow" style="top:-180px;opacity:.45"></div>
       <div class="term-body relative text-center" style="padding:44px 28px">
         <div class="cmt">// join them</div>
-        <h2 class="h2 mt-3 mx-auto" style="font-size:clamp(1.4rem,2.4vw,1.9rem);max-width:22ch">Ship your agents on Helix.</h2>
+        <h2 class="h2 mt-3 mx-auto text-[clamp(1.4rem,2.4vw,1.9rem)] max-w-[22ch]">Ship your agents on Helix.</h2>
         <div class="flex flex-wrap items-center justify-center gap-3 mt-6">
           <a class="btn btn-primary btn-lg" data-to="pricing" href="#">start free</a>
           <a class="btn btn-ghost btn-lg" data-to="platform" href="#">see the platform</a>

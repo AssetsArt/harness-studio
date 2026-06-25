@@ -333,12 +333,36 @@ function findGrayOnColor(doc, push) {
   }
 }
 
+// status-dot pill — a small pill/badge that LEADS with a tiny coloured status dot + a
+// short label (● Live / ● v1.4.0 / ● all systems operational). The AI "liveness" chip:
+// it manufactures a sense of real-time status on a static prototype. WARN — a real product
+// site legitimately shows one (a status page, a build badge), so surface it for judgment,
+// don't gate. The hero-above-the-fold variant is the stricter, gating `hero-eyebrow-chip`;
+// this catches the same tell in chrome (topbar / footer) where that one never looks.
+// Discrimination: the dot must be the pill's FIRST child — a bare status dot in a table
+// row or a status list (dot NOT wrapped in a pill) is a legit indicator and stays silent.
+function findStatusDotPill(doc, push) {
+  // a pill-like container (custom `.pill`/`.badge`/`.chip` class, or a Tailwind rounded-full
+  // chip) whose first child is a status dot (a `.dot` element, or a tiny rounded-full swatch
+  // with a background colour).
+  const re = /<(?:span|div|a|p)\b[^>]*\bclass="[^"]*(?:\b(?:pill|badge|chip)\b|\brounded-full\b)[^"]*"[^>]*>\s*(<(?:span|i|div)\b[^>]*>)/gi;
+  let m;
+  while ((m = re.exec(doc))) {
+    const dot = m[1];
+    const isDot =
+      /\bclass="[^"]*\bdot\b[^"]*"/.test(dot) ||
+      (/\brounded-full\b/.test(dot) && /\b(?:h|w|size)-(?:1|1\.5|2|2\.5)\b/.test(dot) && /\bbg-/.test(dot));
+    if (isDot)
+      push("status-dot-pill", "warn", m.index, "status-dot pill (● + micro-label badge) — the AI 'liveness' chip; say the status in plain words or drop the dot");
+  }
+}
+
 const CUSTOM_GATES = [
   findGradientText, findSideStripe, findStripes, findTracking, findNestedCards,
   findThinBorderWideShadow, findUniformHoverScale, findEmojiIcon, findItalicHeading,
   findMixedIconLibs, findOverRounded, findCreamPalette, findAiPalette, findEmDashOveruse,
   findHeroEyebrowChip, findRepeatedKickers, findIconTileStack, findOversizedH1,
-  findBorderAccentRounded, findLowContrast, findGrayOnColor,
+  findBorderAccentRounded, findLowContrast, findGrayOnColor, findStatusDotPill,
 ];
 
 // Human-readable titles for ids the live review surfaces.
@@ -371,6 +395,7 @@ const TITLES = {
   "border-accent-on-rounded": "Accent border on a rounded card",
   "low-contrast": "Low-contrast text",
   "gray-on-color": "Gray text on a coloured surface",
+  "status-dot-pill": "Status-dot 'liveness' pill",
 };
 
 /**

@@ -249,6 +249,10 @@ function runHeadlessSpecs() {
   spec("dev server serves /__arta/render + /__arta/capture", plugin.includes('"/__arta/render"') && plugin.includes('"/__arta/capture"') && plugin.includes("snapshotWithChrome"), "render + capture routes");
   spec("MCP triggers a fresh Chrome capture before reading the shot", mcp.includes("/__arta/capture") && mcp.includes("lastViewerPort"), "capture trigger");
   spec("arta_get_screenshot lets the caller pick the engine (chrome | client)", mcp.includes('["chrome", "client"]') && mcp.includes('engine !== "client"'), "engine param");
+  // arta_design_review must scan the shared chrome (layout components), not just screen
+  // bodies — otherwise slop in the topbar/footer is invisible to the review even though it
+  // renders on every page (the gap that let a status-dot pill pass a clean review).
+  spec("arta_design_review scans component files, not just screen bodies", mcp.includes("readdirSync(COMP_DIR)") && mcp.includes("component:"), "component scan");
   return { ok: rows.every((r) => r.ok), rows };
 }
 
@@ -326,6 +330,18 @@ function runSlopDetectorSpecs() {
   spec("one featured accent-bordered card is not flagged (needs ≥2)", !has('<div class="rounded-xl border border-[var(--color-accent)]">only featured</div>', "border-accent-on-rounded"));
   spec("a status dot in a table row is not a hero eyebrow", !has('<tr><td><span class="h-2 w-2 rounded-full bg-green-500"></span> Active</td></tr>', "hero-eyebrow-chip"));
   spec("light-gray text ON a dark surface is not low-contrast", !has('<div class="bg-zinc-900"><p class="text-zinc-400">muted on dark</p></div>', "low-contrast"));
+
+  // status-dot pill — the AI "liveness" chip in chrome (topbar/footer), where the gating
+  // hero-eyebrow-chip (which needs a nearby <h1>) never looks. WARN: a real status page or
+  // build badge legitimately uses one, so surface it for judgment, don't gate.
+  spec("flags status-dot-pill (custom .pill + .dot — the Helix topbar/footer tell)", has('<span class="pill"><span class="dot dot-active"></span> v1.4.0</span>', "status-dot-pill"));
+  spec("flags status-dot-pill (generic Tailwind rounded-full + tiny dot)", has('<span class="inline-flex rounded-full"><span class="h-2 w-2 rounded-full bg-emerald-500"></span> Live</span>', "status-dot-pill"));
+  spec("status-dot-pill stays OUT of the serious set (warn, never gates A5)", !SERIOUS.has("status-dot-pill"));
+  // Threshold discrimination — the dot must be the pill's first child. A bare status dot in
+  // a data context, a plain pill, or a pill led by an icon are all legit and stay silent.
+  spec("a bare status dot in a table row is not a status-dot-pill", !has('<tr><td><span class="dot dot-active"></span> active</td></tr>', "status-dot-pill"));
+  spec("a plain pill with no dot is not a status-dot-pill", !has('<span class="pill">v1.4.0</span>', "status-dot-pill"));
+  spec("a pill led by an icon (not a dot) is not a status-dot-pill", !has('<span class="rounded-full"><i data-lucide="check"></i> Verified</span>', "status-dot-pill"));
 
   // Discrimination: clean markup is silent, AND emits nothing in the serious set.
   const clean = '<section class="p-6"><h1 class="font-bold text-2xl">Welcome</h1><p class="text-zinc-700">A real, readable sentence.</p><button class="rounded-lg bg-blue-600 text-white px-4 py-2">Continue</button></section>';

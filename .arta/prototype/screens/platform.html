@@ -1,9 +1,9 @@
 <!-- HERO -->
-<section class="hero border-b" style="border-color:var(--color-border)">
+<section class="hero border-b bd">
   <div class="hero-glow" style="opacity:.45"></div>
-  <div class="wrap relative" style="padding-top:60px;padding-bottom:40px">
+  <div class="wrap relative pt-[60px] pb-10">
     <div class="cmt">// platform</div>
-    <h1 class="display mt-4 max-w-2xl" style="font-size:clamp(1.7rem,3vw,2.4rem)">One runtime. Three commands. Every agent.</h1>
+    <h1 class="display mt-4 max-w-2xl text-[clamp(1.7rem,3vw,2.4rem)]">One runtime. Three commands. Every agent.</h1>
     <p class="lede mt-4 max-w-xl">Helix is one binary between your app and every model and tool: route work, trace every run, and govern spend without leaving the terminal.</p>
   </div>
 </section>
@@ -24,7 +24,7 @@
     <div data-show="view==run" class="mt-6 grid lg:grid-cols-[1.15fr_0.85fr] gap-5 agent-cols">
       <div class="term">
         <div class="term-bar"><span class="t-prompt">▸</span> router.policy.ts</div>
-        <pre class="term-body mono" style="margin:0;line-height:1.85;white-space:pre-wrap"><span class="cmt">// one call. the router picks the model & fails over</span>
+        <pre class="term-body mono m-0 whitespace-pre-wrap" style="line-height:1.85"><span class="cmt">// one call. the router picks the model & fails over</span>
 <span class="t-key">await</span> helix.runs.create({
   agent: <span class="t-str">"support-triage"</span>,
   input: ticket.body,
@@ -43,7 +43,7 @@
           <div class="raised rounded-md px-3 py-2.5 flex items-center gap-3"><span class="dot dot-queued"></span><span class="mono text-sm flex-1">fireworks·llama</span><span class="tag">batch</span><span class="num text-xs muted">208ms</span></div>
         </div>
         <div class="divider my-4"></div>
-        <p class="muted text-sm leading-relaxed" style="font-family:var(--font-body)">When Anthropic rate-limits, Helix re-routes to OpenAI mid-flight: same request, no code change, capped at $0.40.</p>
+        <p class="muted text-sm leading-relaxed sans">When Anthropic rate-limits, Helix re-routes to OpenAI mid-flight: same request, no code change, capped at $0.40.</p>
       </div>
     </div>
 
@@ -67,7 +67,7 @@
           <div class="kv"><span class="k">steps</span><span class="v num">4</span></div>
         </div>
         <div class="divider my-4"></div>
-        <p class="muted text-sm leading-relaxed" style="font-family:var(--font-body)">Every step is captured with tokens and cost per hop. <span class="mono mark">helix replay 7f3a --from 2</span> re-runs from any step with the same inputs.</p>
+        <p class="muted text-sm leading-relaxed sans">Every step is captured with tokens and cost per hop. <span class="mono mark">helix replay 7f3a --from 2</span> re-runs from any step with the same inputs.</p>
         <a class="btn btn-ghost mt-4 bracket" href="#">replay from step 2</a>
       </div>
     </div>
@@ -77,8 +77,8 @@
       <div class="term">
         <div class="term-bar"><span class="t-prompt">▸</span> helix policy ls <span class="ml-auto cmt">3 active</span></div>
         <div class="term-body" style="padding-top:0.6rem">
-          <div class="flex items-center justify-between py-2.5 border-b" style="border-color:var(--color-border)"><span><span class="t-cmd">prod-agents</span> <span class="t-flag">· opus, sonnet, gpt-5</span></span><span class="num">$2,000<span class="muted">/mo</span></span></div>
-          <div class="flex items-center justify-between py-2.5 border-b" style="border-color:var(--color-border)"><span><span class="t-cmd">batch-jobs</span> <span class="t-flag">· llama, mistral</span></span><span class="num">$400<span class="muted">/mo</span></span></div>
+          <div class="flex items-center justify-between py-2.5 border-b bd"><span><span class="t-cmd">prod-agents</span> <span class="t-flag">· opus, sonnet, gpt-5</span></span><span class="num">$2,000<span class="muted">/mo</span></span></div>
+          <div class="flex items-center justify-between py-2.5 border-b bd"><span><span class="t-cmd">batch-jobs</span> <span class="t-flag">· llama, mistral</span></span><span class="num">$400<span class="muted">/mo</span></span></div>
           <div class="flex items-center justify-between py-2.5"><span><span class="t-cmd">experiments</span> <span class="t-flag">· any model</span></span><span class="num t-warn">$120<span class="muted">/mo · 88%</span></span></div>
         </div>
       </div>
@@ -96,7 +96,7 @@
 </section>
 
 <!-- INTEGRATIONS -->
-<section class="section-tight border-t" style="border-color:var(--color-border)">
+<section class="section-tight border-t bd">
   <div class="wrap">
     <div class="rule-row"><span class="cmt">// connect your stack</span></div>
     <div class="flex flex-wrap gap-2.5 mt-6">
@@ -116,10 +116,10 @@
 <!-- CTA -->
 <section class="section">
   <div class="wrap">
-    <div class="term flex flex-col sm:flex-row items-center justify-between gap-5" style="padding:32px">
+    <div class="term flex flex-col sm:flex-row items-center justify-between gap-5 p-8">
       <div>
-        <h2 class="h2" style="font-size:clamp(1.3rem,2.2vw,1.7rem)">$ helix login</h2>
-        <p class="muted mt-2" style="font-family:var(--font-body)">See it on your own agents. Free up to 50k runs a month.</p>
+        <h2 class="h2 text-[clamp(1.3rem,2.2vw,1.7rem)]">$ helix login</h2>
+        <p class="muted mt-2 sans">See it on your own agents. Free up to 50k runs a month.</p>
       </div>
       <div class="flex gap-3">
         <a class="btn btn-primary btn-lg" data-to="pricing" href="#">start free</a>

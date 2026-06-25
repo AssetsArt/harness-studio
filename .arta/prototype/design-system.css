@@ -15,24 +15,30 @@ body {
 ::selection { background: color-mix(in srgb, var(--color-accent) 32%, transparent); color: #fff; }
 main { display: block; }
 
-.wrap { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
+/* horizontal-only padding (NOT the `padding: 0 28px` shorthand): the shorthand also set
+   padding-top/bottom to 0, silently overriding the Tailwind vertical-padding utilities
+   (py / pt / pb) on any element that ALSO carried `.wrap`; the footer pt-16 pb-12
+   collapsed to 0. Longhand left/right leaves vertical padding to the utility classes. */
+.wrap { max-width: 1080px; margin: 0 auto; padding-left: 28px; padding-right: 28px; }
 .section { padding: 72px 0; }
 .section-tight { padding: 48px 0; }
 
 /* ---- type ---- */
 .mono { font-family: var(--font-mono); }
 .sans { font-family: var(--font-body); }
-.display { font-family: var(--font-mono); font-weight: 500; letter-spacing: -0.02em; line-height: 1.18; color: #eef2f0; text-wrap: balance; }
-.h2 { font-family: var(--font-mono); font-weight: 500; letter-spacing: -0.01em; line-height: 1.25; color: #eef2f0; text-wrap: balance; }
-.lede { color: #aab4bb; font-size: 1.0rem; line-height: 1.6; text-wrap: pretty; }
+.display { font-family: var(--font-mono); font-weight: 500; letter-spacing: -0.02em; line-height: 1.18; color: var(--color-heading); text-wrap: balance; }
+.h2 { font-family: var(--font-mono); font-weight: 500; letter-spacing: -0.01em; line-height: 1.25; color: var(--color-heading); text-wrap: balance; }
+.lede { color: var(--color-lede); font-size: 1.0rem; line-height: 1.6; text-wrap: pretty; }
 .muted { color: var(--color-dim); }
 .mark { color: var(--color-accent); }
+.text-head { color: var(--color-heading); }   /* bright ink: use on a non-heading element (a metric, a value) that needs heading weight of colour */
+.bd { border-color: var(--color-border); }      /* pair with a Tailwind border-/border-t/border-b width utility for the token edge colour */
 .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .cmt { font-family: var(--font-mono); font-size: 0.78rem; color: var(--color-dim); letter-spacing: 0.02em; }
 
 /* ---- terminal syntax tokens ---- */
 .t-prompt { color: var(--color-accent); }
-.t-cmd { color: #eef2f0; font-weight: 500; }
+.t-cmd { color: var(--color-heading); font-weight: 500; }
 .t-flag { color: var(--color-dim); }
 .t-path { color: var(--color-cyan); }
 .t-ok { color: var(--color-accent); }
@@ -50,7 +56,7 @@ main { display: block; }
 .btn-primary { background: var(--color-accent); color: var(--color-accent-ink); font-weight: 600; }
 .btn-primary:hover { filter: brightness(1.08); }
 .btn-ghost { background: transparent; color: var(--color-text); border-color: var(--color-border); }
-.btn-ghost:hover { border-color: color-mix(in srgb, var(--color-accent) 55%, var(--color-border)); background: var(--color-raised); color: #eef2f0; }
+.btn-ghost:hover { border-color: color-mix(in srgb, var(--color-accent) 55%, var(--color-border)); background: var(--color-raised); color: var(--color-heading); }
 .btn-lg { padding: 0.72rem 1.2rem; font-size: 0.92rem; border-radius: var(--radius-md); }
 .bracket::before { content: "["; color: var(--color-dim); margin-right: 0.45rem; }
 .bracket::after { content: "]"; color: var(--color-dim); margin-left: 0.45rem; }
@@ -59,7 +65,7 @@ main { display: block; }
 .topbar { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--color-border);
   background: color-mix(in srgb, var(--color-bg) 82%, transparent); backdrop-filter: blur(10px); }
 .topbar-in { display: flex; align-items: center; gap: 1.3rem; height: 56px; }
-.brand { display: flex; align-items: baseline; gap: 0.5rem; font-family: var(--font-mono); font-weight: 600; letter-spacing: -0.01em; font-size: 1.0rem; color: #eef2f0; }
+.brand { display: flex; align-items: baseline; gap: 0.5rem; font-family: var(--font-mono); font-weight: 600; letter-spacing: -0.01em; font-size: 1.0rem; color: var(--color-heading); }
 .brand .sigil { color: var(--color-accent); font-weight: 700; }
 .nav { display: flex; align-items: center; gap: 0.15rem; }
 .nav-link { font-family: var(--font-mono); font-size: 0.82rem; color: var(--color-dim); padding: 0.35rem 0.6rem; border-radius: 6px; transition: color .14s, background .14s; }
@@ -102,14 +108,14 @@ main { display: block; }
 /* ---- command reference (replaces feature-card grid) ---- */
 .cmd-row { display: grid; grid-template-columns: minmax(150px, 220px) 1fr auto; align-items: baseline; gap: 1.1rem;
   padding: 1.05rem 0; border-top: 1px solid var(--color-border); }
-.cmd-name { font-family: var(--font-mono); font-size: 0.92rem; color: #eef2f0; font-weight: 500; }
+.cmd-name { font-family: var(--font-mono); font-size: 0.92rem; color: var(--color-heading); font-weight: 500; }
 .cmd-name b { color: var(--color-accent); font-weight: 500; }
-.cmd-desc { color: #aab4bb; font-size: 0.92rem; line-height: 1.55; }
+.cmd-desc { color: var(--color-lede); font-size: 0.92rem; line-height: 1.55; }
 
 /* ---- providers / status ---- */
 .kv { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; font-family: var(--font-mono); font-size: 0.82rem; padding: 0.32rem 0; }
 .kv .k { color: var(--color-dim); }
-.kv .v { color: #eef2f0; }
+.kv .v { color: var(--color-heading); }
 
 /* ---- segmented tabs (Platform) — man-page switcher ---- */
 .segs { display: inline-flex; gap: 0.15rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 3px; background: var(--color-surface); }
@@ -124,7 +130,7 @@ main { display: block; }
 /* ---- pricing ---- */
 .tier { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px; display: flex; flex-direction: column; box-shadow: var(--shadow-card); }
 .tier-pop { border-color: color-mix(in srgb, var(--color-accent) 50%, var(--color-border)); box-shadow: var(--shadow-glow); }
-.check { display: flex; align-items: flex-start; gap: 0.55rem; color: #aab4bb; font-size: 0.86rem; line-height: 1.5; font-family: var(--font-mono); }
+.check { display: flex; align-items: flex-start; gap: 0.55rem; color: var(--color-lede); font-size: 0.86rem; line-height: 1.5; font-family: var(--font-mono); }
 .check .ok { color: var(--color-accent); flex: none; }
 
 /* ---- logos / quotes / avatar ---- */

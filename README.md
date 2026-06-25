@@ -19,7 +19,7 @@ machine.
 
 </div>
 
-[![Arta — the Helix prototype in a device frame](docs/arta-hero-light.png)](docs/arta-hero-light.png)
+[![Arta — the Helix prototype in a device frame](docs/arta-hero-light-2.png)](docs/arta-hero-light-2.png)
 
 <div align="center"><sub><em>The Arta viewer with its seeded demo — <strong>Helix</strong>, a landing site for a "unified runtime for AI agents." The light chrome is Arta; the prototype lives inside the device frame.</em></sub></div>
 

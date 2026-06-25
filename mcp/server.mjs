@@ -871,6 +871,28 @@ server.registerTool(
       byScreen[id] = { error: found.filter((f) => f.severity === "error").length, warn: found.filter((f) => f.severity === "warn").length, info: found.filter((f) => f.severity === "info").length };
       all.push(...found);
     }
+    // Shared chrome (the layout's components — topbar / footer / nav) renders on every
+    // screen but lives OUTSIDE the screen bodies, so a body-only scan never sees it. The
+    // dev does — they see a status-dot "liveness" pill or a gradient nav on every page. On a
+    // full scan, also scan each component file on its own (labelled `component:<name>`), so
+    // chrome slop is caught here instead of by the dev. (grade.mjs already composes the
+    // layout for A5; this brings the live review to parity.)
+    if (!screen) {
+      let compIds = [];
+      try {
+        for (const f of fs.readdirSync(COMP_DIR)) if (f.endsWith(".html")) compIds.push(f.replace(/\.html$/, ""));
+      } catch { /* no components dir yet */ }
+      for (const name of compIds) {
+        const body = readRaw(componentFile(name)) ?? "";
+        if (!body) continue;
+        const label = `component:${name}`;
+        const doc = `<style>${designCss}</style>\n${body}`;
+        const found = detectSlop(doc, { file: label }).map((f) => ({ screen: label, ...f }));
+        byScreen[label] = { error: found.filter((f) => f.severity === "error").length, warn: found.filter((f) => f.severity === "warn").length, info: found.filter((f) => f.severity === "info").length };
+        all.push(...found);
+        ids.push(label);
+      }
+    }
     all.sort((a, b) => (RANK[a.severity] - RANK[b.severity]) || String(a.screen).localeCompare(String(b.screen)));
     const bySeverity = { error: all.filter((f) => f.severity === "error").length, warn: all.filter((f) => f.severity === "warn").length, info: all.filter((f) => f.severity === "info").length };
     return text({
